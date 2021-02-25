@@ -24,7 +24,14 @@ jobs:
       run: git submodule update --init --recursive
     - name: Install latest mavlink
       run: git clone --depth 1 https://github.com/mavlink/c_library_v2.git /usr/local/include/mavlink/v2.0 && rm -rf /usr/local/include/mavlink/v2.0/.git
+    - name: Build PX4 SITL Gazebo
+      run: |
+        git clone https://github.com/PX4/PX4-Autopilot.git /PX4-Autopilot
+        make submodulesupdate
+        DONT_RUN=1 make px4_sitl gazebo
     - name: Cmake Build
+      env:
+        PX4_ROOT: /PX4-Autopilot
       run: |
         mkdir build
         cd build
