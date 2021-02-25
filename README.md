@@ -14,3 +14,10 @@ cd build
 cmake ..
 make
 ```
+
+## Running the Simulation
+To run the simulation,
+```
+source setup.bash
+Tools/sitl_run.sh -m techpod_aerodynamic
+```
