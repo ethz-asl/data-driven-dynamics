@@ -31,6 +31,7 @@ jobs:
         cd build
         cmake ..
         make
+        make install
     - name: Install latest mavlink
       run: git clone --depth 1 https://github.com/mavlink/c_library_v2.git /usr/local/include/mavlink/v2.0 && rm -rf /usr/local/include/mavlink/v2.0/.git
     - name: Clone PX4
