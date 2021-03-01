@@ -36,8 +36,8 @@ do
 done
 
 world=${WORLD:=empty}
-export PX4_SIM_MODEL=${VEHICLE_MODEL:=iris}
-GAZEBO_MODEL=${SDF_MODEL};
+export PX4_SIM_MODEL=${VEHICLE_MODEL:=techpod}
+GAZEBO_MODEL=${SDF_MODEL:=techpod_aerodynamics};
 
 build_path=${PX4_ROOT}/build/px4_sitl_default
 mavlink_udp_port=14560

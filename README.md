@@ -34,5 +34,5 @@ make
 To run the simulation,
 ```
 source setup.bash
-Tools/sitl_run.sh -m techpod_aerodynamic
+Tools/sitl_run.sh -m techpod -s techpod_aerodynamics
 ```

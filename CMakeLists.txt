@@ -16,6 +16,8 @@ else()
   set(EIGEN3_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR})
 endif()
 
+find_package(yaml-cpp REQUIRED)
+
 find_package(Boost 1.58 REQUIRED COMPONENTS system thread filesystem)
 # Find Gazebo
 find_package(gazebo REQUIRED)
@@ -54,11 +56,24 @@ include_directories(
   ${GAZEBO_MSG_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIRS}/eigen3	# Workaround for Eigen3
+  ${YAML_CPP_INCLUDE_DIR}
   $ENV{PX4_ROOT}/build/px4_sitl_default/build_gazebo
   )
 
 # Build our plugin
-add_library(gazebo_aerodynamics_plugin SHARED src/gazebo_aerodynamics_plugin.cpp)
-target_link_libraries(gazebo_aerodynamics_plugin ${GAZEBO_LIBRARIES} ${Boost_LIBRARIES})
+add_library(gazebo_fw_dynamics_plugin
+  SHARED 
+  src/gazebo_fw_dynamics_plugin.cpp
+  )
+target_link_libraries(gazebo_fw_dynamics_plugin 
+  ${GAZEBO_LIBRARIES} 
+  ${Boost_LIBRARIES}
+  ${YAML_CPP_LIBRARIES}
+  $ENV{PX4_ROOT}/build/px4_sitl_default/build_gazebo/libmav_msgs.so
+  $ENV{PX4_ROOT}/build/px4_sitl_default/build_gazebo/libnav_msgs.so
+  $ENV{PX4_ROOT}/build/px4_sitl_default/build_gazebo/libphysics_msgs.so
+  $ENV{PX4_ROOT}/build/px4_sitl_default/build_gazebo/libsensor_msgs.so
+  $ENV{PX4_ROOT}/build/px4_sitl_default/build_gazebo/libstd_msgs.so
+  )
 
 add_subdirectory(unit_tests)
