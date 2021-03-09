@@ -3,9 +3,12 @@ __author__ = "Manuel Galliker"
 __maintainer__ = "Manuel Galliker"
 __license__ = "GPL"
 
+import numpy as np
+import pyulog
+
 
 def main():
-    print("hello")
+    print(pyulog.ulog_info("./logs/09_25_36.ulg"))
     return
 
 

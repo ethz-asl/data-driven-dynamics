@@ -1,3 +1,5 @@
 build/*
 logs*
 Tools/log_processing/logs/*
+.venv
+.vscode

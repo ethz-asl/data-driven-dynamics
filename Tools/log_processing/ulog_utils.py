@@ -1,3 +1,8 @@
+__author__ = "TBD"
+__maintainer__ = "Manuel Galliker"
+__license__ = "GPL"
+
+
 import numpy as np
 import pyproj
 import csv
@@ -19,7 +24,7 @@ def quaternion_rotation_matrix(q):
 def slerp(v0, v1, t_array):
     # This is a quaternion interpolation method
     # >>> slerp([1,0,0,0],[0,0,0,1],np.arange(0,1,0.001))
-    # t_array are time indexes for the interpolation, 
+    # t_array are time indexes for the interpolation,
     # where t \in [0, 1], and v0 is at t=0, v1 at t=1
     # From Wikipedia: https://en.wikipedia.org/wiki/Slerp
     t_array = np.array(t_array)
@@ -31,7 +36,8 @@ def slerp(v0, v1, t_array):
         dot = -dot
     DOT_THRESHOLD = 0.9995
     if (dot > DOT_THRESHOLD):
-        result = v0[np.newaxis, :] + t_array[:, np.newaxis] * (v1 - v0)[np.newaxis, :]
+        result = v0[np.newaxis, :] + t_array[:,
+                                             np.newaxis] * (v1 - v0)[np.newaxis, :]
         result = result / np.linalg.norm(result)
         return result
     theta_0 = np.arccos(dot)
@@ -47,7 +53,7 @@ def get_quat(data, index):
     return(np.array([data['q[0]'][index], data['q[1]'][index], data['q[2]'][index], data['q[3]'][index]]))
 
 
-def get_log_data(logfile, proj_logfile=None, proj_output=None, skip_amount=10, verbose = False):
+def get_log_data(logfile, proj_logfile=None, proj_output=None, skip_amount=10, verbose=False):
 
     if proj_logfile is None:
         proj_logfile = pyproj.Proj(proj='latlong', datum='WGS84')
@@ -60,12 +66,13 @@ def get_log_data(logfile, proj_logfile=None, proj_output=None, skip_amount=10, v
         print('Message types found:')
     all_names = [log_data[i].name for i in range(len(log_data))]
     for d in log_data:
-        message_size = sum([ULog.get_field_size(f.type_str) for f in d.field_data])
+        message_size = sum([ULog.get_field_size(f.type_str)
+                            for f in d.field_data])
         num_data_points = len(d.data['timestamp'])
         name_id = "{:} ({:}, {:})".format(d.name, d.multi_id, message_size)
         if (verbose):
             print(" {:<40} {:7d} {:10d}".format(name_id, num_data_points,
-                                            message_size * num_data_points))
+                                                message_size * num_data_points))
 
     # Create dictionary because otherwise unsorted
     target_fields = ['wind_estimate', 'vehicle_global_position', 'sensor_hall', 'sensor_hall_01', 'airspeed',
@@ -75,7 +82,8 @@ def get_log_data(logfile, proj_logfile=None, proj_output=None, skip_amount=10, v
         try:
             data_dict[field] = log_data[all_names.index(field)].data
         except ValueError:
-            print('WARN: Requested field {0} not found in log_file.'.format(field))
+            print(
+                'WARN: Requested field {0} not found in log_file.'.format(field))
 
     ulog_data = {}
 
@@ -84,27 +92,32 @@ def get_log_data(logfile, proj_logfile=None, proj_output=None, skip_amount=10, v
     ulog_data['lon'] = data_dict['vehicle_global_position']['lon'][::skip_amount]
     ulog_data['alt_amsl'] = data_dict['vehicle_global_position']['alt'][::skip_amount]
     ulog_data['x'], ulog_data['y'], ulog_data['alt'] = \
-        pyproj.transform(proj_logfile, proj_output, ulog_data['lon'], ulog_data['lat'], ulog_data['alt_amsl'])
+        pyproj.transform(proj_logfile, proj_output,
+                         ulog_data['lon'], ulog_data['lat'], ulog_data['alt_amsl'])
 
     ulog_data['vel_d'] = data_dict['vehicle_global_position']['vel_d'][::skip_amount]
     ulog_data['vel_e'] = data_dict['vehicle_global_position']['vel_e'][::skip_amount]
     ulog_data['vel_n'] = data_dict['vehicle_global_position']['vel_n'][::skip_amount]
 
     # Get the wind estimates at each location in global_pos
-    ulog_data['we_east'] = np.interp(ulog_data['gp_time'], data_dict['wind_estimate']['timestamp'], data_dict['wind_estimate']['windspeed_east'])
-    ulog_data['we_north'] = np.interp(ulog_data['gp_time'], data_dict['wind_estimate']['timestamp'], data_dict['wind_estimate']['windspeed_north'])
+    ulog_data['we_east'] = np.interp(ulog_data['gp_time'], data_dict['wind_estimate']
+                                     ['timestamp'], data_dict['wind_estimate']['windspeed_east'])
+    ulog_data['we_north'] = np.interp(ulog_data['gp_time'], data_dict['wind_estimate']
+                                      ['timestamp'], data_dict['wind_estimate']['windspeed_north'])
     ulog_data['we_down'] = np.zeros(ulog_data['we_north'].shape)
 
     # Raw wind estimates from alpha, beta !THIS IS UNCORRECTED!
     V_skip = np.interp(ulog_data['gp_time'], data_dict['airspeed']['timestamp'],
                        data_dict['airspeed']['true_airspeed_m_s'])
     try:
-        alpha_skip = np.interp(ulog_data['gp_time'], data_dict['sensor_hall']['timestamp'], data_dict['sensor_hall']['mag_T'])*np.pi/180.0
+        alpha_skip = np.interp(ulog_data['gp_time'], data_dict['sensor_hall']
+                               ['timestamp'], data_dict['sensor_hall']['mag_T'])*np.pi/180.0
     except KeyError:
         print("Alpha vane values not found!!")
         alpha_skip = np.zeros(V_skip.shape)
     try:
-        beta_skip = np.interp(ulog_data['gp_time'], data_dict['sensor_hall_01']['timestamp'], data_dict['sensor_hall_01']['mag_T'])*np.pi/180.0
+        beta_skip = np.interp(ulog_data['gp_time'], data_dict['sensor_hall_01']
+                              ['timestamp'], data_dict['sensor_hall_01']['mag_T'])*np.pi/180.0
     except KeyError:
         print("Beta vane values not found!!")
         beta_skip = np.zeros(V_skip.shape)
@@ -121,9 +134,11 @@ def get_log_data(logfile, proj_logfile=None, proj_output=None, skip_amount=10, v
     for i, st in enumerate(ulog_data['gp_time']):
         tdex = np.sum(st >= data_dict['vehicle_attitude']['timestamp'])
         if tdex > 0 and tdex <= len(data_dict['vehicle_attitude']['timestamp']):
-            tl, tu = data_dict['vehicle_attitude']['timestamp'][tdex-1], data_dict['vehicle_attitude']['timestamp'][tdex]
+            tl, tu = data_dict['vehicle_attitude']['timestamp'][tdex -
+                                                                1], data_dict['vehicle_attitude']['timestamp'][tdex]
             t_scale = (st - tl) / (tu - tl)
-            qq = slerp(get_quat(data_dict['vehicle_attitude'], tdex-1), get_quat(data_dict['vehicle_attitude'], tdex), [t_scale])
+            qq = slerp(get_quat(data_dict['vehicle_attitude'], tdex-1),
+                       get_quat(data_dict['vehicle_attitude'], tdex), [t_scale])
         else:
             qq = get_quat(data_dict['vehicle_attitude'], tdex)
         R = quaternion_rotation_matrix(qq.flat)
@@ -136,7 +151,7 @@ def get_log_data(logfile, proj_logfile=None, proj_output=None, skip_amount=10, v
 
     # Get the UTC time offset from GPS time
     ulog_data['utc_microsec'] = np.interp(ulog_data['gp_time'], data_dict['vehicle_gps_position']['timestamp'],
-              data_dict['vehicle_gps_position']['time_utc_usec'])
+                                          data_dict['vehicle_gps_position']['time_utc_usec'])
 
     return ulog_data
 
@@ -145,11 +160,14 @@ def build_csv(x_terr, y_terr, z_terr, full_block, cosmo_corners, outfile, origin
     # Make a zero array for the wind
     s = [3]
     s.extend([n for n in full_block.shape])
-    full_wind = np.zeros(s, dtype='float')      # full_wind should be [3, z, y, x]
-    full_wind[:, :, ::full_block.shape[0]-1, ::full_block.shape[1]-1] = cosmo_corners
+    # full_wind should be [3, z, y, x]
+    full_wind = np.zeros(s, dtype='float')
+    full_wind[:, :, ::full_block.shape[0]-1,
+              ::full_block.shape[1]-1] = cosmo_corners
     with open(outfile, 'w', newline='') as f:
         csv_writer = csv.writer(f)
-        types = ["p", "U:0", "U:1", "U:2", "epsilon", "k", "nut", "vtkValidPointMask", "Points:0", "Points:1", "Points:2"]
+        types = ["p", "U:0", "U:1", "U:2", "epsilon", "k", "nut",
+                 "vtkValidPointMask", "Points:0", "Points:1", "Points:2"]
         base = np.zeros(len(types))
         csv_writer.writerow(types)
         for k, zt in enumerate(z_terr-origin[2]):
@@ -161,7 +179,8 @@ def build_csv(x_terr, y_terr, z_terr, full_block, cosmo_corners, outfile, origin
                     base[types.index("U:0")] = full_wind[0, k, j, i]
                     base[types.index("U:1")] = full_wind[1, k, j, i]
                     base[types.index("U:2")] = full_wind[2, k, j, i]
-                    base[types.index("vtkValidPointMask")] = (not full_block[k, j, i])*1.0
+                    base[types.index("vtkValidPointMask")] = (
+                        not full_block[k, j, i])*1.0
                     csv_writer.writerow(base)
 
 
@@ -183,9 +202,11 @@ def read_filtered_hdf5(filename, proj_logfile=None, proj_output=None, skip_amoun
     out_dict['alt_amsl'] = out_dict['alt']
 
     out_dict['x'], out_dict['y'], out_dict['alt'] = \
-        pyproj.transform(proj_logfile, proj_output, out_dict['lon'], out_dict['lat'], out_dict['alt_amsl'])
+        pyproj.transform(proj_logfile, proj_output,
+                         out_dict['lon'], out_dict['lat'], out_dict['alt_amsl'])
 
     return out_dict
+
 
 def extract_wind_data(filename, use_estimate):
     # import the wind data
