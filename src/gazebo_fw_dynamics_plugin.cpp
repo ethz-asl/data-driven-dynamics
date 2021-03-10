@@ -270,46 +270,29 @@ void GazeboFwDynamicsPlugin::UpdateForcesAndMoments(Eigen::Vector3d &forces, Eig
   moments << moments_B[0], -moments_B[1], -moments_B[2];
 }
 
-// double GazeboFwDynamicsPlugin::NormalizedInputToAngle(
-//     const ControlSurface& surface, double input) {
-//   return (surface.deflection_max + surface.deflection_min) * 0.5 +
-//       (surface.deflection_max - surface.deflection_min) * 0.5 * input;
-// }
-
-void GazeboFwDynamicsPlugin::ActuatorsCallback(
-    CommandMotorSpeedPtr &actuators_msg) {
-
-//   delta_aileron_left_ = NormalizedInputToAngle(vehicle_params_.aileron_left,
-//       actuators_msg->normalized(vehicle_params_.aileron_left.channel));
-//   delta_aileron_right_ = -NormalizedInputToAngle(vehicle_params_.aileron_right,
-//       actuators_msg->normalized(vehicle_params_.aileron_right.channel));
-//   delta_elevator_ = NormalizedInputToAngle(vehicle_params_.elevator,
-//       actuators_msg->normalized(vehicle_params_.elevator.channel));
-//   delta_flap_ = NormalizedInputToAngle(vehicle_params_.flap,
-//       actuators_msg->normalized(vehicle_params_.flap.channel));
-//   delta_rudder_ = NormalizedInputToAngle(vehicle_params_.rudder,
-//       actuators_msg->normalized(vehicle_params_.rudder.channel));
-
-//   throttle_ = actuators_msg->normalized(vehicle_params_.throttle_channel);
+double GazeboFwDynamicsPlugin::NormalizedInputToAngle(
+    const ControlSurface& surface, double input) {
+  return (surface.deflection_max + surface.deflection_min) * 0.5 +
+      (surface.deflection_max - surface.deflection_min) * 0.5 * input;
 }
 
-// void GazeboFwDynamicsPlugin::RollPitchYawrateThrustCallback(
-//     GzRollPitchYawrateThrustMsgPtr& roll_pitch_yawrate_thrust_msg) {
-//   if (kPrintOnMsgCallback) {
-//     gzdbg << __FUNCTION__ << "() called." << std::endl;
-//   }
+void GazeboFwDynamicsPlugin::ActuatorsCallback(CommandMotorSpeedPtr &actuators_msg) {
 
-//   delta_aileron_left_ = NormalizedInputToAngle(vehicle_params_.aileron_left,
-//       roll_pitch_yawrate_thrust_msg->roll());
-//   delta_aileron_right_ = -NormalizedInputToAngle(vehicle_params_.aileron_right,
-//       roll_pitch_yawrate_thrust_msg->roll());
-//   delta_elevator_ = NormalizedInputToAngle(vehicle_params_.elevator,
-//       roll_pitch_yawrate_thrust_msg->pitch());
-//   delta_rudder_ = NormalizedInputToAngle(vehicle_params_.rudder,
-//       roll_pitch_yawrate_thrust_msg->yaw_rate());
-
-//   throttle_ = roll_pitch_yawrate_thrust_msg->thrust().x();
-// }
+  //TODO: Get channel information from yml file
+  delta_aileron_left_ = -NormalizedInputToAngle(vehicle_params_.aileron_left,
+      static_cast<double>(actuators_msg->motor_speed(5)));
+  delta_aileron_right_ = -NormalizedInputToAngle(vehicle_params_.aileron_right,
+      static_cast<double>(actuators_msg->motor_speed(6)));
+  delta_elevator_ = -NormalizedInputToAngle(vehicle_params_.elevator,
+      static_cast<double>(actuators_msg->motor_speed(7)));
+  delta_flap_ = NormalizedInputToAngle(vehicle_params_.flap,
+      static_cast<double>(actuators_msg->motor_speed(3)));
+  delta_rudder_ = NormalizedInputToAngle(vehicle_params_.rudder,
+      static_cast<double>(actuators_msg->motor_speed(2)));
+  //TODO: Throttle is set to zero since force is applied outside of this plugin
+  // throttle_ = actuators_msg->normalized(vehicle_params_.throttle_channel);
+  throttle_ = 0.0;
+}
 
 void GazeboFwDynamicsPlugin::WindVelocityCallback(
     WindPtr& msg) {

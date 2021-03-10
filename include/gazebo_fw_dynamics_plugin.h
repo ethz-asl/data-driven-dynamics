@@ -65,6 +65,8 @@ class GazeboFwDynamicsPlugin : public ModelPlugin {
   ///           fixed-wing body.
   void UpdateForcesAndMoments(Eigen::Vector3d &forces, Eigen::Vector3d &moments);
 
+  double NormalizedInputToAngle(const ControlSurface& surface, double input);
+
  private:
 
   /// \brief    Flag to indicate that gazebo_mavlink_interface plugin handles
