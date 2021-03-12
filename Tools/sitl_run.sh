@@ -70,6 +70,6 @@ working_dir="$build_path/tmp/rootfs"
 
 pushd "$working_dir" &>/dev/null
 echo "starting instance $N in $(pwd)"
-../../bin/px4 "$build_path/etc" -w sitl_${MODEL} -s etc/init.d-posix/rcS
+../../bin/px4 "$build_path/etc" -s etc/init.d-posix/rcS
 
 popd &>/dev/null
