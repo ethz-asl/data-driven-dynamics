@@ -3,29 +3,20 @@ __author__ = "Manuel Galliker"
 __maintainer__ = "Manuel Galliker"
 __license__ = "BSD 3"
 
+
+# import libraries
+
+
+# import models
 from src.models import simple_multirotor
 
 
 def main():
 
+    rel_ulog_path = "logs/2021-03-15/multirotor_14_52_45.ulg"
+
     # estimate simple multirotor drag model
-    simple_multirotor.estimate_model("logs/2021-03-11/13_06_40.ulg")
-
-    # preparing needed data
-    # angular_accel_df = pandas_from_topic(
-    #     ulog, ["vehicle_angular_acceleration"])
-
-    # tecs_df = pandas_from_topic(
-    #     ulog, ["airspeed_validated"])
-
-    # airspeed_df = tecs_df[["timestamp", "true_airspeed_m_s"]]
-
-    # print(angular_accel_df)
-    # print(tecs_df)
-    # print(airspeed_df)
-
-    # ulog_data = get_log_data("logs/2021-03-08/13_25_28.ulg")
-    # print(ulog_data)
+    simple_multirotor.estimate_model(rel_ulog_path)
 
     return
 
