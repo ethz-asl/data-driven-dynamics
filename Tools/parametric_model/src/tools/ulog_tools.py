@@ -1,14 +1,18 @@
-
 __author__ = "Manuel Galliker"
 __maintainer__ = "Manuel Galliker"
 __license__ = "BSD 3"
 
 import pandas as pd
+import os
+
+from pathlib import Path
 from pyulog import messages, info, core
 
 
-def load_ulog(ulog_path):
-    ulog = core.ULog(ulog_path)
+def load_ulog(rel_ulog_path):
+    proj_path = Path(os.getcwd()).parent.parent
+    log_file_path = os.path.join(proj_path, rel_ulog_path)
+    ulog = core.ULog(log_file_path)
     return ulog
 
 
