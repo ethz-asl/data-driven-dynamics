@@ -13,7 +13,7 @@ from src.models import simple_multirotor
 
 def main():
 
-    rel_ulog_path = "logs/2021-03-15/multirotor_14_52_45.ulg"
+    rel_ulog_path = "logs/2021-03-16/21_45_40.ulg"
 
     # estimate simple multirotor drag model
     simple_multirotor.estimate_model(rel_ulog_path)

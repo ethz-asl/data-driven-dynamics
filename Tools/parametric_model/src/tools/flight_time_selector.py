@@ -19,7 +19,9 @@ class FlightTimeSelector():
         self.t_start = act_df_crp.iloc[1, 0]
         self.t_end = act_df_crp.iloc[(act_df_crp.shape[0]-1), 0]
 
-        print(self.t_start, self.t_end)
+        # print("Flight Time Selector Initialized")
+        # print("start time: ", self.t_start)
+        # print("end time:   ", self.t_end)
 
     def crop_to_fight_time(self, df):
         return crop_df(df, self.t_start, self.t_end)
