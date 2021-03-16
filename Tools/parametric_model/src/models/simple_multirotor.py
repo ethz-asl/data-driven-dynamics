@@ -1,4 +1,3 @@
-
 __author__ = "Manuel Galliker"
 __maintainer__ = "Manuel Galliker"
 __license__ = "BSD 3"
@@ -8,8 +7,7 @@ import pandas as pd
 import matplotlib
 
 from sklearn.linear_model import LinearRegression
-
-from src.tools import load_ulog, pandas_from_topic, FlightTimeSelector, interpolate_dataframes
+from src.tools import load_ulog, pandas_from_topic, FlightTimeSelector, resample_dataframes
 
 
 def prepare_data(ulog):
@@ -21,7 +19,10 @@ def prepare_data(ulog):
 
     accel_df = pandas_from_topic(ulog, ["sensor_accel"])
 
-    interpolate_dataframes([actuator_df, accel_df], fts.t_start, fts.t_end)
+    print(actuator_df)
+    print(accel_df)
+
+    resample_dataframes([actuator_df, accel_df], fts.t_start, fts.t_end, 1.0)
 
 
 def estimate_model(rel_ulog_path):
