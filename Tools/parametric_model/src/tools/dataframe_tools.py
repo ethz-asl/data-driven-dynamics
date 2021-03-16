@@ -53,7 +53,8 @@ def _interpolate_to_timestamp(df, timestamp):
 
 
 def crop_df(df, t_start, t_end):
-    # crop df to contain 1 elemnt before t_start and one after t_end
+    """ crop df to contain 1 elemnt before t_start and one after t_end.
+    This way it is easy to interpolate the data between start and end time. """
     df_start = df[df.timestamp <= t_start].iloc[[-1]]
     df_end = df[df.timestamp >= t_end].iloc[[0]]
 
