@@ -16,11 +16,7 @@ def prepare_data(ulog):
 
     # getting data
     actuator_df = pandas_from_topic(ulog, ["actuator_outputs"])
-
     accel_df = pandas_from_topic(ulog, ["sensor_accel"])
-
-    print(actuator_df)
-    print(accel_df)
 
     resample_dataframes([actuator_df, accel_df], fts.t_start, fts.t_end, 1.0)
 
