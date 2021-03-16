@@ -19,14 +19,17 @@ def resample_dataframes(df_list, t_start, t_end, f_des):
     # compute desired Period in us to be persistent with ulog timestamps
     T_des = 1000000.0/f_des
     n_samples = int((t_end-t_start)/T_des)
+    res_df = pd.DataFrame()
     for df in df_list:
-        df = crop_df(df, t_start, t_end)
+        # df = crop_df(df, t_start, t_end)
         new_df = pd.DataFrame(
             np.zeros((n_samples, df.shape[1])), columns=df.columns)
         for n in range(n_samples):
             t_curr = t_start + n*T_des
             new_df.iloc[[n]] = _interpolate_to_timestamp(df, t_curr)
-        print(new_df)
+        res_df = pd.concat([res_df, new_df], axis=1)
+
+    return res_df.T.drop_duplicates().T
 
 
 def _interpolate_to_timestamp(df, timestamp):
