@@ -4,10 +4,6 @@ __maintainer__ = "Manuel Galliker"
 __license__ = "BSD 3"
 
 
-# import libraries
-
-
-# import models
 from src.models import simple_multirotor
 
 
