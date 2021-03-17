@@ -2,9 +2,31 @@ __author__ = "Manuel Galliker"
 __maintainer__ = "Manuel Galliker"
 __license__ = "BSD 3"
 
+""" The model in this file estimates a simple motor model for the iris quadrocopter of PXç sitl gazebo. 
+
+Start the model identification:
+Call "estimate_model(rel_ulog_path)"
+with rel_ulog_path specifying the path of the log file relative to the project directory (e.g. "logs/2021-03-16/21_45_40.ulg")
+
+Model Parameters: 
+u   : actuator output scaled between 0 and 1
+k_1 : constant 1
+k_2 : constant 2
+m   : mass of UAV
+c   : combined const k_2/m 
+b   : thrust intercept
+
+Model: 
+omega [rad/s] = k_1*u
+F_thrust = c * k_1^2 (u_1^2 + u_2^2 + u_3^2 + u_4^2) + 2 * c * k_1 (u_1 + u_2 + u_3 + u_4) + b
+
+The script estimates [k_1, c, b]
+"""
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import math
 
 from sklearn.linear_model import LinearRegression
 from src.tools import load_ulog, pandas_from_topic, FlightTimeSelector, resample_dataframes
@@ -70,6 +92,12 @@ def prepare_data(ulog):
     return resampled_df
 
 
+def compute_model_params(coefficients, intercept):
+    k_1 = 2*coefficients[0]/coefficients[1]
+    c = -coefficients[1]**2/(2*coefficients[0])
+    return np.array([k_1, c, intercept])
+
+
 def estimate_model(rel_ulog_path):
     print("estimating simple multirotor model...")
     print("loading ulog: ", rel_ulog_path)
@@ -83,6 +111,9 @@ def estimate_model(rel_ulog_path):
     print("R2 score: ", reg.score(X, y))
     print("coefficients: ", reg.coef_)
     print("intercept: ", reg.intercept_)
+
+    model_params = compute_model_params(reg.coef_, reg.intercept_)
+    print("model parameters [k_1, c, b]: ", model_params)
 
     plot_model_prediction(reg.coef_, reg.intercept_, data_df)
 
