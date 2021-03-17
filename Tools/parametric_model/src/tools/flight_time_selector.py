@@ -13,7 +13,7 @@ class FlightTimeSelector():
     def __init__(self, ulog):
         # check the time when actuator 1 is larger than default arming value of 900
         act_df = pandas_from_topic(ulog, ["actuator_outputs"])
-        act_df_crp = act_df[act_df.iloc[:, 2] > 900.0]
+        act_df_crp = act_df[act_df.iloc[:, 2] > 1500.0]
 
         # set start and end time of flight duration
         self.t_start = act_df_crp.iloc[1, 0]
