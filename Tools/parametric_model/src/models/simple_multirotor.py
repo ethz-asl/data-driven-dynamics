@@ -27,9 +27,10 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import math
+import sys
 
 from sklearn.linear_model import LinearRegression
-from src.tools import load_ulog, pandas_from_topic, FlightTimeSelector, resample_dataframes
+from ..tools import load_ulog, pandas_from_topic, FlightTimeSelector, resample_dataframes
 
 
 def plot_model_prediction(coefficients, intercept, data_df):
@@ -121,4 +122,10 @@ def estimate_model(rel_ulog_path):
 
 
 if __name__ == "__main__":
-    main()
+    if sys.argv[1]:
+        # e.g. logs/2021-03-16/21_45_40.ulg
+        rel_ulog_path = sys.argv[1]
+        # estimate simple multirotor drag model
+        estimate_model(rel_ulog_path)
+    else:
+        print("Missing Argument: No path to ulog file provided.")
