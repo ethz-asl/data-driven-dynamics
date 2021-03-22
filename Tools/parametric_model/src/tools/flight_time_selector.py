@@ -7,13 +7,15 @@ import numpy as np
 import pandas as pd
 from src.tools import pandas_from_topic, crop_df
 
+HOVER_PWM = 1500
+
 
 class FlightTimeSelector():
     # defines start and end time of flight using the value of actuator 1
     def __init__(self, ulog):
-        # check the time when actuator 1 is larger than default arming value of 900
+        # check the time when actuator 1 is larger than the minimum PWM required for hover
         act_df = pandas_from_topic(ulog, ["actuator_outputs"])
-        act_df_crp = act_df[act_df.iloc[:, 2] > 1500.0]
+        act_df_crp = act_df[act_df.iloc[:, 2] > HOVER_PWM]
 
         # set start and end time of flight duration
         self.t_start = act_df_crp.iloc[1, 0]
