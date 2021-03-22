@@ -17,7 +17,13 @@ def resample_dataframes(df_list, t_start, t_end, f_des):
     """
 
     # compute desired Period in us to be persistent with ulog timestamps
-    T_des = 1000000.0/f_des
+    try:
+        T_des = 1000000.0/f_des
+    except ValueError:
+        print("Division by f_des not possible. Is it 0?")
+        print("Using 100Hz instead.")
+        T_des = 10000.0
+
     n_samples = int((t_end-t_start)/T_des)
     res_df = pd.DataFrame()
     for df in df_list:
