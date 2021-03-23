@@ -30,6 +30,7 @@ import matplotlib.pyplot as plt
 import math
 import sys
 import yaml
+import argparse
 
 from sklearn.linear_model import LinearRegression
 from ..tools import load_ulog, pandas_from_topic, FlightTimeSelector, resample_dataframes
@@ -134,10 +135,11 @@ def estimate_model(rel_ulog_path):
 
 
 if __name__ == "__main__":
-    if sys.argv[1]:
-        # e.g. logs/2021-03-16/21_45_40.ulg
-        rel_ulog_path = sys.argv[1]
-        # estimate simple multirotor drag model
-        estimate_model(rel_ulog_path)
-    else:
-        print("Missing Argument: No path to ulog file provided.")
+    parser = argparse.ArgumentParser(
+        description='Estimate dynamics model from flight log.')
+    parser.add_argument('log_path', metavar='log_path', type=str,
+                        help='the path of the log to process relative to the project directory.')
+    args = parser.parse_args()
+    rel_ulog_path = args.log_path
+    # estimate simple multirotor drag model
+    estimate_model(rel_ulog_path)

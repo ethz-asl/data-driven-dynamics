@@ -5,20 +5,20 @@ __license__ = "BSD 3"
 
 
 from src.models import simple_multirotor
+import argparse
 import sys
 
 
-def main(argv):
-    print('Argument List:', argv)
-    if argv:
-        # e.g. logs/2021-03-16/21_45_40.ulg
-        rel_ulog_path = argv[0]
-        # estimate simple multirotor drag model
-        simple_multirotor.estimate_model(rel_ulog_path)
-    else:
-        print("Missing Argument: No path to ulog file provided.")
+def main(arg_list):
+    rel_ulog_path = args.log_path
+    simple_multirotor.estimate_model(rel_ulog_path)
     return
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    parser = argparse.ArgumentParser(
+        description='Estimate dynamics model from flight log.')
+    parser.add_argument('log_path', metavar='log_path', type=str,
+                        help='the path of the log to process relative to the project directory.')
+    args = parser.parse_args()
+    main(args)
