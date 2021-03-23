@@ -1,11 +1,11 @@
-h5py==3.2.1
-numpy==1.20.1
-pandas==1.2.3
-pyproj==3.0.1
-pyulog==0.8.0
-scikit-learn==0.24.1
-matplotlib==3.3.4
-PyYAML==5.4.1
-argparse==1.4.0
+h5py>=3.2.1
+numpy>=1.20.1
+pandas>=1.2.3
+pyproj>=3.0.1
+pyulog>=0.8.0
+scikit-learn>=0.24.1
+matplotlib>=3.3.4
+PyYAML>=5.4.1
+argparse>=1.4.0
 
 
