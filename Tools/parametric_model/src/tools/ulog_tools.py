@@ -17,7 +17,7 @@ def load_ulog(rel_ulog_path):
 
 
 def pandas_from_topic(ulog, topic_list):
-
+assert type(topic_list) is list, 'topic_list input must be a list'
     topics_df = pd.DataFrame()
 
     for topic in topic_list:
