@@ -6,7 +6,7 @@ import pandas as pd
 import os
 
 from pathlib import Path
-from pyulog import messages, info, core
+from pyulog import core
 
 
 def load_ulog(rel_ulog_path):
