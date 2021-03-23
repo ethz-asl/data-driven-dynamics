@@ -7,7 +7,7 @@ import pandas as pd
 from src.tools import pandas_from_topic
 
 
-def resample_dataframes(df_list, t_start, t_end, f_des):
+def resample_dataframes(df_list, t_start, t_end, f_des=100.0):
     """create a single dataframe by resampling all dataframes to f_des [Hz]
 
     Inputs:     df_list : List of ulog topic dataframes to resample
