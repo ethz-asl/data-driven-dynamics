@@ -5,3 +5,4 @@ __maintainer__ = "Manuel Galliker"
 __license__ = "BSD 3"
 
 from . import simple_multirotor
+# from .dynamics_model import DynamicsModel

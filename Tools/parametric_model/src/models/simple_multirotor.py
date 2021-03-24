@@ -36,6 +36,7 @@ import argparse
 
 from sklearn.linear_model import LinearRegression
 from ..tools import load_ulog, pandas_from_topic, compute_flight_time, resample_dataframes
+from .dynamics_model import DynamicsModel
 
 
 def plot_model_prediction(coefficients, intercept, data_df):
@@ -116,9 +117,11 @@ def compute_model_params(coefficients, intercept):
 def estimate_model(rel_ulog_path):
     print("estimating simple multirotor model...")
     print("loading ulog: ", rel_ulog_path)
-    ulog = load_ulog(rel_ulog_path)
+    req_topic_list = ["actuator_outputs", "vehicle_local_position"]
 
-    data_df = prepare_data(ulog)
+    model = DynamicsModel(rel_ulog_path, req_topic_list)
+
+    data_df = prepare_data(model.ulog)
     X, y = prepare_regression_matrices(data_df)
 
     reg = LinearRegression().fit(X, y)
