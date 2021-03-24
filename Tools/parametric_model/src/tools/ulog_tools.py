@@ -20,6 +20,7 @@ def pandas_from_topic(ulog, topic_list):
     assert type(topic_list) is list, 'topic_list input must be a list'
     topics_df = pd.DataFrame()
     for topic in topic_list:
+        topic_data = ulog.get_dataset(topic)
         curr_df = pd.DataFrame.from_dict(topic_data.data)
         if topics_df.empty:
             topics_df = curr_df

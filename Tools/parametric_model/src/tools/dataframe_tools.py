@@ -6,6 +6,19 @@ import numpy as np
 import pandas as pd
 from src.tools import pandas_from_topic
 
+HOVER_PWM = 1500
+
+
+def compute_flight_time(ulog):
+    act_df = pandas_from_topic(ulog, ["actuator_outputs"])
+    act_df_crp = act_df[act_df.iloc[:, 2] > HOVER_PWM]
+
+    # set start and end time of flight duration
+    t_start = act_df_crp.iloc[1, 0]
+    t_end = act_df_crp.iloc[(act_df_crp.shape[0]-1), 0]
+    flight_time = {"t_start": t_start, "t_end": t_end}
+    return flight_time
+
 
 def resample_dataframes(df_list, t_start, t_end, f_des=100.0):
     """create a single dataframe by resampling all dataframes to f_des [Hz]
@@ -23,7 +36,7 @@ def resample_dataframes(df_list, t_start, t_end, f_des=100.0):
     n_samples = int((t_end-t_start)/T_des)
     res_df = pd.DataFrame()
     for df in df_list:
-        # df = crop_df(df, t_start, t_end)
+        df = crop_df(df, t_start, t_end)
         new_df = pd.DataFrame(
             np.zeros((n_samples, df.shape[1])), columns=df.columns)
         for n in range(n_samples):

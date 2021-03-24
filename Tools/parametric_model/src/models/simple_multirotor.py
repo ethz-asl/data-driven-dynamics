@@ -18,8 +18,10 @@ accel_const          : combined acceleration constant k_2/m
 
 Model: 
 angular_vel [rad/s] = angular_vel_const*u + angular_vel_offset
-F_thrust = mot_const * angular_vel^2
-F_thrust_tot = mot_const * (angular_vel_1^2 + angular_vel_2^2 + angular_vel_3^2 + angular_vel_4^2)
+F_thrust = - mot_const * angular_vel^2
+F_thrust_tot = - mot_const * (angular_vel_1^2 + angular_vel_2^2 + angular_vel_3^2 + angular_vel_4^2)
+
+Note that the forces are calculated in the NED body frame and are therefore negative.
 
 The script estimates [k_1, c, b]
 """
@@ -33,14 +35,14 @@ import yaml
 import argparse
 
 from sklearn.linear_model import LinearRegression
-from ..tools import load_ulog, pandas_from_topic, FlightTimeSelector, resample_dataframes
+from ..tools import load_ulog, pandas_from_topic, compute_flight_time, resample_dataframes
 
 
 def plot_model_prediction(coefficients, intercept, data_df):
     # plot model prediction
     u = np.linspace(0.0, 1, num=101, endpoint=True)
     u_coll_pred = 4*u
-    u_squared_coll_pred = 4 * np.multiply(u, u)
+    u_squared_coll_pred = 4 * u**2
     y_pred = np.zeros(u.size)
     for i in range(u.size):
         y_pred[i] = coefficients[0]*u_squared_coll_pred[i] + \
@@ -84,7 +86,7 @@ def prepare_regression_matrices(data_df):
 
 def prepare_data(ulog):
     # setup object to crop dataframes for flight data
-    fts = FlightTimeSelector(ulog)
+    fts = compute_flight_time(ulog)
 
     # getting data
     actuator_df = pandas_from_topic(ulog, ["actuator_outputs"])
@@ -94,7 +96,8 @@ def prepare_data(ulog):
     accel_df = accel_df[["timestamp", "az"]]
 
     df_list = [actuator_df, accel_df]
-    resampled_df = resample_dataframes(df_list, fts.t_start, fts.t_end, 10.0)
+    resampled_df = resample_dataframes(
+        df_list, fts["t_start"], fts["t_end"], 10.0)
     return resampled_df
 
 

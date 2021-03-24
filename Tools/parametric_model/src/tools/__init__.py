@@ -5,5 +5,4 @@ __maintainer__ = "Manuel Galliker"
 __license__ = "BSD 3"
 
 from .ulog_tools import load_ulog, pandas_from_topic
-from .dataframe_tools import resample_dataframes, crop_df
-from .flight_time_selector import FlightTimeSelector
+from .dataframe_tools import resample_dataframes, crop_df, compute_flight_time
