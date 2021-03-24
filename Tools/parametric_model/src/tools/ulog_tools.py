@@ -17,19 +17,12 @@ def load_ulog(rel_ulog_path):
 
 
 def pandas_from_topic(ulog, topic_list):
-assert type(topic_list) is list, 'topic_list input must be a list'
+    assert type(topic_list) is list, 'topic_list input must be a list'
     topics_df = pd.DataFrame()
-
     for topic in topic_list:
-        try:
-            topic_data = ulog.get_dataset(topic)
-        except (KeyError, IndexError, ValueError) as error:
-            print(type(error), topic, ":", error)
-
         curr_df = pd.DataFrame.from_dict(topic_data.data)
         if topics_df.empty:
             topics_df = curr_df
         else:
             topics_df = pd.concat([topics_df, curr_df], axis=1)
-
     return topics_df

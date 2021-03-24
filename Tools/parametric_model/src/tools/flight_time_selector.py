@@ -25,5 +25,5 @@ class FlightTimeSelector():
         # print("start time: ", self.t_start)
         # print("end time:   ", self.t_end)
 
-    def crop_to_fight_time(self, df):
+    def crop_to_flight_time(self, df):
         return crop_df(df, self.t_start, self.t_end)
