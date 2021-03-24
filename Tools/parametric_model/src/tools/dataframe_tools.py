@@ -37,37 +37,14 @@ def resample_dataframes(df_list, t_start, t_end, f_des=100.0):
     res_df = pd.DataFrame()
     for df in df_list:
         df = crop_df(df, t_start, t_end)
-        new_df = pd.DataFrame(
-            np.zeros((n_samples, df.shape[1])), columns=df.columns)
-        for n in range(n_samples):
-            t_curr = t_start + n*T_des
-            new_df.iloc[[n]] = _interpolate_to_timestamp(df, t_curr)
+        new_df = pd.DataFrame()
+        new_t = np.arange(t_start, t_end, T_des)
+        for col in df:
+            new_df[col] = np.interp(new_t, df.timestamp, df[col])
+
         res_df = pd.concat([res_df, new_df], axis=1)
 
     return res_df.T.drop_duplicates().T
-
-
-def _interpolate_to_timestamp(df, timestamp):
-    """ extracts the two rows of df with timestamp closest to a specified 
-    timestamp and linearly interpolates its values."""
-
-    # extract rows before and after timestamp
-    r_1 = df[df.timestamp <= timestamp].iloc[[-1]]
-    r_2 = df[df.timestamp >= timestamp].iloc[[0]]
-
-    if (int(r_1.timestamp.to_numpy()) == int(r_2.timestamp.to_numpy())):
-        r_n = r_1
-    else:
-        r_n = pd.DataFrame(
-            np.zeros((1, df.shape[1])), columns=df.columns)
-        r_n.timestamp = timestamp
-        for r in range(1, df.shape[1]):
-            r_n.iloc[0, r] = r_1.iloc[0, r] + \
-                (timestamp - r_1.iloc[0, 0]) * \
-                (r_2.iloc[0, r] - r_1.iloc[0, r]) / \
-                (r_2.iloc[0, 0] - r_1.iloc[0, 0])
-
-    return r_n
 
 
 def crop_df(df, t_start, t_end):
