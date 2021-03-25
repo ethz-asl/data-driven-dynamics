@@ -35,7 +35,7 @@ import yaml
 import argparse
 
 from sklearn.linear_model import LinearRegression
-from ..tools import load_ulog, pandas_from_topic, compute_flight_time, resample_dataframes
+from .dynamics_model import DynamicsModel
 
 
 def plot_model_prediction(coefficients, intercept, data_df):
@@ -84,23 +84,6 @@ def prepare_regression_matrices(data_df):
     return X, y
 
 
-def prepare_data(ulog):
-    # setup object to crop dataframes for flight data
-    fts = compute_flight_time(ulog)
-
-    # getting data
-    actuator_df = pandas_from_topic(ulog, ["actuator_outputs"])
-    actuator_df = actuator_df[["timestamp", "output[0]",
-                               "output[1]", "output[2]", "output[3]"]]
-    accel_df = pandas_from_topic(ulog, ["vehicle_local_position"])
-    accel_df = accel_df[["timestamp", "az"]]
-
-    df_list = [actuator_df, accel_df]
-    resampled_df = resample_dataframes(
-        df_list, fts["t_start"], fts["t_end"], 10.0)
-    return resampled_df
-
-
 def compute_model_params(coefficients, intercept):
     accel_const = float(-coefficients[1]**2/(2*coefficients[0]))
     angular_vel_const = float(2*coefficients[0]/coefficients[1])
@@ -116,9 +99,14 @@ def compute_model_params(coefficients, intercept):
 def estimate_model(rel_ulog_path):
     print("estimating simple multirotor model...")
     print("loading ulog: ", rel_ulog_path)
-    ulog = load_ulog(rel_ulog_path)
+    topic_dict = {
+        "actuator_outputs": ["timestamp", "output[0]", "output[1]", "output[2]", "output[3]"],
+        "vehicle_local_position": ["timestamp", "az"]
+    }
 
-    data_df = prepare_data(ulog)
+    model = DynamicsModel(rel_ulog_path, topic_dict)
+
+    data_df = model.compute_resampled_dataframe(10.0)
     X, y = prepare_regression_matrices(data_df)
 
     reg = LinearRegression().fit(X, y)
