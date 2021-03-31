@@ -38,13 +38,13 @@ from sklearn.linear_model import LinearRegression
 from .dynamics_model import DynamicsModel
 
 
-def predict_rotor_forces(rotor_params, actuator_outputs):
-    # plot model prediction
-    abs_angular_vel_vec = actuator_outputs * \
-        rotor_params["angular_vel_const"] + rotor_params["angular_vel_offset"]
-    abs_force_vec = -np.square(abs_angular_vel_vec) * \
-        rotor_params["accel_const"]
-    return abs_angular_vel_vec, abs_force_vec
+# def predict_rotor_forces(rotor_params, actuator_outputs):
+#     # plot model prediction
+#     abs_angular_vel_vec = actuator_outputs * \
+#         rotor_params["angular_vel_const"] + rotor_params["angular_vel_offset"]
+#     abs_force_vec = -np.square(abs_angular_vel_vec) * \
+#         rotor_params["accel_const"]
+#     return abs_angular_vel_vec, abs_force_vec
 
 
 # def plot_model_prediction(rotor_params, data_df):
@@ -150,7 +150,7 @@ def estimate_model(rel_ulog_path):
     with open('model_params.yml', 'w') as outfile:
         yaml.dump(model_params, outfile, default_flow_style=False)
 
-    plot_model_prediction(model_params, data_df)
+    plot_model_prediction(reg.coef_, reg.intercept_, data_df)
 
     return
 
