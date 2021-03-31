@@ -4,5 +4,6 @@ __author__ = "Manuel Galliker"
 __maintainer__ = "Manuel Galliker"
 __license__ = "BSD 3"
 
-from . import simple_multirotor
+from . import simple_rotor_model
+from .simple_rotor_model import RotorModel
 # from .dynamics_model import DynamicsModel
