@@ -38,6 +38,34 @@ from sklearn.linear_model import LinearRegression
 from .dynamics_model import DynamicsModel
 
 
+def predict_rotor_forces(rotor_params, actuator_outputs):
+    # plot model prediction
+    abs_angular_vel_vec = actuator_outputs * \
+        rotor_params["angular_vel_const"] + rotor_params["angular_vel_offset"]
+    abs_force_vec = -np.square(abs_angular_vel_vec) * \
+        rotor_params["accel_const"]
+    return abs_angular_vel_vec, abs_force_vec
+
+
+# def plot_model_prediction(rotor_params, data_df):
+#     # plot model prediction
+#     u = np.linspace(0.0, 1, num=101, endpoint=True)
+#     input_mat = np.vstack((u, u, u, u))
+#     ang_vel_vec, accel_vec = predict_rotor_forces(rotor_params, input_mat)
+#     coll_accel_pred = np.sum(accel_vec, axis=0)
+
+#     plt.plot((4*u), coll_accel_pred, label='prediction')
+
+#     # plot underlying data
+#     y_data = data_df["az"].to_numpy()
+#     u_coll_data, u_squared_coll_data = compute_collective_input_features(
+#         data_df)
+#     plt.plot(u_coll_data, y_data, 'o', label='data')
+#     plt.ylabel('acceleration in z direction [m/s^2]')
+#     plt.xlabel('collective input (between [0, 1] per input)')
+#     plt.legend()
+#     plt.show()
+
 def plot_model_prediction(coefficients, intercept, data_df):
     # plot model prediction
     u = np.linspace(0.0, 1, num=101, endpoint=True)
@@ -83,6 +111,8 @@ def prepare_regression_matrices(data_df):
     print("datapoints for regression: ", data_df.shape[0])
     return X, y
 
+# these model params are currently wrong
+
 
 def compute_model_params(coefficients, intercept):
     accel_const = float(-coefficients[1]**2/(2*coefficients[0]))
@@ -120,7 +150,7 @@ def estimate_model(rel_ulog_path):
     with open('model_params.yml', 'w') as outfile:
         yaml.dump(model_params, outfile, default_flow_style=False)
 
-    plot_model_prediction(reg.coef_, reg.intercept_, data_df)
+    plot_model_prediction(model_params, data_df)
 
     return
 
