@@ -47,13 +47,9 @@ class RotorModel(DynamicsModel):
         }
         super(RotorModel, self).__init__(rel_ulog_path, req_topic_dict)
 
-    def predict_rotor_forces(actuator_outputs):
-        # plot model prediction
-        abs_angular_vel_vec = actuator_outputs * \
-            rotor_params["angular_vel_const"] + \
-            rotor_params["angular_vel_offset"]
-        abs_force_vec = -np.square(abs_angular_vel_vec) * \
-            rotor_params["accel_const"]
+    def predict_rotor_forces(self, actuator_outputs):
+        accel_vec = self.params["c_quadratic"]*actuator_outputs ^ 2 + \
+            self.params["c_linear"]*actuator_outputs + self.params["c_offset"]
         return accel_vec
 
     def plot_model_prediction(self):
@@ -99,10 +95,10 @@ class RotorModel(DynamicsModel):
         print("datapoints for regression: ", self.data_df.shape[0])
         return X, y
 
-    def estimate_model(self):
+    def estimate_model(self, des_freq=10.0):
         print("estimating simple multirotor model...")
 
-        self.data_df = self.compute_resampled_dataframe(10.0)
+        self.data_df = self.compute_resampled_dataframe(des_freq)
         X, y = self.prepare_regression_mat()
         reg = LinearRegression().fit(X, y)
         print("regression complete")
