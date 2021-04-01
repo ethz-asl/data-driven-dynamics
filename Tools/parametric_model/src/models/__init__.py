@@ -6,4 +6,5 @@ __license__ = "BSD 3"
 
 from . import simple_rotor_model
 from .simple_rotor_model import RotorModel
-# from .dynamics_model import DynamicsModel
+from . import quad_plane_model
+from .quad_plane_model import QuadPlaneModel

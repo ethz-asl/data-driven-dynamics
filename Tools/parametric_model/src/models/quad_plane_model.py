@@ -19,7 +19,10 @@ class QuadPlaneModel(DynamicsModel):
     def __init__(self, rel_ulog_path):
         req_topic_dict = {
             "actuator_outputs": ["timestamp", "output[0]", "output[1]", "output[2]", "output[3]"],
-            "vehicle_local_position": ["timestamp", "ax", "ay", "az"]
+            "vehicle_local_position": ["timestamp", "ax", "ay", "az", "vx", "vy", "vz"],
+            "vehicle_attitude": ["timestamp", "q[0]", "q[1]", "q[2]", "q[3]"],
+            "vehicle_angular_velocity": ["timestamp", "xyz[0]", "xyz[1]", "xyz[2]"],
+            "vehicle_angular_acceleration": ["timestamp", "xyz[0]", "xyz[1]", "xyz[2]"]
         }
         super(QuadPlaneModel, self).__init__(rel_ulog_path, req_topic_dict)
 

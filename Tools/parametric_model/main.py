@@ -4,7 +4,7 @@ __maintainer__ = "Manuel Galliker"
 __license__ = "BSD 3"
 
 
-from src.models import RotorModel
+from src.models import RotorModel, QuadPlaneModel
 import argparse
 import sys
 
@@ -17,6 +17,10 @@ def start_model_estimation(arg_list):
         rotorModel = RotorModel(rel_ulog_path)
         rotorModel.estimate_model()
         rotorModel.plot_model_prediction()
+
+    elif (model == "quad_plane_model"):
+        quadPlaneModel = QuadPlaneModel(rel_ulog_path)
+        quadPlaneModel.estimate_model()
 
     else:
         print("no valid model selected")
