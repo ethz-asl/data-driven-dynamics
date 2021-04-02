@@ -42,8 +42,8 @@ from .dynamics_model import DynamicsModel
 class RotorModel(DynamicsModel):
     def __init__(self, rel_ulog_path):
         req_topic_dict = {
-            "actuator_outputs": ["timestamp", "output[0]", "output[1]", "output[2]", "output[3]"],
-            "vehicle_local_position": ["timestamp", "az"]
+            "actuator_outputs": {"ulog_name": ["timestamp", "output[0]", "output[1]", "output[2]", "output[3]"]},
+            "vehicle_local_position": {"ulog_name": ["timestamp", "az"]}
         }
         super(RotorModel, self).__init__(rel_ulog_path, req_topic_dict)
 

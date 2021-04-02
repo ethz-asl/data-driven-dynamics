@@ -26,8 +26,9 @@ class DynamicsModel():
             try:
                 topic_type_data = self.ulog.get_dataset(topic_type)
                 topic_type_data = topic_type_data.data
-                topic_list = self.req_topics_dict[topic_type]
-                for topic in topic_list:
+                ulog_topic_list = self.req_topics_dict[topic_type]["ulog_name"]
+                for topic_index in range(len(ulog_topic_list)):
+                    topic = ulog_topic_list[topic_index]
                     topic_data = (topic_type_data[topic])
             except:
                 return False
@@ -39,8 +40,13 @@ class DynamicsModel():
         df_list = []
         # getting data
         for topic_type in self.req_topics_dict.keys():
+            topic_dict = self.req_topics_dict[topic_type]
             curr_df = pandas_from_topic(self.ulog, [topic_type])
-            curr_df = curr_df[self.req_topics_dict[topic_type]]
+            curr_df = curr_df[topic_dict["ulog_name"]]
+            if "dataframe_name" in topic_dict.keys():
+                assert (len(topic_dict["dataframe_name"]) == len(topic_dict["ulog_name"])), (
+                    'could not rename topics of type', topic_type, "due to rename list not having an entry for every topic.")
+                curr_df.columns = topic_dict["dataframe_name"]
             df_list.append(curr_df)
 
         resampled_df = resample_dataframes(
