@@ -13,6 +13,7 @@ import yaml
 import argparse
 
 from .dynamics_model import DynamicsModel
+from ..tools import quaternion_to_rotation_matrix
 
 
 class QuadPlaneModel(DynamicsModel):
@@ -30,11 +31,57 @@ class QuadPlaneModel(DynamicsModel):
         }
         super(QuadPlaneModel, self).__init__(rel_ulog_path, req_topic_dict)
 
+    def normalize_actuators(self):
+        # u : normalize actuator output from pwm to be scaled between 0 and 1
+        # To be adjusted using parameters:
+        self.min_pwm = 1000
+        self.max_pwm = 2000
+        self.data_df["u0"] = (self.data_df["u0"] -
+                              self.min_pwm)/(self.max_pwm - self.min_pwm)
+        self.data_df["u1"] = (self.data_df["u1"] -
+                              self.min_pwm)/(self.max_pwm - self.min_pwm)
+        self.data_df["u2"] = (self.data_df["u2"] -
+                              self.min_pwm)/(self.max_pwm - self.min_pwm)
+        self.data_df["u3"] = (self.data_df["u3"] -
+                              self.min_pwm)/(self.max_pwm - self.min_pwm)
+
+    def compute_airspeed(self):
+        groundspeed_ned_mat = np.transpose(
+            ((self.data_df[["vx", "vy", "vz"]]).to_numpy()))
+        attitude_quat_mat = np.transpose(
+            ((self.data_df[["q0", "q1", "q2", "q3"]]).to_numpy()))
+        airspeed_body_mat = np.zeros((5, self.data_df_len))
+
+        for col in range(self.data_df_len):
+            attitude_quat = attitude_quat_mat[:, col]
+            groundspeed_ned = groundspeed_ned_mat[:, col]
+            # double check whether inverse needed!
+            R_world_to_body = np.linalg.inv(
+                quaternion_to_rotation_matrix(attitude_quat))
+            airspeed_body_mat[0:3, col] = R_world_to_body @ groundspeed_ned
+            airspeed_body_mat[3, col] = (
+                airspeed_body_mat[0, col])**2 + (airspeed_body_mat[2, col])**2
+            airspeed_body_mat[4, col] = math.atan(
+                airspeed_body_mat[2, col]/airspeed_body_mat[0, col])
+
+        airspeed_body_df = pd.DataFrame(np.transpose(airspeed_body_mat), columns=[
+            "V_air_body_x", "V_air_body_y", "V_air_body_z", "V_air_body_xz_mag", "AoA"])
+        self.data_df = self.data_df.append(airspeed_body_df)
+
+    def prepare_regression_mat(self):
+        y = self.data_df[["ax", "ay", "az"]].to_numpy()
+        X = np.ones((self.data_df.shape[0], 2))
+        self.normalize_actuators()
+        self.compute_airspeed()
+        return X, y
+
     def estimate_model(self, des_freq=10.0):
         print("estimating quad plane model...")
         self.data_df = self.compute_resampled_dataframe(des_freq)
         print(self.data_df.columns)
-
+        self.data_df_len = self.data_df.shape[0]
+        print("resampled data contains ", self.data_df_len, "timestamps.")
+        X, y = self.prepare_regression_mat()
         return
 
 
