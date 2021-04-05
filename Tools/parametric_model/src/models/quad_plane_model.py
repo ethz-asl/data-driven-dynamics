@@ -30,6 +30,7 @@ class QuadPlaneModel(DynamicsModel):
                                              "dataframe_name":  ["timestamp", "ang_acc_x", "ang_acc_y", "ang_acc_z"]},
         }
         super(QuadPlaneModel, self).__init__(rel_ulog_path, req_topic_dict)
+        self.stall_angle = 20 * math.pi/180
 
     def normalize_actuators(self):
         # u : normalize actuator output from pwm to be scaled between 0 and 1
