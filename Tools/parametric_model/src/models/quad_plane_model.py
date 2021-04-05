@@ -50,6 +50,8 @@ class QuadPlaneModel(DynamicsModel):
                               self.min_pwm)/(self.max_pwm - self.min_pwm)
         self.data_df["u3"] = (self.data_df["u3"] -
                               self.min_pwm)/(self.max_pwm - self.min_pwm)
+        self.data_df["u4"] = (self.data_df["u4"] -
+                              self.min_pwm)/(self.max_pwm - self.min_pwm)
 
     def compute_airspeed(self):
         groundspeed_ned_mat = np.transpose(
@@ -89,24 +91,28 @@ class QuadPlaneModel(DynamicsModel):
             u_i_features = self.actuator_directions[:, i].reshape(
                 (3, 1)) @ np.array([[u_vec[i]**2, u_vec[i], 1]])
             X_thrust_z = X_thrust_z + u_i_features
+            print(X_thrust_z)
 
         X_thrust_x = self.actuator_directions[:, 4].reshape(
             (3, 1)) @ np.array([[u_vec[4]**2, u_vec[4], 1]])
-        X_thrust = np.hstack((X_thrust_x, X_thrust_x))
+        X_thrust = np.hstack((X_thrust_x, X_thrust_z))
+        print(X_thrust)
         return X_thrust
 
     def prepare_regression_mat(self):
-        y_linear = np.zeros((self.data_df.shape[0]*3, 1))
+
         self.normalize_actuators()
         self.compute_airspeed()
         u_mat = self.data_df[["u0", "u1", "u2", "u3", "u4"]].to_numpy()
+
+        y_lin = np.transpose(self.data_df[["ax", "ay", "az"]].to_numpy())
         X_lin_thrust = self.compute_actuator_thrust_features(u_mat[0, :])
         for i in range(1, self.data_df.shape[0]):
             u_curr = u_mat[i, :]
             X_thrust_curr = self.compute_actuator_thrust_features(u_curr)
             X_lin_thrust = np.vstack((X_lin_thrust, X_thrust_curr))
 
-        return X_lin_thrust, y_linear
+        return X_lin_thrust, y_lin
 
     def estimate_model(self, des_freq=10.0):
         print("estimating quad plane model...")
@@ -115,6 +121,7 @@ class QuadPlaneModel(DynamicsModel):
         self.data_df_len = self.data_df.shape[0]
         print("resampled data contains ", self.data_df_len, "timestamps.")
         X, y = self.prepare_regression_mat()
+        print(X)
         return
 
 
