@@ -16,6 +16,7 @@ import argparse
 from scipy.spatial.transform import Rotation
 
 from .dynamics_model import DynamicsModel
+from .aerodynamics import LinearPlateAeroModel
 
 
 class QuadPlaneModel(DynamicsModel):
@@ -76,7 +77,7 @@ class QuadPlaneModel(DynamicsModel):
         self.data_df = pd.concat(
             [self.data_df, airspeed_body_df], axis=1, join="inner")
 
-    def compute_actuator_thrust_features(self, u_vec):
+    def compute_actuator_thrust_feature(self, u_vec):
         """compute thrust model using a 2nd degree model of the normalized actuator outputs
         F_thrust = X_thrust @ (c_5, c_4, c_3, c_2, c_1, c_0)^T
 
@@ -98,19 +99,30 @@ class QuadPlaneModel(DynamicsModel):
         X_thrust = np.hstack((X_thrust_x, X_thrust_z))
         return X_thrust
 
+    def compute_thrust_features(self, u_mat):
+        X_lin_thrust = self.compute_actuator_thrust_feature(u_mat[0, :])
+        for i in range(1, self.data_df.shape[0]):
+            u_curr = u_mat[i, :]
+            X_thrust_curr = self.compute_actuator_thrust_feature(u_curr)
+            X_lin_thrust = np.vstack((X_lin_thrust, X_thrust_curr))
+        return X_lin_thrust
+
     def prepare_regression_mat(self):
 
         self.normalize_actuators()
         self.compute_airspeed()
         u_mat = self.data_df[["u0", "u1", "u2", "u3", "u4"]].to_numpy()
-        X_lin_thrust = self.compute_actuator_thrust_features(u_mat[0, :])
-        for i in range(1, self.data_df.shape[0]):
-            u_curr = u_mat[i, :]
-            X_thrust_curr = self.compute_actuator_thrust_features(u_curr)
-            X_lin_thrust = np.vstack((X_lin_thrust, X_thrust_curr))
+        X_lin_thrust = self.compute_thrust_features(u_mat)
 
+        airspeed_mat = self.data_df[["V_air_body_x",
+                                     "V_air_body_y", "V_air_body_z"]].to_numpy()
+        aoa_mat = self.data_df[["AoA"]].to_numpy()
+        aero_model = LinearPlateAeroModel(20.0)
+        aoa_mat = self.data_df[["AoA"]].to_numpy()
+        X_lin_aero = aero_model.compute_aero_features(airspeed_mat, aoa_mat)
         y_lin = (self.data_df[["ax", "ay", "az"]].to_numpy().flatten())
-        return X_lin_thrust, y_lin
+        X_lin = np.hstack((X_lin_thrust, X_lin_aero))
+        return X_lin, y_lin
 
     def estimate_model(self, des_freq=10.0):
         print("estimating quad plane model...")
@@ -119,7 +131,7 @@ class QuadPlaneModel(DynamicsModel):
         self.data_df_len = self.data_df.shape[0]
         print("resampled data contains ", self.data_df_len, "timestamps.")
         X, y = self.prepare_regression_mat()
-        print(X)
+        print(X.shape)
         print(y)
         return
 
