@@ -13,8 +13,9 @@ import sys
 import yaml
 import argparse
 
+from scipy.spatial.transform import Rotation
+
 from .dynamics_model import DynamicsModel
-from ..tools import quaternion_to_rotation_matrix
 
 
 class QuadPlaneModel(DynamicsModel):
@@ -64,7 +65,7 @@ class QuadPlaneModel(DynamicsModel):
             groundspeed_ned = groundspeed_ned_mat[:, col]
             # double check whether inverse needed!
             R_world_to_body = np.linalg.inv(
-                quaternion_to_rotation_matrix(attitude_quat))
+                Rotation.from_quat(attitude_quat).as_matrix())
             airspeed_body_mat[0:3, col] = R_world_to_body @ groundspeed_ned
             airspeed_body_mat[3, col] = (
                 airspeed_body_mat[0, col])**2 + (airspeed_body_mat[2, col])**2
