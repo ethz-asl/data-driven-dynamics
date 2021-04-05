@@ -14,7 +14,7 @@ import yaml
 import argparse
 
 from .dynamics_model import DynamicsModel
-from ..tools import quaternion_to_rotation_matrix, symmetric_logistic_sigmoid
+from ..tools import quaternion_to_rotation_matrix
 
 
 class QuadPlaneModel(DynamicsModel):
@@ -68,7 +68,7 @@ class QuadPlaneModel(DynamicsModel):
             airspeed_body_mat[0:3, col] = R_world_to_body @ groundspeed_ned
             airspeed_body_mat[3, col] = (
                 airspeed_body_mat[0, col])**2 + (airspeed_body_mat[2, col])**2
-            airspeed_body_mat[4, col] = - math.atan(
+            airspeed_body_mat[4, col] = math.atan(
                 airspeed_body_mat[2, col]/airspeed_body_mat[0, col])
         airspeed_body_df = pd.DataFrame(np.transpose(airspeed_body_mat), columns=[
             "V_air_body_x", "V_air_body_y", "V_air_body_z", "V_air_body_xz_mag", "AoA"])
