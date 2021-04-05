@@ -51,4 +51,4 @@ class DynamicsModel():
 
         resampled_df = resample_dataframes(
             df_list, fts["t_start"], fts["t_end"], resample_freq)
-        return resampled_df
+        return resampled_df.dropna()

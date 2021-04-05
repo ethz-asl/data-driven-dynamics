@@ -26,4 +26,4 @@ def pandas_from_topic(ulog, topic_list):
             topics_df = curr_df
         else:
             topics_df = pd.concat([topics_df, curr_df], axis=1)
-    return topics_df
+    return topics_df.dropna()
