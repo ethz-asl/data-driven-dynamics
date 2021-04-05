@@ -18,6 +18,8 @@ from scipy.spatial.transform import Rotation
 from .dynamics_model import DynamicsModel
 from .aerodynamics import LinearPlateAeroModel
 
+from sklearn.linear_model import LinearRegression
+
 
 class QuadPlaneModel(DynamicsModel):
     def __init__(self, rel_ulog_path):
@@ -131,8 +133,10 @@ class QuadPlaneModel(DynamicsModel):
         self.data_df_len = self.data_df.shape[0]
         print("resampled data contains ", self.data_df_len, "timestamps.")
         X, y = self.prepare_regression_mat()
-        print(X.shape)
-        print(y)
+        reg = LinearRegression().fit(X, y)
+        print("regression complete")
+        print("R2 score: ", reg.score(X, y))
+        print(reg.coef_, reg.intercept_)
         return
 
 
