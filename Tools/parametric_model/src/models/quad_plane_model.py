@@ -19,6 +19,7 @@ from .dynamics_model import DynamicsModel
 from .aerodynamics import LinearPlateAeroModel
 
 from sklearn.linear_model import LinearRegression
+from ..tools import quaternion_to_rotation_matrix, symmetric_logistic_sigmoid
 
 
 class QuadPlaneModel(DynamicsModel):
@@ -62,20 +63,20 @@ class QuadPlaneModel(DynamicsModel):
             ((self.data_df[["vx", "vy", "vz"]]).to_numpy()))
         attitude_quat_mat = np.transpose(
             ((self.data_df[["q0", "q1", "q2", "q3"]]).to_numpy()))
-        airspeed_body_mat = np.zeros((5, self.data_df_len))
+        airspeed_body_mat = np.zeros((4, self.data_df_len))
         for col in range(self.data_df_len):
             attitude_quat = attitude_quat_mat[:, col]
             groundspeed_ned = groundspeed_ned_mat[:, col]
             # double check whether inverse needed!
+            # R_world_to_body = np.linalg.inv(
+            #     Rotation.from_quat(attitude_quat).as_matrix())
             R_world_to_body = np.linalg.inv(
-                Rotation.from_quat(attitude_quat).as_matrix())
+                quaternion_to_rotation_matrix(attitude_quat))
             airspeed_body_mat[0:3, col] = R_world_to_body @ groundspeed_ned
-            airspeed_body_mat[3, col] = (
-                airspeed_body_mat[0, col])**2 + (airspeed_body_mat[2, col])**2
-            airspeed_body_mat[4, col] = math.atan(
+            airspeed_body_mat[3, col] = math.atan(
                 airspeed_body_mat[2, col]/airspeed_body_mat[0, col])
         airspeed_body_df = pd.DataFrame(np.transpose(airspeed_body_mat), columns=[
-            "V_air_body_x", "V_air_body_y", "V_air_body_z", "V_air_body_xz_mag", "AoA"])
+            "V_air_body_x", "V_air_body_y", "V_air_body_z", "AoA"])
         self.data_df = pd.concat(
             [self.data_df, airspeed_body_df], axis=1, join="inner")
 
@@ -109,24 +110,35 @@ class QuadPlaneModel(DynamicsModel):
             X_lin_thrust = np.vstack((X_lin_thrust, X_thrust_curr))
         return X_lin_thrust
 
+    def compute_body_accel(self):
+        acc_w = self.data_df[["ax", "ay", "az"]].to_numpy()
+        acc_b = np.zeros(acc_w.shape)
+        q_mat = self.data_df[["q0", "q1", "q2", "q3"]].to_numpy()
+        for i in range(acc_w.shape[0]):
+            R_world_to_body = np.linalg.inv(
+                quaternion_to_rotation_matrix(q_mat[i, :]))
+            # R_world_to_body = np.linalg.inv(
+            #     Rotation.from_quat(q_mat[i, :]).as_matrix())
+            acc_b[i, :] = R_world_to_body @ acc_w[i, :]
+        return acc_b
+
     def prepare_regression_mat(self):
 
         self.normalize_actuators()
         self.compute_airspeed()
         u_mat = self.data_df[["u0", "u1", "u2", "u3", "u4"]].to_numpy()
         X_lin_thrust = self.compute_thrust_features(u_mat)
-
         airspeed_mat = self.data_df[["V_air_body_x",
                                      "V_air_body_y", "V_air_body_z"]].to_numpy()
         aoa_mat = self.data_df[["AoA"]].to_numpy()
         aero_model = LinearPlateAeroModel(20.0)
         aoa_mat = self.data_df[["AoA"]].to_numpy()
         X_lin_aero = aero_model.compute_aero_features(airspeed_mat, aoa_mat)
-        y_lin = (self.data_df[["ax", "ay", "az"]].to_numpy().flatten())
+        y_lin = (self.compute_body_accel()).flatten()
         X_lin = np.hstack((X_lin_thrust, X_lin_aero))
         return X_lin, y_lin
 
-    def estimate_model(self, des_freq=10.0):
+    def estimate_model(self, des_freq=100.0):
         print("estimating quad plane model...")
         self.data_df = self.compute_resampled_dataframe(des_freq)
         print(self.data_df.columns)
