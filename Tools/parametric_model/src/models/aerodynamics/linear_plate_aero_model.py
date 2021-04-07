@@ -5,7 +5,7 @@ __license__ = "BSD 3"
 import math
 import numpy as np
 
-from ...tools import symmetric_logistic_sigmoid
+from ...tools import sym_sigmoid
 from scipy.spatial.transform import Rotation
 
 
@@ -14,24 +14,33 @@ class LinearPlateAeroModel():
         self.stall_angle = stall_angle
 
     def compute_single_aero_feature(self, v_airspeed, angle_of_attack):
-        # compute lift and drag forces in aero_frame, where x is orented along F_drag and z along F_lift.
+        # compute lift and drag forces in stability axis frame.
         v_xz = math.sqrt(v_airspeed[0]**2 + v_airspeed[2]**2)
-        F_xz_aero_frame = np.zeros((3, 4))
-        F_xz_aero_frame[0, 3] = v_xz**2
-        F_xz_aero_frame[2, 0] = (
-            1 - symmetric_logistic_sigmoid(angle_of_attack, self.stall_angle))*angle_of_attack*v_xz**2
-        F_xz_aero_frame[2, 1] = (
-            1 - symmetric_logistic_sigmoid(angle_of_attack, self.stall_angle))*v_xz**2
-        F_xz_aero_frame[2, 2] = 2 * \
-            symmetric_logistic_sigmoid(angle_of_attack, self.stall_angle) \
+        F_xz_aero_frame = np.zeros((3, 7))
+        F_xz_aero_frame[0, 3] = -(
+            1 - sym_sigmoid(angle_of_attack, self.stall_angle))*v_xz**2
+        F_xz_aero_frame[0, 4] = -(
+            1 - sym_sigmoid(angle_of_attack, self.stall_angle))*angle_of_attack*v_xz**2
+        F_xz_aero_frame[0, 5] = -(
+            1 - sym_sigmoid(angle_of_attack, self.stall_angle))*angle_of_attack**2*v_xz**2
+        F_xz_aero_frame[0, 6] = -(sym_sigmoid(angle_of_attack,
+                                  self.stall_angle))*math.sin(angle_of_attack)*v_xz**2
+        F_xz_aero_frame[2, 0] = -(
+            1 - sym_sigmoid(angle_of_attack, self.stall_angle))*angle_of_attack*v_xz**2
+        F_xz_aero_frame[2, 1] = -(
+            1 - sym_sigmoid(angle_of_attack, self.stall_angle))*v_xz**2
+        F_xz_aero_frame[2, 2] = -2 * \
+            sym_sigmoid(angle_of_attack, self.stall_angle) \
             * math.sin(angle_of_attack)*math.cos(angle_of_attack)*v_xz**2
 
         # Transorm from aero frame to body FRD frame
-        R_aero_to_body = -1 * \
-            Rotation.from_rotvec([0, angle_of_attack, 0]).as_matrix()
+        print(angle_of_attack)
+        R_aero_to_body = Rotation.from_rotvec(
+            [0, -angle_of_attack, 0]).as_matrix()
         F_xz_body_frame = R_aero_to_body @ F_xz_aero_frame
         # compute drag in y direction of body frame
-        F_y_body_frame = np.array([0, v_airspeed[1]**2, 0]).reshape(3, 1)
+        F_y_body_frame = -np.array([0, math.copysign(
+            1, v_airspeed[1]) * v_airspeed[1]**2, 0]).reshape(3, 1)
         X_aero = np.hstack((F_xz_body_frame, F_y_body_frame))
         return X_aero
 
