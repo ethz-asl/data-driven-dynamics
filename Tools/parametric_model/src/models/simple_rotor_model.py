@@ -95,10 +95,8 @@ class RotorModel(DynamicsModel):
         print("datapoints for regression: ", self.data_df.shape[0])
         return X, y
 
-    def estimate_model(self, des_freq=10.0):
+    def estimate_model(self):
         print("estimating simple multirotor model...")
-
-        self.data_df = self.compute_resampled_dataframe(des_freq)
         X, y = self.prepare_regression_mat()
         reg = LinearRegression().fit(X, y)
         print("regression complete")
@@ -126,15 +124,3 @@ if __name__ == "__main__":
     rotorModel = RotorModel(rel_ulog_path)
     rotorModel.estimate_model()
     rotorModel.plot_model_prediction()
-
-    # these model params are currently wrong
-    # def compute_model_params(coefficients, intercept):
-    #     accel_const = float(-coefficients[1]**2/(2*coefficients[0]))
-    #     angular_vel_const = float(2*coefficients[0]/coefficients[1])
-    #     angular_vel_offset = float(
-    #         math.sqrt(-intercept*coefficients[0])/-coefficients[1])
-    #     model_params = {
-    #         "accel_const": accel_const,
-    #         "angular_vel_const": angular_vel_const,
-    #         "angular_vel_offset": angular_vel_offset}
-    #     return model_params
