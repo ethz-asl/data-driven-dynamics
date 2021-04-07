@@ -22,8 +22,6 @@ from sklearn.linear_model import LinearRegression
 
 import matplotlib.pyplot as plt
 
-from ..tools import quaternion_to_rotation_matrix
-
 
 class QuadPlaneModel(DynamicsModel):
     def __init__(self, rel_ulog_path):
@@ -44,22 +42,6 @@ class QuadPlaneModel(DynamicsModel):
                                              [0, 0, 0, 0, 0],
                                              [-1, -1, -1, -1, 0]]
                                             )
-
-    def normalize_actuators(self):
-        # u : normalize actuator output from pwm to be scaled between 0 and 1
-        # To be adjusted using parameters:
-        self.min_pwm = 1000
-        self.max_pwm = 2000
-        self.data_df["u0"] = (self.data_df["u0"] -
-                              self.min_pwm)/(self.max_pwm - self.min_pwm)
-        self.data_df["u1"] = (self.data_df["u1"] -
-                              self.min_pwm)/(self.max_pwm - self.min_pwm)
-        self.data_df["u2"] = (self.data_df["u2"] -
-                              self.min_pwm)/(self.max_pwm - self.min_pwm)
-        self.data_df["u3"] = (self.data_df["u3"] -
-                              self.min_pwm)/(self.max_pwm - self.min_pwm)
-        self.data_df["u4"] = (self.data_df["u4"] -
-                              self.min_pwm)/(self.max_pwm - self.min_pwm)
 
     def compute_airspeed(self):
         groundspeed_ned_mat = (self.data_df[["vx", "vy", "vz"]]).to_numpy()

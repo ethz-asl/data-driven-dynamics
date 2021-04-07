@@ -23,8 +23,12 @@ class DynamicsModel():
         print(self.req_topics_dict.keys())
         assert self.check_ulog_for_req_topics(
         ), 'not all required topics or topic types are contained in the log file'
+
         self.compute_resampled_dataframe()
-        self.compute_attitude_df()
+
+        self.quat_columns = self.get_topic_columns("vehicle_attitude")
+        self.quaternion_df = self.data_df[self.quat_columns]
+        self.q_mat = self.quaternion_df.to_numpy()
 
     def check_ulog_for_req_topics(self):
         for topic_type in self.req_topics_dict.keys():
@@ -57,15 +61,24 @@ class DynamicsModel():
             df_list, fts["t_start"], fts["t_end"], self.resample_freq)
         self.data_df = resampled_df.dropna()
 
-    def compute_attitude_df(self):
-        quat_name_dict = self.req_topics_dict["vehicle_attitude"]
-        if "dataframe_name" in quat_name_dict.keys():
-            quat_name_list = quat_name_dict["dataframe_name"]
+    def get_topic_columns(self, topic_type):
+        topic_type_name_dict = self.req_topics_dict[topic_type]
+        if "dataframe_name" in topic_type_name_dict.keys():
+            topic_columns = topic_type_name_dict["dataframe_name"].copy()
         else:
-            quat_name_list = quat_name_dict["ulog_name"]
-        quat_name_list.remove("timestamp")
-        self.quaternion_df = self.data_df[quat_name_list]
-        self.q_mat = self.quaternion_df.to_numpy()
+            topic_columns = topic_type_name_dict["ulog_name"].copy()
+        topic_columns.remove("timestamp")
+        return topic_columns
+
+    def normalize_actuators(self):
+        # u : normalize actuator output from pwm to be scaled between 0 and 1
+        # To be adjusted using parameters:
+        self.min_pwm = 1000
+        self.max_pwm = 2000
+        self.actuator_columns = self.get_topic_columns("actuator_outputs")
+        for actuator in self.actuator_columns:
+            self.data_df[actuator] = (self.data_df[actuator] -
+                                      self.min_pwm)/(self.max_pwm - self.min_pwm)
 
     def rot_to_body_frame(self, vec_mat):
         """
