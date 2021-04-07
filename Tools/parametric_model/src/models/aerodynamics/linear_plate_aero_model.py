@@ -17,17 +17,16 @@ class LinearPlateAeroModel():
         # compute lift and drag forces in aero_frame, where x is orented along F_drag and z along F_lift.
         v_xz = math.sqrt(v_airspeed[0]**2 + v_airspeed[2]**2)
         F_xz_aero_frame = np.zeros((3, 4))
-        F_xz_aero_frame[0, 3] = 1
+        F_xz_aero_frame[0, 3] = v_xz**2
         F_xz_aero_frame[2, 0] = (
-            1 - symmetric_logistic_sigmoid(angle_of_attack, self.stall_angle))*angle_of_attack
+            1 - symmetric_logistic_sigmoid(angle_of_attack, self.stall_angle))*angle_of_attack*v_xz**2
         F_xz_aero_frame[2, 1] = (
-            1 - symmetric_logistic_sigmoid(angle_of_attack, self.stall_angle))
+            1 - symmetric_logistic_sigmoid(angle_of_attack, self.stall_angle))*v_xz**2
         F_xz_aero_frame[2, 2] = 2 * \
             symmetric_logistic_sigmoid(angle_of_attack, self.stall_angle) \
-            * math.sin(angle_of_attack)*math.cos(angle_of_attack)
-        F_xz_aero_frame = F_xz_aero_frame*v_xz**2
+            * math.sin(angle_of_attack)*math.cos(angle_of_attack)*v_xz**2
 
-        # Transorm from aero frame to body frame
+        # Transorm from aero frame to body FRD frame
         R_aero_to_body = -1 * \
             Rotation.from_rotvec([0, angle_of_attack, 0]).as_matrix()
         F_xz_body_frame = R_aero_to_body @ F_xz_aero_frame

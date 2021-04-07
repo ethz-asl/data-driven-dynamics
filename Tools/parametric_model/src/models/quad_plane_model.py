@@ -21,6 +21,8 @@ from .aerodynamics import LinearPlateAeroModel
 from sklearn.linear_model import LinearRegression
 from ..tools import quaternion_to_rotation_matrix, symmetric_logistic_sigmoid
 
+import matplotlib.pyplot as plt
+
 
 class QuadPlaneModel(DynamicsModel):
     def __init__(self, rel_ulog_path):
@@ -123,7 +125,6 @@ class QuadPlaneModel(DynamicsModel):
         return acc_b
 
     def prepare_regression_mat(self):
-
         self.normalize_actuators()
         self.compute_airspeed()
         u_mat = self.data_df[["u0", "u1", "u2", "u3", "u4"]].to_numpy()
@@ -149,7 +150,35 @@ class QuadPlaneModel(DynamicsModel):
         print("regression complete")
         print("R2 score: ", reg.score(X, y))
         print(reg.coef_, reg.intercept_)
+        y_pred = reg.predict(X)
+        self.plot_accel_predeictions(y, y_pred)
+
         return
+
+    def plot_accel_predeictions(self, y, y_pred):
+        y_pred_mat = y_pred.reshape((-1, 3))
+        y_mat = y.reshape((-1, 3))
+
+        fig, (ax1, ax2, ax3) = plt.subplots(3)
+        fig.suptitle('Vertically stacked subplots')
+        ax1.plot((self.data_df["timestamp"]).to_numpy(),
+                 y_mat[:, 0], label='measurement')
+        ax1.plot((self.data_df["timestamp"]).to_numpy(),
+                 y_pred_mat[:, 0], label='prediction')
+        ax2.plot((self.data_df["timestamp"]).to_numpy(),
+                 y_mat[:, 1], label='measurement')
+        ax2.plot((self.data_df["timestamp"]).to_numpy(),
+                 y_pred_mat[:, 1], label='prediction')
+        ax3.plot((self.data_df["timestamp"]).to_numpy(),
+                 y_mat[:, 2], label='measurement')
+        ax3.plot((self.data_df["timestamp"]).to_numpy(),
+                 y_pred_mat[:, 2], label='prediction')
+
+        ax1.set_title('acceleration in x direction of body frame [m/s^2]')
+        ax2.set_title('acceleration in y direction of body frame [m/s^2]')
+        ax3.set_title('acceleration in z direction of body frame [m/s^2]')
+        plt.legend()
+        plt.show()
 
 
 if __name__ == "__main__":
