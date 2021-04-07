@@ -20,7 +20,7 @@ def start_model_estimation(arg_list):
 
     elif (model == "quad_plane_model"):
         quadPlaneModel = QuadPlaneModel(rel_ulog_path)
-        quadPlaneModel.estimate_model()
+        quadPlaneModel.estimate_model(100.0)
 
     else:
         print("no valid model selected")
