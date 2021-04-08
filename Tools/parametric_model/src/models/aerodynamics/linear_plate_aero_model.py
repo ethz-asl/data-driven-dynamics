@@ -33,8 +33,7 @@ class LinearPlateAeroModel():
             sym_sigmoid(angle_of_attack, self.stall_angle) \
             * math.sin(angle_of_attack)*math.cos(angle_of_attack)*v_xz**2
 
-        # Transorm from aero frame to body FRD frame
-        print(angle_of_attack)
+        # Transorm from stability axis frame to body FRD frame
         R_aero_to_body = Rotation.from_rotvec(
             [0, -angle_of_attack, 0]).as_matrix()
         F_xz_body_frame = R_aero_to_body @ F_xz_aero_frame

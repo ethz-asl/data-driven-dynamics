@@ -48,8 +48,8 @@ class QuadPlaneModel(DynamicsModel):
         airspeed_body_mat = self.rot_to_body_frame(groundspeed_ned_mat)
         aoa_vec = np.zeros((airspeed_body_mat.shape[0], 1))
         for i in range(airspeed_body_mat.shape[0]):
-            aoa_vec[i, :] = math.atan(
-                airspeed_body_mat[i, 2]/airspeed_body_mat[i, 0])
+            aoa_vec[i, :] = math.atan2(
+                airspeed_body_mat[i, 2], airspeed_body_mat[i, 0])
         airspeed_body_mat = np.hstack((airspeed_body_mat, aoa_vec))
         airspeed_body_df = pd.DataFrame(airspeed_body_mat, columns=[
             "V_air_body_x", "V_air_body_y", "V_air_body_z", "AoA"])
@@ -113,8 +113,53 @@ class QuadPlaneModel(DynamicsModel):
         print(reg.coef_, reg.intercept_)
         y_pred = reg.predict(X)
         self.plot_accel_predeictions(y, y_pred)
+        self.plot_y_predicitons(y, y_pred)
+        self.plot_airspeed()
 
         return
+
+    def plot_airspeed(self):
+        y_mat = self.data_df[["V_air_body_x",
+                              "V_air_body_y", "V_air_body_z", "AoA"]].to_numpy()
+        fig, (ax1, ax2, ax3, ax4) = plt.subplots(4)
+        fig.suptitle('Vertically stacked subplots')
+        ax1.plot((self.data_df["timestamp"]).to_numpy(),
+                 y_mat[:, 0], label='measurement')
+
+        ax2.plot((self.data_df["timestamp"]).to_numpy(),
+                 y_mat[:, 1], label='measurement')
+
+        ax3.plot((self.data_df["timestamp"]).to_numpy(),
+                 y_mat[:, 2], label='measurement')
+        ax4.plot((self.data_df["timestamp"]).to_numpy(),
+                 y_mat[:, 3], label='measurement')
+        ax1.set_title('airspeed in x direction of body frame [m/s^2]')
+        ax2.set_title('airspeed in y direction of body frame [m/s^2]')
+        ax3.set_title('airspeed in z direction of body frame [m/s^2]')
+        ax4.set_title("Aoa in body frame [radiants]")
+        plt.legend()
+        plt.show()
+
+    def plot_y_predicitons(self, y, y_pred):
+        y_pred_mat = y_pred.reshape((-1, 3))
+        y_mat = y.reshape((-1, 3))
+        y = self.data_df[["V_air_body_y"]].to_numpy()
+        fig, (ax1, ax2, ax3) = plt.subplots(3)
+        fig.suptitle('Vertically stacked subplots')
+        ax1.plot((self.data_df["timestamp"]).to_numpy(),
+                 y, label='measurement')
+        ax2.plot((self.data_df["timestamp"]).to_numpy(),
+                 y**2, label='measurement')
+
+        ax3.plot((self.data_df["timestamp"]).to_numpy(),
+                 y_mat[:, 1], label='measurement')
+        ax3.plot((self.data_df["timestamp"]).to_numpy(),
+                 y_pred_mat[:, 1], label='prediction')
+        ax1.set_title('airspeed in y direction of body frame [m/s^2]')
+        ax2.set_title('airspeed in y direction squared of body frame [m/s^2]')
+        ax3.set_title('airspeed in y direction of body frame [m/s^2]')
+        plt.legend()
+        plt.show()
 
     def plot_accel_predeictions(self, y, y_pred):
         y_pred_mat = y_pred.reshape((-1, 3))
