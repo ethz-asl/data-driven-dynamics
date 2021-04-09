@@ -56,11 +56,10 @@ class GazeboRotorModel():
         actuator_input_vec: vector of actuator inputs (normalized between 0 and 1), numpy array of shape (n, 1)
         v_airspeed_mat: matrix of vertically stacked airspeed vectors, numpy array of shape (n, 3)
         """
-        X_lin_thrust = self.compute_actuator_force_features(
+        X_actuator_forces = self.compute_actuator_force_features(
             actuator_input_vec[0], v_airspeed_mat[0, :].reshape((3, 1)))
         for i in range(1, self.data_df.shape[0]):
-            u_curr = actuator_input_vec[i, :]
-            X_thrust_curr = self.compute_actuator_thrust_feature(
+            X_curr = self.compute_actuator_thrust_feature(
                 actuator_input_vec[i], v_airspeed_mat[i, :].reshape((3, 1)))
-            X_lin_thrust = np.vstack((X_lin_thrust, X_thrust_curr))
-        return X_lin_thrust
+            X_actuator_forces = np.vstack((X_actuator_forces, X_curr))
+        return X_actuator_forces
