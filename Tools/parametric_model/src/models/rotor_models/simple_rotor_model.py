@@ -39,13 +39,13 @@ from sklearn.linear_model import LinearRegression
 from .dynamics_model import DynamicsModel
 
 
-class RotorModel(DynamicsModel):
+class SimpleRotorModel(DynamicsModel):
     def __init__(self, rel_ulog_path):
         req_topic_dict = {
             "actuator_outputs": {"ulog_name": ["timestamp", "output[0]", "output[1]", "output[2]", "output[3]"]},
             "vehicle_local_position": {"ulog_name": ["timestamp", "az"]}
         }
-        super(RotorModel, self).__init__(rel_ulog_path, req_topic_dict)
+        super(SimpleRotorModel, self).__init__(rel_ulog_path, req_topic_dict)
 
     def predict_rotor_forces(self, actuator_outputs):
         accel_vec = self.params["c_quadratic"]*actuator_outputs ^ 2 + \

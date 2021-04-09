@@ -13,12 +13,12 @@ def start_model_estimation(arg_list):
     rel_ulog_path = arg_list.log_path
     model = arg_list.model
 
-    if (model == "rotor_model"):
-        rotorModel = RotorModel(rel_ulog_path)
-        rotorModel.estimate_model()
-        rotorModel.plot_model_prediction()
+    # if (model == "rotor_model"):
+    #     rotorModel = RotorModel(rel_ulog_path)
+    #     rotorModel.estimate_model()
+    #     rotorModel.plot_model_prediction()
 
-    elif (model == "quad_plane_model"):
+    if (model == "quad_plane_model"):
         quadPlaneModel = QuadPlaneModel(rel_ulog_path)
         quadPlaneModel.estimate_model()
 
