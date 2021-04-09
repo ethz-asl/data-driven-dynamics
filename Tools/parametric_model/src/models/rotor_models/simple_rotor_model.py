@@ -36,7 +36,7 @@ import yaml
 import argparse
 
 from sklearn.linear_model import LinearRegression
-from .dynamics_model import DynamicsModel
+from ..dynamics_model import DynamicsModel
 
 
 class SimpleRotorModel(DynamicsModel):

@@ -17,6 +17,7 @@ from scipy.spatial.transform import Rotation
 
 from .dynamics_model import DynamicsModel
 from .aerodynamics import LinearPlateAeroModel
+from .rotor_models import GazeboRotorModel
 
 from sklearn.linear_model import LinearRegression
 
@@ -56,41 +57,35 @@ class QuadPlaneModel(DynamicsModel):
         self.data_df = pd.concat(
             [self.data_df, airspeed_body_df], axis=1, join="inner")
 
-    def compute_actuator_thrust_feature(self, u_vec):
-        """compute thrust model using a 2nd degree model of the normalized actuator outputs
-        F_thrust = X_thrust @ (c_5, c_4, c_3, c_2, c_1, c_0)^T
+    def compute_actuator_features(self):
+        u_mat = self.data_df[["u0", "u1", "u2", "u3", "u4"]].to_numpy()
+        v_airspeed_mat = self.data_df[[
+            "V_air_body_x", "V_air_body_y", "V_air_body_z"]].to_numpy()
 
-        Vertical Rotor forces (u_0 to u_3):
-        F_z_i = c_2 * u_i^2 + c_1 * u_i + c_0
-        Forward Rotor force:
-        F_x_i = c_5 * u_4^4 + c_4 * u_4 + c_3
+        # Vertical Rotor Features
+        # all vertical rotors have the same parameters, therefore their feature matrices are added.
+        X_forces_vertical_rotors = np.zeros((3*self.data_df.shape[0], 5))
+        print(self.data_df.shape[1])
+        for i in range(0, (u_mat.shape[1]-1)):
+            print(i)
+            currActuator = GazeboRotorModel(self.actuator_directions[:, i])
+            X_forces = currActuator.compute_actuator_feature_matrix(
+                u_mat[:, i], v_airspeed_mat)
+            X_forces_vertical_rotors = X_forces_vertical_rotors + X_forces
 
-        Input: u_vec = [u_0, .... u_4]"""
+        # Forward Rotor Feature
+        forwardActuator = GazeboRotorModel(self.actuator_directions[:, 4])
+        X_forces_forward_rotor = forwardActuator.compute_actuator_feature_matrix(
+            u_mat[:, 4], v_airspeed_mat)
 
-        X_thrust_z = np.zeros((3, 3))
-        for i in range(4):
-            u_i_features = self.actuator_directions[:, i].reshape(
-                (3, 1)) @ np.array([[u_vec[i]**2, u_vec[i], 1]])
-            X_thrust_z = X_thrust_z + u_i_features
-
-        X_thrust_x = self.actuator_directions[:, 4].reshape(
-            (3, 1)) @ np.array([[u_vec[4]**2, u_vec[4], 1]])
-        X_thrust = np.hstack((X_thrust_x, X_thrust_z))
-        return X_thrust
-
-    def compute_thrust_features(self, u_mat):
-        X_lin_thrust = self.compute_actuator_thrust_feature(u_mat[0, :])
-        for i in range(1, self.data_df.shape[0]):
-            u_curr = u_mat[i, :]
-            X_thrust_curr = self.compute_actuator_thrust_feature(u_curr)
-            X_lin_thrust = np.vstack((X_lin_thrust, X_thrust_curr))
-        return X_lin_thrust
+        X_rotor_features = np.hstack(
+            (X_forces_vertical_rotors, X_forces_forward_rotor))
+        return X_rotor_features
 
     def prepare_regression_mat(self):
         self.normalize_actuators()
         self.compute_airspeed()
-        u_mat = self.data_df[["u0", "u1", "u2", "u3", "u4"]].to_numpy()
-        X_lin_thrust = self.compute_thrust_features(u_mat)
+        X_lin_thrust = self.compute_actuator_features()
         airspeed_mat = self.data_df[["V_air_body_x",
                                      "V_air_body_y", "V_air_body_z"]].to_numpy()
         aoa_mat = self.data_df[["AoA"]].to_numpy()

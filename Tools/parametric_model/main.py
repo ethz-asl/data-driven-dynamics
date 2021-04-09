@@ -4,7 +4,7 @@ __maintainer__ = "Manuel Galliker"
 __license__ = "BSD 3"
 
 
-from src.models import RotorModel, QuadPlaneModel
+from src.models import QuadPlaneModel
 import argparse
 import sys
 
