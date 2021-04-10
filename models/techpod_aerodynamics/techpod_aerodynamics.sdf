@@ -497,10 +497,15 @@
       <child>gps::link</child>
       <parent>base_link</parent>
     </joint>
-    <plugin name='aerodynamics' filename='libgazebo_fw_dynamics_plugin.so'>
-      <robotNamespace></robotNamespace>
-      <linkName>base_link</linkName>
-    </plugin>
+    <include>
+      <uri>model://airspeed</uri>
+      <pose>0 0 0 0 0 0</pose>
+      <name>airspeed</name>
+    </include>
+    <joint name='airspeed_joint' type='fixed'>
+      <child>airspeed::link</child>
+      <parent>base_link</parent>
+    </joint>
     <plugin name='puller' filename='libgazebo_motor_model.so'>
       <robotNamespace></robotNamespace>
       <jointName>rotor_puller_joint</jointName>

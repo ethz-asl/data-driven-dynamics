@@ -840,10 +840,15 @@
       <pubRate>50</pubRate>
       <baroTopic>/baro</baroTopic>
     </plugin>
-    <plugin name='airspeed_plugin' filename='libgazebo_airspeed_plugin.so'>
-      <robotNamespace/>
-      <linkName>standard_vtol/airspeed_link</linkName>
-    </plugin>
+    <include>
+      <uri>model://airspeed</uri>
+      <pose>0 0 0 0 0 0</pose>
+      <name>airspeed</name>
+    </include>
+    <joint name='airspeed_joint' type='fixed'>
+      <child>airspeed::link</child>
+      <parent>base_link</parent>
+    </joint>
     <plugin name='mavlink_interface' filename='libgazebo_mavlink_interface.so'>
       <robotNamespace></robotNamespace>
       <imuSubTopic>/imu</imuSubTopic>
