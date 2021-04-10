@@ -1,4 +1,4 @@
-h5py>=3.2.1
+h5py>=3.1.0
 numpy>=1.20.1
 pandas>=1.2.3
 pyproj>=3.0.1
