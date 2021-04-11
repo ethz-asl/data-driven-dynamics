@@ -27,8 +27,8 @@ import matplotlib.pyplot as plt
 class QuadPlaneModel(DynamicsModel):
     def __init__(self, rel_ulog_path):
         req_topic_dict = {
-            "actuator_outputs": {"ulog_name": ["timestamp", "output[0]", "output[1]", "output[2]", "output[3]", "output[4]"],
-                                 "dataframe_name":  ["timestamp", "u0", "u1", "u2", "u3", "u4"]},
+            "actuator_outputs": {"ulog_name": ["timestamp", "output[0]", "output[1]", "output[2]", "output[3]", "output[4]", "output[5]", "output[6]", "output[7]"],
+                                 "dataframe_name":  ["timestamp", "u0", "u1", "u2", "u3", "u4", "u5", "u6", "u7"]},
             "vehicle_local_position": {"ulog_name": ["timestamp", "ax", "ay", "az", "vx", "vy", "vz"]},
             "vehicle_attitude": {"ulog_name": ["timestamp", "q[0]", "q[1]", "q[2]", "q[3]"],
                                  "dataframe_name":  ["timestamp", "q0", "q1", "q2", "q3"]},
@@ -65,9 +65,7 @@ class QuadPlaneModel(DynamicsModel):
         # Vertical Rotor Features
         # all vertical rotors have the same parameters, therefore their feature matrices are added.
         X_forces_vertical_rotors = np.zeros((3*self.data_df.shape[0], 5))
-        print(self.data_df.shape[1])
         for i in range(0, (u_mat.shape[1]-1)):
-            print(i)
             currActuator = GazeboRotorModel(self.actuator_directions[:, i])
             X_forces = currActuator.compute_actuator_feature_matrix(
                 u_mat[:, i], v_airspeed_mat)
@@ -88,9 +86,11 @@ class QuadPlaneModel(DynamicsModel):
         X_lin_thrust = self.compute_actuator_features()
         airspeed_mat = self.data_df[["V_air_body_x",
                                      "V_air_body_y", "V_air_body_z"]].to_numpy()
+        flap_commands = self.data_df[["u5", "u6", "u7"]].to_numpy()
         aoa_mat = self.data_df[["AoA"]].to_numpy()
         aero_model = LinearPlateAeroModel(20.0)
-        X_lin_aero = aero_model.compute_aero_features(airspeed_mat, aoa_mat)
+        X_lin_aero = aero_model.compute_aero_features(
+            airspeed_mat, aoa_mat, flap_commands)
         accel_mat = self.data_df[["ax", "ay", "az"]].to_numpy()
         y_lin = (self.rot_to_body_frame(accel_mat)).flatten()
         X_lin = np.hstack((X_lin_thrust, X_lin_aero))
