@@ -43,15 +43,23 @@ class LinearPlateAeroModel():
         X_aero = np.hstack((F_xz_body_frame, F_y_body_frame))
         return X_aero
 
-    def compute_rudder_feature(self, v_airspeed, flap_commands):
+    def compute_aileron_feature(self, v_airspeed, angle_of_attack, flap_commands):
         v_xz = math.sqrt(v_airspeed[0]**2 + v_airspeed[2]**2)
-        X_rudder = np.zeros((3, 1))
-        X_rudder[1, 0] = (flap_commands[0] - flap_commands[1])*v_xz**2
-        return X_rudder
+        X_rudder_aero = np.zeros((3, 5))
+        X_rudder_aero[0, 0] = - (flap_commands[2] - 0.6)*v_xz**2
+        X_rudder_aero[0, 1] = - (flap_commands[2] - 0.6)**2*v_xz**2
+        X_rudder_aero[0, 2] = v_xz**2
+        X_rudder_aero[1, 3] = (flap_commands[0])*v_xz**2
+        X_rudder_aero[1, 4] = (flap_commands[1])*v_xz**2
+        R_aero_to_body = Rotation.from_rotvec(
+            [0, -angle_of_attack, 0]).as_matrix()
+        X_rudder_body = R_aero_to_body @ X_rudder_aero
+        return X_rudder_body
 
     def compute_single_aero_feature(self, v_airspeed, angle_of_attack, flap_commands):
         X_wing = self.compute_main_wing_feature(v_airspeed, angle_of_attack)
-        X_rudder = self.compute_rudder_feature(v_airspeed, flap_commands)
+        X_rudder = self.compute_aileron_feature(
+            v_airspeed, angle_of_attack, flap_commands)
         return np.hstack((X_wing, X_rudder))
 
     def compute_aero_features(self, v_airspeed_mat, angle_of_attack_vec, flap_commands):

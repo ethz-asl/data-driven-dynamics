@@ -108,6 +108,7 @@ class QuadPlaneModel(DynamicsModel):
         print(reg.coef_, reg.intercept_)
         y_pred = reg.predict(X)
         self.plot_accel_predeictions(y, y_pred)
+        self.plot_accel_predeictions2(y, y_pred)
         self.plot_y_predicitons(y, y_pred)
         self.plot_airspeed()
 
@@ -153,6 +154,38 @@ class QuadPlaneModel(DynamicsModel):
         ax1.set_title('airspeed in y direction of body frame [m/s^2]')
         ax2.set_title('airspeed in y direction squared of body frame [m/s^2]')
         ax3.set_title('airspeed in y direction of body frame [m/s^2]')
+        plt.legend()
+        plt.show()
+
+    def plot_accel_predeictions2(self, y, y_pred):
+
+        y_pred_mat = y_pred.reshape((-1, 3))
+        y_mat = y.reshape((-1, 3))
+
+        fig, (ax1, ax2, ax3, ax4) = plt.subplots(4)
+        fig.suptitle('Vertically stacked subplots')
+        ax1.plot((self.data_df["timestamp"]).to_numpy(),
+                 y_mat[:, 0], label='measurement')
+        ax1.plot((self.data_df["timestamp"]).to_numpy(),
+                 y_pred_mat[:, 0], label='prediction')
+        ax2.plot((self.data_df["timestamp"]).to_numpy(),
+                 y_mat[:, 1], label='measurement')
+        ax2.plot((self.data_df["timestamp"]).to_numpy(),
+                 y_pred_mat[:, 1], label='prediction')
+        ax3.plot((self.data_df["timestamp"]).to_numpy(),
+                 y_mat[:, 2], label='measurement')
+        ax3.plot((self.data_df["timestamp"]).to_numpy(),
+                 y_pred_mat[:, 2], label='prediction')
+        ax4.plot((self.data_df["timestamp"]).to_numpy(),
+                 self.data_df["u5"].to_numpy(), label='u5')
+        ax4.plot((self.data_df["timestamp"]).to_numpy(),
+                 self.data_df["u6"].to_numpy(), label='u6')
+        ax4.plot((self.data_df["timestamp"]).to_numpy(),
+                 self.data_df["u7"].to_numpy(), label='u7')
+
+        ax1.set_title('acceleration in x direction of body frame [m/s^2]')
+        ax2.set_title('acceleration in y direction of body frame [m/s^2]')
+        ax3.set_title('acceleration in z direction of body frame [m/s^2]')
         plt.legend()
         plt.show()
 

@@ -5,6 +5,7 @@ __license__ = "BSD 3"
 import numpy as np
 import pandas as pd
 from src.tools import pandas_from_topic
+from .ulog_utils import slerp
 
 HOVER_PWM = 1500
 
@@ -35,16 +36,46 @@ def resample_dataframes(df_list, t_start, t_end, f_des=100.0):
 
     n_samples = int((t_end-t_start)/T_des)
     res_df = pd.DataFrame()
+    new_t_list = np.arange(t_start, t_end, T_des)
     for df in df_list:
         df = crop_df(df, t_start, t_end)
-        new_df = pd.DataFrame()
-        new_t = np.arange(t_start, t_end, T_des)
-        for col in df:
-            new_df[col] = np.interp(new_t, df.timestamp, df[col])
+
+        # use slerp interpolation for quaternions
+        # add a better criteria than the exact naming at a later point.
+        if 'q0' in df:
+            print(df)
+            q_mat = slerp_interpolate_from_df(df, new_t_list[0])
+
+            for i in range(1, len(new_t_list)):
+                q_new = slerp_interpolate_from_df(df, new_t_list[i])
+                q_mat = np.vstack((q_mat, q_new))
+            attitude_col_names = list(df.columns)
+            print(attitude_col_names)
+            attitude_col_names.remove("timestamp")
+            print(attitude_col_names)
+            new_df = pd.DataFrame(q_mat, columns=attitude_col_names)
+            print(new_df)
+
+        else:
+            new_df = pd.DataFrame()
+            for col in df:
+                new_df[col] = np.interp(new_t_list, df.timestamp, df[col])
 
         res_df = pd.concat([res_df, new_df], axis=1)
 
     return res_df.T.drop_duplicates().T
+
+
+def slerp_interpolate_from_df(df, new_t):
+    df_sort = df.iloc[(df['timestamp']-new_t).abs().argsort()[:2]]
+    df_timestamps = df_sort['timestamp'].values.tolist()
+    t_ratio = (new_t - df_timestamps[0]) / \
+        (df_timestamps[1] - df_timestamps[0])
+    df_sort = df_sort.drop(columns=['timestamp'])
+
+    q_new = slerp(df_sort.iloc[0, :].to_numpy(
+    ), df_sort.iloc[1, :].to_numpy(), np.array([t_ratio]))
+    return q_new
 
 
 def crop_df(df, t_start, t_end):
