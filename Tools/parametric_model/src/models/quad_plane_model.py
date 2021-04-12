@@ -57,21 +57,27 @@ class QuadPlaneModel(DynamicsModel):
 
         # Vertical Rotor Features
         # all vertical rotors are assumed to have the same rotor parameters, therefore their feature matrices are added.
-        X_forces_vertical_rotors = np.zeros((3*self.data_df.shape[0], 5))
+        X_vertical_rotors = np.zeros((3*self.data_df.shape[0], 5))
         for i in range(0, (u_mat.shape[1]-1)):
             currActuator = GazeboRotorModel(self.actuator_directions[:, i])
-            X_forces = currActuator.compute_actuator_feature_matrix(
+            X_forces, vert_rotors_coef_list = currActuator.compute_actuator_feature_matrix(
                 u_mat[:, i], v_airspeed_mat)
-            X_forces_vertical_rotors = X_forces_vertical_rotors + X_forces
-
+            X_vertical_rotors = X_vertical_rotors + X_forces
+        for i in range(len(vert_rotors_coef_list)):
+            vert_rotors_coef_list[i] = "vert_" + vert_rotors_coef_list[i]
         # Forward Rotor Feature
         forwardActuator = GazeboRotorModel(self.actuator_directions[:, 4])
-        X_forces_forward_rotor = forwardActuator.compute_actuator_feature_matrix(
+        X_forward_rotor, forward_rotors_coef_list = forwardActuator.compute_actuator_feature_matrix(
             u_mat[:, 4], v_airspeed_mat)
+        for i in range(len(forward_rotors_coef_list)):
+            forward_rotors_coef_list[i] = "forward_" + \
+                forward_rotors_coef_list[i]
 
         # Combine all rotor feature matrices
         X_rotor_features = np.hstack(
-            (X_forces_vertical_rotors, X_forces_forward_rotor))
+            (X_vertical_rotors, X_forward_rotor))
+        self.coef_name_list.extend(
+            (vert_rotors_coef_list + forward_rotors_coef_list))
         return X_rotor_features
 
     def prepare_regression_matrices(self):
@@ -83,8 +89,9 @@ class QuadPlaneModel(DynamicsModel):
         flap_commands = self.data_df[["u5", "u6", "u7"]].to_numpy()
         aoa_mat = self.data_df[["AoA"]].to_numpy()
         aero_model = LinearPlateAeroModel(20.0)
-        X_lin_aero = aero_model.compute_aero_features(
+        X_lin_aero, aero_coef_list = aero_model.compute_aero_features(
             airspeed_mat, aoa_mat, flap_commands)
+        self.coef_name_list.extend(aero_coef_list)
         accel_mat = self.data_df[["ax", "ay", "az"]].to_numpy()
         y_lin = (self.rot_to_body_frame(accel_mat)).flatten()
         X_lin = np.hstack((X_lin_thrust, X_lin_aero))

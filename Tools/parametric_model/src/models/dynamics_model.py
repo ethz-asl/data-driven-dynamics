@@ -29,6 +29,9 @@ class DynamicsModel():
         self.quaternion_df = self.data_df[self.quat_columns]
         self.q_mat = self.quaternion_df.to_numpy()
 
+        # used to generate a dict with the resulting coefficients later on.
+        self.coef_name_list = []
+
     def check_ulog_for_req_topics(self):
         for topic_type in self.req_topics_dict.keys():
             try:
