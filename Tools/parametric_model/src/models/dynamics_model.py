@@ -7,8 +7,6 @@ export to a sitl gazebo model by providing a unified interface for all models. "
 
 from ..tools import load_ulog, pandas_from_topic, compute_flight_time, resample_dataframes
 from ..tools import quaternion_to_rotation_matrix
-from pyulog import core
-import pandas as pd
 import numpy as np
 
 
@@ -26,7 +24,8 @@ class DynamicsModel():
 
         self.compute_resampled_dataframe()
 
-        self.quat_columns = self.get_topic_columns("vehicle_attitude")
+        self.quat_columns = self.get_topic_list_from_topic_type(
+            "vehicle_attitude")
         self.quaternion_df = self.data_df[self.quat_columns]
         self.q_mat = self.quaternion_df.to_numpy()
 
@@ -61,7 +60,7 @@ class DynamicsModel():
             df_list, fts["t_start"], fts["t_end"], self.resample_freq)
         self.data_df = resampled_df.dropna()
 
-    def get_topic_columns(self, topic_type):
+    def get_topic_list_from_topic_type(self, topic_type):
         topic_type_name_dict = self.req_topics_dict[topic_type]
         if "dataframe_name" in topic_type_name_dict.keys():
             topic_columns = topic_type_name_dict["dataframe_name"].copy()
@@ -75,7 +74,8 @@ class DynamicsModel():
         # To be adjusted using parameters:
         self.min_pwm = 1000
         self.max_pwm = 2000
-        self.actuator_columns = self.get_topic_columns("actuator_outputs")
+        self.actuator_columns = self.get_topic_list_from_topic_type(
+            "actuator_outputs")
         for actuator in self.actuator_columns:
             self.data_df[actuator] = (self.data_df[actuator] -
                                       self.min_pwm)/(self.max_pwm - self.min_pwm)

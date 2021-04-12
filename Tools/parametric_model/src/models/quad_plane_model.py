@@ -7,21 +7,14 @@ https://docs.px4.io/master/en/simulation/gazebo_vehicles.html#standard_vtol """
 
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 import math
-import sys
-import yaml
 import argparse
 
-from scipy.spatial.transform import Rotation
-
 from .dynamics_model import DynamicsModel
-from .aerodynamics import LinearPlateAeroModel
+from .aerodynamic_models import LinearPlateAeroModel
 from .rotor_models import GazeboRotorModel
-
 from sklearn.linear_model import LinearRegression
-
-import matplotlib.pyplot as plt
+from .model_plots import model_plots, quad_plane_model_plots
 
 
 class QuadPlaneModel(DynamicsModel):
@@ -57,13 +50,13 @@ class QuadPlaneModel(DynamicsModel):
         self.data_df = pd.concat(
             [self.data_df, airspeed_body_df], axis=1, join="inner")
 
-    def compute_actuator_features(self):
+    def compute_rotor_features(self):
         u_mat = self.data_df[["u0", "u1", "u2", "u3", "u4"]].to_numpy()
         v_airspeed_mat = self.data_df[[
             "V_air_body_x", "V_air_body_y", "V_air_body_z"]].to_numpy()
 
         # Vertical Rotor Features
-        # all vertical rotors have the same parameters, therefore their feature matrices are added.
+        # all vertical rotors are assumed to have the same rotor parameters, therefore their feature matrices are added.
         X_forces_vertical_rotors = np.zeros((3*self.data_df.shape[0], 5))
         for i in range(0, (u_mat.shape[1]-1)):
             currActuator = GazeboRotorModel(self.actuator_directions[:, i])
@@ -76,14 +69,15 @@ class QuadPlaneModel(DynamicsModel):
         X_forces_forward_rotor = forwardActuator.compute_actuator_feature_matrix(
             u_mat[:, 4], v_airspeed_mat)
 
+        # Combine all rotor feature matrices
         X_rotor_features = np.hstack(
             (X_forces_vertical_rotors, X_forces_forward_rotor))
         return X_rotor_features
 
-    def prepare_regression_mat(self):
+    def prepare_regression_matrices(self):
         self.normalize_actuators()
         self.compute_airspeed()
-        X_lin_thrust = self.compute_actuator_features()
+        X_lin_thrust = self.compute_rotor_features()
         airspeed_mat = self.data_df[["V_air_body_x",
                                      "V_air_body_y", "V_air_body_z"]].to_numpy()
         flap_commands = self.data_df[["u5", "u6", "u7"]].to_numpy()
@@ -101,118 +95,23 @@ class QuadPlaneModel(DynamicsModel):
         print(self.data_df.columns)
         self.data_df_len = self.data_df.shape[0]
         print("resampled data contains ", self.data_df_len, "timestamps.")
-        X, y = self.prepare_regression_mat()
+        X, y = self.prepare_regression_matrices()
         reg = LinearRegression().fit(X, y)
         print("regression complete")
         print("R2 score: ", reg.score(X, y))
         print(reg.coef_, reg.intercept_)
         y_pred = reg.predict(X)
-        self.plot_accel_predeictions(y, y_pred)
-        self.plot_accel_predeictions2(y, y_pred)
-        self.plot_y_predicitons(y, y_pred)
-        self.plot_airspeed()
+
+        model_plots.plot_accel_predeictions(
+            y, y_pred, self.data_df["timestamp"])
+        model_plots.plot_airspeed_and_AoA(
+            self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "AoA"]], self.data_df["timestamp"])
+        model_plots.plot_accel_and_airspeed_in_y_direction(
+            y, y_pred, self.data_df["V_air_body_y"], self.data_df["timestamp"])
+        quad_plane_model_plots.plot_accel_predeictions_with_flap_outputs(
+            y, y_pred, self.data_df[["u5", "u6", "u7"]], self.data_df["timestamp"])
 
         return
-
-    def plot_airspeed(self):
-        y_mat = self.data_df[["V_air_body_x",
-                              "V_air_body_y", "V_air_body_z", "AoA"]].to_numpy()
-        fig, (ax1, ax2, ax3, ax4) = plt.subplots(4)
-        fig.suptitle('Vertically stacked subplots')
-        ax1.plot((self.data_df["timestamp"]).to_numpy(),
-                 y_mat[:, 0], label='measurement')
-
-        ax2.plot((self.data_df["timestamp"]).to_numpy(),
-                 y_mat[:, 1], label='measurement')
-
-        ax3.plot((self.data_df["timestamp"]).to_numpy(),
-                 y_mat[:, 2], label='measurement')
-        ax4.plot((self.data_df["timestamp"]).to_numpy(),
-                 y_mat[:, 3], label='measurement')
-        ax1.set_title('airspeed in x direction of body frame [m/s^2]')
-        ax2.set_title('airspeed in y direction of body frame [m/s^2]')
-        ax3.set_title('airspeed in z direction of body frame [m/s^2]')
-        ax4.set_title("Aoa in body frame [radiants]")
-        plt.legend()
-        plt.show()
-
-    def plot_y_predicitons(self, y, y_pred):
-        y_pred_mat = y_pred.reshape((-1, 3))
-        y_mat = y.reshape((-1, 3))
-        y = self.data_df[["V_air_body_y"]].to_numpy()
-        fig, (ax1, ax2, ax3) = plt.subplots(3)
-        fig.suptitle('Vertically stacked subplots')
-        ax1.plot((self.data_df["timestamp"]).to_numpy(),
-                 y, label='measurement')
-        ax2.plot((self.data_df["timestamp"]).to_numpy(),
-                 y**2, label='measurement')
-
-        ax3.plot((self.data_df["timestamp"]).to_numpy(),
-                 y_mat[:, 1], label='measurement')
-        ax3.plot((self.data_df["timestamp"]).to_numpy(),
-                 y_pred_mat[:, 1], label='prediction')
-        ax1.set_title('airspeed in y direction of body frame [m/s^2]')
-        ax2.set_title('airspeed in y direction squared of body frame [m/s^2]')
-        ax3.set_title('airspeed in y direction of body frame [m/s^2]')
-        plt.legend()
-        plt.show()
-
-    def plot_accel_predeictions2(self, y, y_pred):
-
-        y_pred_mat = y_pred.reshape((-1, 3))
-        y_mat = y.reshape((-1, 3))
-
-        fig, (ax1, ax2, ax3, ax4) = plt.subplots(4)
-        fig.suptitle('Vertically stacked subplots')
-        ax1.plot((self.data_df["timestamp"]).to_numpy(),
-                 y_mat[:, 0], label='measurement')
-        ax1.plot((self.data_df["timestamp"]).to_numpy(),
-                 y_pred_mat[:, 0], label='prediction')
-        ax2.plot((self.data_df["timestamp"]).to_numpy(),
-                 y_mat[:, 1], label='measurement')
-        ax2.plot((self.data_df["timestamp"]).to_numpy(),
-                 y_pred_mat[:, 1], label='prediction')
-        ax3.plot((self.data_df["timestamp"]).to_numpy(),
-                 y_mat[:, 2], label='measurement')
-        ax3.plot((self.data_df["timestamp"]).to_numpy(),
-                 y_pred_mat[:, 2], label='prediction')
-        ax4.plot((self.data_df["timestamp"]).to_numpy(),
-                 self.data_df["u5"].to_numpy(), label='u5')
-        ax4.plot((self.data_df["timestamp"]).to_numpy(),
-                 self.data_df["u6"].to_numpy(), label='u6')
-        ax4.plot((self.data_df["timestamp"]).to_numpy(),
-                 self.data_df["u7"].to_numpy(), label='u7')
-
-        ax1.set_title('acceleration in x direction of body frame [m/s^2]')
-        ax2.set_title('acceleration in y direction of body frame [m/s^2]')
-        ax3.set_title('acceleration in z direction of body frame [m/s^2]')
-        plt.legend()
-        plt.show()
-
-    def plot_accel_predeictions(self, y, y_pred):
-        y_pred_mat = y_pred.reshape((-1, 3))
-        y_mat = y.reshape((-1, 3))
-
-        fig, (ax1, ax2, ax3) = plt.subplots(3)
-        fig.suptitle('Vertically stacked subplots')
-        ax1.plot((self.data_df["timestamp"]).to_numpy(),
-                 y_mat[:, 0], label='measurement')
-        ax1.plot((self.data_df["timestamp"]).to_numpy(),
-                 y_pred_mat[:, 0], label='prediction')
-        ax2.plot((self.data_df["timestamp"]).to_numpy(),
-                 y_mat[:, 1], label='measurement')
-        ax2.plot((self.data_df["timestamp"]).to_numpy(),
-                 y_pred_mat[:, 1], label='prediction')
-        ax3.plot((self.data_df["timestamp"]).to_numpy(),
-                 y_mat[:, 2], label='measurement')
-        ax3.plot((self.data_df["timestamp"]).to_numpy(),
-                 y_pred_mat[:, 2], label='prediction')
-
-        ax1.set_title('acceleration in x direction of body frame [m/s^2]')
-        ax2.set_title('acceleration in y direction of body frame [m/s^2]')
-        ax3.set_title('acceleration in z direction of body frame [m/s^2]')
-        plt.legend()
-        plt.show()
 
 
 if __name__ == "__main__":

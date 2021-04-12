@@ -21,7 +21,7 @@ def compute_flight_time(ulog):
     return flight_time
 
 
-def resample_dataframes(df_list, t_start, t_end, f_des=100.0):
+def resample_dataframes(df_list, t_start, t_end, f_des=100.0, slerp_enabled=False):
     """create a single dataframe by resampling all dataframes to f_des [Hz]
 
     Inputs:     df_list : List of ulog topic dataframes to resample
@@ -42,7 +42,7 @@ def resample_dataframes(df_list, t_start, t_end, f_des=100.0):
 
         # use slerp interpolation for quaternions
         # add a better criteria than the exact naming at a later point.
-        if 'q0' in df:
+        if 'q0' in df and slerp_enabled:
             print(df)
             q_mat = slerp_interpolate_from_df(df, new_t_list[0])
 

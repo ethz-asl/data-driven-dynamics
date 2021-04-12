@@ -46,8 +46,8 @@ class LinearPlateAeroModel():
     def compute_aileron_feature(self, v_airspeed, angle_of_attack, flap_commands):
         v_xz = math.sqrt(v_airspeed[0]**2 + v_airspeed[2]**2)
         X_rudder_aero = np.zeros((3, 5))
-        X_rudder_aero[0, 0] = - (flap_commands[2] - 0.6)*v_xz**2
-        X_rudder_aero[0, 1] = - (flap_commands[2] - 0.6)**2*v_xz**2
+        X_rudder_aero[0, 0] = - (flap_commands[2])*v_xz**2
+        X_rudder_aero[0, 1] = - (flap_commands[2])**2*v_xz**2
         X_rudder_aero[0, 2] = v_xz**2
         X_rudder_aero[1, 3] = (flap_commands[0])*v_xz**2
         X_rudder_aero[1, 4] = (flap_commands[1])*v_xz**2
