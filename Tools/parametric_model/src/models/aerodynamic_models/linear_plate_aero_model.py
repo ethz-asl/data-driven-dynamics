@@ -23,15 +23,14 @@ class LinearPlateAeroModel():
         1. More suffisticated Model for abs(AoA) < stall_angle
 
             - Lift force coefficient as linear function of AoA:
-                F_Lift = 0.5 * density * Aeria * V_air_xz^2 * (c_l_0 + c_l_lin*AoA)
+                F_Lift = 0.5 * density * area * V_air_xz^2 * (c_l_0 + c_l_lin*AoA)
 
             - Drag force coefficient as quadratic function of AoA
-                F_Drag = 0.5 * density * Aeria * V_air_xz^2 * (c_d_0 + c_d_lin * AoA + c_d_quad * AoA^2)
+                F_Drag = 0.5 * density * area * V_air_xz^2 * (c_d_0 + c_d_lin * AoA + c_d_quad * AoA^2)
 
         2. Simple plate model for abs(AoA) > stall_angle
-                F_Lift = density * Aeria * V_air_xz^2 * cos(AoA) * sin(AoA) * c_l_stall
-                F_Drag = 0.5*density*Aeria*V_air_xz^2* sin(AoA) * c_d_stall
-
+                F_Lift = density * area * V_air_xz^2 * cos(AoA) * sin(AoA) * c_l_stall
+                F_Drag = 0.5 * density * area * V_air_xz^2 * sin(AoA) * c_d_stall
 
         The two models are interpolated with a symmetric sigmoid function obtained by multiplying two logistic functions:
             if abs(AoA) < stall_angle: sym_sigmoid(AoA) = 0
@@ -66,18 +65,16 @@ class LinearPlateAeroModel():
 
         """
         Compute drag in y direction of body frame using a single coefficient: 
-        F_y = 0.5*density*Aeria*V_air_y^2*c_d_y"""
+        F_y = 0.5 * density * area * V_air_y^2 * c_d_y"""
         F_y_body_frame = -np.array([0, math.copysign(
             1, v_airspeed[1]) * v_airspeed[1]**2, 0]).reshape(3, 1)
         X_wing = np.hstack((F_xz_body_frame, F_y_body_frame))
-
         return X_wing
 
     def compute_aileron_feature(self, v_airspeed, angle_of_attack, flap_commands):
         """
         Model description:
         TBD... the model itself is currently not finished. Tried different things but was not happy yet with the results. 
-
         """
 
         v_xz = math.sqrt(v_airspeed[0]**2 + v_airspeed[2]**2)

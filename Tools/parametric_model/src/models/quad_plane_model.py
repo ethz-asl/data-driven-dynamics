@@ -104,9 +104,14 @@ class QuadPlaneModel(DynamicsModel):
         print("resampled data contains ", self.data_df_len, "timestamps.")
         X, y = self.prepare_regression_matrices()
         reg = LinearRegression().fit(X, y)
+
         print("regression complete")
-        print("R2 score: ", reg.score(X, y))
-        print(reg.coef_, reg.intercept_)
+        metrics_dict = {"R2": float(reg.score(X, y))}
+        self.coef_name_list.extend(["intercept"])
+        coef_list = list(reg.coef_) + [reg.intercept_]
+        self.generate_model_dict(coef_list, metrics_dict)
+        self.save_result_dict_to_yaml()
+
         y_pred = reg.predict(X)
 
         model_plots.plot_accel_predeictions(

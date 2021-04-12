@@ -2,12 +2,13 @@ __author__ = "Manuel Galliker"
 __maintainer__ = "Manuel Galliker"
 __license__ = "BSD 3"
 
-""" The model class contains properties shared between all models and shgall simplyfy automated checks and the later 
+""" The model class contains properties shared between all models and shgall simplyfy automated checks and the later
 export to a sitl gazebo model by providing a unified interface for all models. """
 
 from ..tools import load_ulog, pandas_from_topic, compute_flight_time, resample_dataframes
 from ..tools import quaternion_to_rotation_matrix
 import numpy as np
+import yaml
 
 
 class DynamicsModel():
@@ -31,6 +32,7 @@ class DynamicsModel():
 
         # used to generate a dict with the resulting coefficients later on.
         self.coef_name_list = []
+        self.result_dict = {}
 
     def check_ulog_for_req_topics(self):
         for topic_type in self.req_topics_dict.keys():
@@ -112,3 +114,16 @@ class DynamicsModel():
             R_world_to_body = quaternion_to_rotation_matrix(self.q_mat[i, :])
             vec_mat_transformed[i, :] = R_world_to_body @ vec_mat[i, :]
         return vec_mat_transformed
+
+    def generate_model_dict(self, coefficient_list, metrics_dict):
+        assert (len(self.coef_name_list) == len(coefficient_list)), \
+            ("Length of coefficient list and coefficient name list does not match: Coefficientlist:",
+             len(coefficient_list), "Coefficient name list: ", len(self.coef_name_list))
+        coefficient_list = [float(coef) for coef in coefficient_list]
+        coef_dict = dict(zip(self.coef_name_list, coefficient_list))
+        self.result_dict = {"coefficients": coef_dict, "metrics": metrics_dict}
+
+    def save_result_dict_to_yaml(self, file_name="model_results.yml"):
+        with open(file_name, 'w') as outfile:
+            print(yaml.dump(self.result_dict, default_flow_style=False))
+            yaml.dump(self.result_dict, outfile, default_flow_style=False)
