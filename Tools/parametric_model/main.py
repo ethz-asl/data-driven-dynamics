@@ -4,21 +4,20 @@ __maintainer__ = "Manuel Galliker"
 __license__ = "BSD 3"
 
 
-from src.models import QuadPlaneModel
+from src.models import QuadPlaneModel, SimpleQuadRotorModel
 import argparse
-import sys
 
 
 def start_model_estimation(arg_list):
     rel_ulog_path = arg_list.log_path
     model = arg_list.model
 
-    # if (model == "rotor_model"):
-    #     rotorModel = RotorModel(rel_ulog_path)
-    #     rotorModel.estimate_model()
-    #     rotorModel.plot_model_prediction()
+    if (model == "simple_quadrotor_model"):
+        simpleQuadRotorModel = SimpleQuadRotorModel(rel_ulog_path)
+        simpleQuadRotorModel.estimate_model()
+        simpleQuadRotorModel.plot_model_prediction()
 
-    if (model == "quad_plane_model"):
+    elif (model == "quad_plane_model"):
         quadPlaneModel = QuadPlaneModel(rel_ulog_path)
         quadPlaneModel.estimate_model()
 

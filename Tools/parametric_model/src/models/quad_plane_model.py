@@ -60,9 +60,9 @@ class QuadPlaneModel(DynamicsModel):
         X_vertical_rotors = np.zeros((3*self.data_df.shape[0], 5))
         for i in range(0, (u_mat.shape[1]-1)):
             currActuator = GazeboRotorModel(self.actuator_directions[:, i])
-            X_forces, vert_rotors_coef_list = currActuator.compute_actuator_feature_matrix(
+            X_curr_rotor, vert_rotors_coef_list = currActuator.compute_actuator_feature_matrix(
                 u_mat[:, i], v_airspeed_mat)
-            X_vertical_rotors = X_vertical_rotors + X_forces
+            X_vertical_rotors = X_vertical_rotors + X_curr_rotor
         for i in range(len(vert_rotors_coef_list)):
             vert_rotors_coef_list[i] = "vert_" + vert_rotors_coef_list[i]
         # Forward Rotor Feature

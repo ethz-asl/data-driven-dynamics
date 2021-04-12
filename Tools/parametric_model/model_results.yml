@@ -1,27 +1,9 @@
 coefficients:
-  c_d_wing_xy_lin: -0.711017556459663
-  c_d_wing_xy_offset: 1051823704.6394107
-  c_d_wing_xy_quad: 3.108216448613757
-  c_d_wing_xy_stall: 145839640.71589842
-  c_d_wing_y_offset: -4.44571093461595
-  c_d_x_flap_lin: 0.5705335509257627
-  c_d_x_flap_offset: 1051823700.5297792
-  c_d_x_flap_quad: -0.36025490980382235
-  c_d_y_flap_1: 0.21336039520530828
-  c_d_y_flap_2: -0.2092343148681133
-  c_l_wing_xy_lin: 0.04829074890074483
-  c_l_wing_xy_offset: 0.03957538842589387
-  c_l_wing_xy_stall: 96276003.16819133
-  forward_rot_drag_lin: 0.2959724487469309
-  forward_rot_drag_offset: 1.663166897715522
-  forward_rot_thrust_lin: -1.697545327310388
-  forward_rot_thrust_offset: -0.08179633571268947
-  forward_rot_thrust_quad: 53.56324415137497
-  intercept: -0.015951817453306177
-  vert_rot_drag_lin: -0.13096180883260242
-  vert_rot_drag_offset: -0.08619027879211046
-  vert_rot_thrust_lin: 2.952195034452565
-  vert_rot_thrust_offset: -3.4386881718783213
-  vert_rot_thrust_quad: 6.093757795798081
+  intercept: 0.01026279997669459
+  vert_rot_drag_lin: -0.7304710118277149
+  vert_rot_drag_offset: 0.5329257678167981
+  vert_rot_thrust_lin: -6.987890248295484
+  vert_rot_thrust_offset: 1.4603351740194153
+  vert_rot_thrust_quad: 6.465809489704834
 metrics:
-  R2: 0.6448568837197474
+  R2: 0.2650610972260258
