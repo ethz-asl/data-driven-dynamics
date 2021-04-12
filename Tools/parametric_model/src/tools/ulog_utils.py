@@ -14,7 +14,7 @@ from pyulog.core import ULog
 DOT_THRESHOLD = 0.9995
 
 
-def quaternion_rotation_matrix(q):
+def quaternion_to_rotation_matrix(q):
     # Construct a rotation matrix from quaternions
     qr, qi, qj, qk = q[0], q[1], q[2], q[3]
     R = np.array([[1-2*(qj**2+qk**2), 2*(qi*qj-qk*qr), 2*(qi*qk + qj*qr)],

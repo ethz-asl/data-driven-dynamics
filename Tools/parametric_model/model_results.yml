@@ -1,0 +1,9 @@
+coefficients:
+  intercept: 0.01026279997669459
+  vert_rot_drag_lin: -0.7304710118277149
+  vert_rot_drag_offset: 0.5329257678167981
+  vert_rot_thrust_lin: -6.987890248295484
+  vert_rot_thrust_offset: 1.4603351740194153
+  vert_rot_thrust_quad: 6.465809489704834
+metrics:
+  R2: 0.2650610972260258
