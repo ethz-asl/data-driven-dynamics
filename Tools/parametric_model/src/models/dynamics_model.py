@@ -17,6 +17,7 @@ class DynamicsModel():
         assert type(
             req_topics_dict) is dict, 'req_topics_dict input must be a dict'
         assert bool(req_topics_dict), 'req_topics_dict can not be empty'
+        self.rel_ulog_path = rel_ulog_path
         self.ulog = load_ulog(rel_ulog_path)
         self.req_topics_dict = req_topics_dict
         self.resample_freq = resample_freq
@@ -128,7 +129,8 @@ class DynamicsModel():
              len(coefficient_list), "Coefficient name list: ", len(self.coef_name_list))
         coefficient_list = [float(coef) for coef in coefficient_list]
         coef_dict = dict(zip(self.coef_name_list, coefficient_list))
-        self.result_dict = {"coefficients": coef_dict, "metrics": metrics_dict}
+        self.result_dict = {"coefficients": coef_dict,
+                            "metrics": metrics_dict, "log_file": self.rel_ulog_path}
 
     def save_result_dict_to_yaml(self, file_name="model_parameters", result_path="results/"):
 
