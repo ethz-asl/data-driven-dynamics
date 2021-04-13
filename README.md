@@ -28,11 +28,10 @@ source ~/.bashrc
 
 The use the parametric model structure you need to install python 3.8 and the needed python libraries. It is strongly advised to install the pip packages in a [virtual enviroment](https://docs.python.org/3/tutorial/venv.html) setup for this project.
 
-Install the dependencies:
+Install the dependencies from the project folder:
 
 ```
-cd Tools/parametric_model
-pip3 install -r requirements.txt
+pip3 install -r Tools/parametric_modelrequirements.txt
 ```
 
 ## Build

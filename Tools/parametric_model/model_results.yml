@@ -11,4 +11,4 @@ coefficients:
   vert_rot_thrust_offset: 6.212896613831453
   vert_rot_thrust_quad: 18.730040961596035
 metrics:
-  R2: 0.5582478126923816
+  R2: 0.2650610972260258
