@@ -37,6 +37,7 @@ from sklearn.linear_model import LinearRegression
 from .dynamics_model import DynamicsModel
 from .rotor_models import GazeboRotorModel
 from .model_plots import model_plots
+from .aerodynamic_models import SimpleDragModel
 
 
 class SimpleQuadRotorModel(DynamicsModel):
@@ -50,6 +51,7 @@ class SimpleQuadRotorModel(DynamicsModel):
         }
         super(SimpleQuadRotorModel, self).__init__(
             rel_ulog_path, req_topic_dict)
+        self.rotor_count = 4
         self.actuator_directions = np.array([[0, 0, 0, 0],
                                              [0, 0, 0, 0],
                                              [-1, -1, -1, -1]]
@@ -92,8 +94,17 @@ class SimpleQuadRotorModel(DynamicsModel):
         self.normalize_actuators()
         self.compute_airspeed()
         accel_mat = self.data_df[["ax", "ay", "az"]].to_numpy()
+        self.data_df[["ax_body", "ay_body", "az_body"]] = accel_mat
         y = (self.rot_to_body_frame(accel_mat)).flatten()
-        X = self.compute_rotor_features()
+        X_rotor = self.compute_rotor_features()
+        aoa_mat = self.data_df[["AoA"]].to_numpy()
+        airspeed_mat = self.data_df[["V_air_body_x",
+                                     "V_air_body_y", "V_air_body_z"]].to_numpy()
+        aero_model = SimpleDragModel(35.0)
+        X_aero, aero_coef_list = aero_model.compute_aero_features(
+            airspeed_mat, aoa_mat)
+        self.coef_name_list.extend(aero_coef_list)
+        X = np.hstack((X_rotor, X_aero))
         print("datapoints for regression: ", self.data_df.shape[0])
         return X, y
 
@@ -110,13 +121,17 @@ class SimpleQuadRotorModel(DynamicsModel):
         self.save_result_dict_to_yaml()
         model_plots.plot_accel_predeictions(
             y, y_pred, self.data_df["timestamp"])
+        model_plots.plot_airspeed_and_AoA(
+            self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "AoA"]], self.data_df["timestamp"])
+        model_plots.plot_accel_and_airspeed_in_y_direction(
+            y, y_pred, self.data_df["V_air_body_y"], self.data_df["timestamp"])
         return
 
     def plot_model_prediction(self):
         # plot model prediction
         u = np.linspace(0.0, 1, num=101, endpoint=True)
-        u_coll_pred = 4*u
-        u_squared_coll_pred = 4 * u**2
+        u_coll_pred = self.rotor_count*u
+        u_squared_coll_pred = self.rotor_count * u**2
         y_pred = np.zeros(u.size)
         coef_dict = self.result_dict["coefficients"]
         for i in range(u.size):
@@ -125,7 +140,7 @@ class SimpleQuadRotorModel(DynamicsModel):
                 coef_dict["vert_rot_thrust_offset"]
         plt.plot(u_coll_pred, y_pred, label='prediction')
         # plot underlying data
-        y_data = self.data_df["az"].to_numpy()
+        y_data = self.data_df["az_body"].to_numpy()
         u_coll_data, u_squared_coll_data = self.compute_collective_input_features()
         plt.plot(u_coll_data, y_data, 'o', label='data')
         plt.ylabel('acceleration in z direction [m/s^2]')
