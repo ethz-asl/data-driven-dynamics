@@ -88,7 +88,7 @@ class QuadPlaneModel(DynamicsModel):
                                      "V_air_body_y", "V_air_body_z"]].to_numpy()
         flap_commands = self.data_df[["u5", "u6", "u7"]].to_numpy()
         aoa_mat = self.data_df[["AoA"]].to_numpy()
-        aero_model = LinearPlateAeroModel(20.0)
+        aero_model = LinearPlateAeroModel(35.0)
         X_lin_aero, aero_coef_list = aero_model.compute_aero_features(
             airspeed_mat, aoa_mat, flap_commands)
         self.coef_name_list.extend(aero_coef_list)

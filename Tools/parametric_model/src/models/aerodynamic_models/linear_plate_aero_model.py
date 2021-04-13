@@ -10,8 +10,8 @@ from scipy.spatial.transform import Rotation
 
 
 class LinearPlateAeroModel():
-    def __init__(self, stall_angle=20.0):
-        self.stall_angle = stall_angle
+    def __init__(self, stall_angle=35.0):
+        self.stall_angle = stall_angle*math.pi/180.0
 
     def compute_main_wing_feature(self, v_airspeed, angle_of_attack):
         """
