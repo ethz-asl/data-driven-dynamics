@@ -9,6 +9,7 @@ from ..tools import load_ulog, pandas_from_topic, compute_flight_time, resample_
 from ..tools import quaternion_to_rotation_matrix
 import numpy as np
 import yaml
+import time
 
 
 class DynamicsModel():
@@ -129,7 +130,11 @@ class DynamicsModel():
         coef_dict = dict(zip(self.coef_name_list, coefficient_list))
         self.result_dict = {"coefficients": coef_dict, "metrics": metrics_dict}
 
-    def save_result_dict_to_yaml(self, file_name="model_results.yml"):
-        with open(file_name, 'w') as outfile:
+    def save_result_dict_to_yaml(self, file_name="model_parameters", result_path="results/"):
+
+        timestr = time.strftime("%Y-%m-%d-%H-%M-%S")
+        file_path = result_path + file_name + "_" + timestr + ".yaml"
+
+        with open(file_path, 'w') as outfile:
             print(yaml.dump(self.result_dict, default_flow_style=False))
             yaml.dump(self.result_dict, outfile, default_flow_style=False)

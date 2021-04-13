@@ -34,10 +34,10 @@ import math
 import argparse
 
 from sklearn.linear_model import LinearRegression
-from .dynamics_model import DynamicsModel
-from .rotor_models import GazeboRotorModel
-from .model_plots import model_plots
-from .aerodynamic_models import SimpleDragModel
+from ..dynamics_model import DynamicsModel
+from ..rotor_models import GazeboRotorModel
+from ..model_plots import model_plots
+from ..aerodynamic_models import SimpleDragModel
 
 
 class SimpleQuadRotorModel(DynamicsModel):
@@ -109,7 +109,7 @@ class SimpleQuadRotorModel(DynamicsModel):
         return X, y
 
     def estimate_model(self):
-        print("estimating simple multirotor model...")
+        print("estimating simple quadrotor model...")
         X, y = self.prepare_regression_mat()
         reg = LinearRegression().fit(X, y)
         print("regression complete")
@@ -118,7 +118,7 @@ class SimpleQuadRotorModel(DynamicsModel):
         self.coef_name_list.extend(["intercept"])
         coef_list = list(reg.coef_) + [reg.intercept_]
         self.generate_model_dict(coef_list, metrics_dict)
-        self.save_result_dict_to_yaml()
+        self.save_result_dict_to_yaml(file_name="simple_quadrotor_model")
         model_plots.plot_accel_predeictions(
             y, y_pred, self.data_df["timestamp"])
         model_plots.plot_airspeed_and_AoA(

@@ -110,7 +110,7 @@ class QuadPlaneModel(DynamicsModel):
         self.coef_name_list.extend(["intercept"])
         coef_list = list(reg.coef_) + [reg.intercept_]
         self.generate_model_dict(coef_list, metrics_dict)
-        self.save_result_dict_to_yaml()
+        self.save_result_dict_to_yaml(file_name="quad_plane_model")
 
         y_pred = reg.predict(X)
 

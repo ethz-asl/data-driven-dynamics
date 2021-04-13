@@ -80,3 +80,5 @@ Current model choices are:
 - simple_quadrotor_model
 
 - quad_plane_model
+
+The results of the model estimation will be saved into the Tools/parametric_model/results folder as a yaml file.
