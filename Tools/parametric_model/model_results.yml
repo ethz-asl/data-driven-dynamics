@@ -1,14 +1,27 @@
 coefficients:
-  c_d_wing_xy_lin: 6.426526554656322
-  c_d_wing_xy_offset: 0.3356375903548322
-  c_d_wing_xy_quad: -0.28246248259606876
-  c_d_wing_xy_stall: -3.5870545533677247
-  c_d_wing_y_offset: -0.41693375748158573
-  intercept: -0.010024924059961606
-  vert_rot_drag_lin: 1.5595672441359043
-  vert_rot_drag_offset: -1.0615212994052292
-  vert_rot_thrust_lin: -22.006215686381182
-  vert_rot_thrust_offset: 6.212896613831453
-  vert_rot_thrust_quad: 18.730040961596035
+  c_d_wing_xy_lin: 0.08189859137907289
+  c_d_wing_xy_offset: 0.02817137153038889
+  c_d_wing_xy_quad: 0.06100147573497677
+  c_d_wing_xy_stall: -3.563563361754457e-13
+  c_d_wing_y_offset: -7.790947777784442
+  c_d_x_flap_lin: -0.022235685492639462
+  c_d_x_flap_offset: -0.028171371533127536
+  c_d_x_flap_quad: 0.03294684395591521
+  c_d_y_flap_1: 0.20264572827171767
+  c_d_y_flap_2: -0.19741043861644486
+  c_l_wing_xy_lin: 0.06231244447455825
+  c_l_wing_xy_offset: 0.2408172871289555
+  c_l_wing_xy_stall: -4.855366915434744e-13
+  forward_rot_drag_lin: -10.22249749162915
+  forward_rot_drag_offset: 0.13461517336983939
+  forward_rot_thrust_lin: 1.9892354946144866
+  forward_rot_thrust_offset: -0.9149083533601631
+  forward_rot_thrust_quad: 43.581510352838414
+  intercept: -0.02994931820323951
+  vert_rot_drag_lin: -0.3754098258960826
+  vert_rot_drag_offset: 0.18445079364237837
+  vert_rot_thrust_lin: 9.82976740908115
+  vert_rot_thrust_offset: -3.8946998178292693
+  vert_rot_thrust_quad: -5.039517400186501
 metrics:
   R2: 0.2650610972260258
