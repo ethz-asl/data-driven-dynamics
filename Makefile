@@ -1,6 +1,9 @@
 version?=latest
 registry?=ethzasl/data-driven-dynamics
 
+install-dependencies:
+	pip3 install -r Tools/parametric_model/requirements.txt
+
 docker-build:
 	docker build -f docker/Dockerfile --tag ${registry}:${version} .
 
