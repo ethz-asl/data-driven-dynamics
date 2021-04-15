@@ -31,7 +31,7 @@ The use the parametric model structure you need to install python 3.8 and the ne
 Install the dependencies from the project folder:
 
 ```
-pip3 install -r Tools/parametric_modelrequirements.txt
+make install-dependencies
 ```
 
 ## Build
