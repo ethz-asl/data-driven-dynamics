@@ -13,16 +13,16 @@ def start_model_estimation(arg_list):
     model = arg_list.model
 
     if (model == "simple_quadrotor_model"):
-        simpleQuadRotorModel = SimpleQuadRotorModel(rel_ulog_path)
-        simpleQuadRotorModel.estimate_model()
-        simpleQuadRotorModel.plot_model_prediction()
+        model = SimpleQuadRotorModel(rel_ulog_path)
 
     elif (model == "quad_plane_model"):
-        quadPlaneModel = QuadPlaneModel(rel_ulog_path)
-        quadPlaneModel.estimate_model()
+        model = QuadPlaneModel(rel_ulog_path)
 
     else:
         print("no valid model selected")
+
+    model.estimate_model()
+    model.plot_model_prediction()
 
     return
 
@@ -30,8 +30,9 @@ def start_model_estimation(arg_list):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description='Estimate dynamics model from flight log.')
-    parser.add_argument('model', metavar='model', type=str,
-                        help='select an implemented model to estimate.')
+    parser.add_argument('--model', metavar='model', type=str,
+                        default='simple_quadrotor_model',
+                        help='Parametric Model Type [simple_quadrotor_model, quad_plane_model]')
     parser.add_argument('log_path', metavar='log_path', type=str,
                         help='the path of the log to process relative to the project directory.')
     arg_list = parser.parse_args()
