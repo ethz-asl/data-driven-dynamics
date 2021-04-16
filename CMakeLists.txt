@@ -64,6 +64,7 @@ include_directories(
 add_library(gazebo_fw_dynamics_plugin
   SHARED 
   src/gazebo_fw_dynamics_plugin.cpp
+  src/parametric_dynamics_model.cpp
   )
 target_link_libraries(gazebo_fw_dynamics_plugin 
   ${GAZEBO_LIBRARIES} 

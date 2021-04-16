@@ -20,6 +20,7 @@
 #include <Eigen/Dense>
 #include <yaml-cpp/yaml.h>
 #include <exception>
+#include <gazebo/gazebo.hh>
 
 namespace gazebo {
 
