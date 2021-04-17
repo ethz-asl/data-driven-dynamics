@@ -31,19 +31,12 @@
 #include "Wind.pb.h"
 
 #include "aero_parameters.h"
+#include "parametric_dynamics_model.h"
+
 namespace gazebo {
 
 typedef const boost::shared_ptr<const physics_msgs::msgs::Wind> WindPtr;
 typedef const boost::shared_ptr<const mav_msgs::msgs::CommandMotorSpeed> CommandMotorSpeedPtr;
-
-
-// Default values.
-static constexpr bool kDefaultIsInputJoystick = false;
-
-// Constants.
-static constexpr double kAirDensity = 1.18;
-static constexpr double kGravity = 9.81;
-static constexpr double kMinAirSpeedThresh = 0.1;
 
 class GazeboFwDynamicsPlugin : public ModelPlugin {
  public:
@@ -117,6 +110,9 @@ class GazeboFwDynamicsPlugin : public ModelPlugin {
 
   /// \brief    The physical properties of the aircraft.
   FWVehicleParameters vehicle_params_;
+
+  /// \brief    The parametric model of the aircraft
+  std::shared_ptr<ParametricDynamicsModel> parametric_model_;
 
   /// \brief    Left aileron deflection [rad].
   double delta_aileron_left_;
