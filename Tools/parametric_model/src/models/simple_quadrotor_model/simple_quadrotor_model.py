@@ -45,7 +45,8 @@ class SimpleQuadRotorModel(DynamicsModel):
         req_topic_dict = {
             "actuator_outputs": {"ulog_name": ["timestamp", "output[0]", "output[1]", "output[2]", "output[3]"],
                                  "dataframe_name":  ["timestamp", "u0", "u1", "u2", "u3"]},
-            "vehicle_local_position": {"ulog_name": ["timestamp", "ax", "ay", "az", "vx", "vy", "vz"]},
+            "vehicle_local_position": {"ulog_name": ["timestamp", "vx", "vy", "vz"]},
+            "sensor_combined": {"ulog_name": ["timestamp", "accelerometer_m_s2[0]", "accelerometer_m_s2[1]", "accelerometer_m_s2[2]"]},
             "vehicle_attitude": {"ulog_name": ["timestamp", "q[0]", "q[1]", "q[2]", "q[3]"],
                                  "dataframe_name":  ["timestamp", "q0", "q1", "q2", "q3"]},
         }
@@ -93,9 +94,9 @@ class SimpleQuadRotorModel(DynamicsModel):
     def prepare_regression_mat(self):
         self.normalize_actuators()
         self.compute_airspeed()
-        accel_mat = self.data_df[["ax", "ay", "az"]].to_numpy()
+        accel_mat = self.data_df[["accelerometer_m_s2[0]", "accelerometer_m_s2[1]", "accelerometer_m_s2[2]"]].to_numpy()
         self.data_df[["ax_body", "ay_body", "az_body"]] = accel_mat
-        y = (self.rot_to_body_frame(accel_mat)).flatten()
+        y = (accel_mat).flatten()
         X_rotor = self.compute_rotor_features()
         aoa_mat = self.data_df[["AoA"]].to_numpy()
         airspeed_mat = self.data_df[["V_air_body_x",
