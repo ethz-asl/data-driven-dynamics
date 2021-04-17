@@ -3,3 +3,4 @@ logs*
 .venv/
 .vscode/
 __pycache__/
+*.yaml

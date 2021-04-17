@@ -40,6 +40,7 @@ class GazeboRotorModel():
             self.rotor_axis, v_airspeed) * self.rotor_axis
         vel = np.linalg.norm(v_airspeed_parallel_to_rotor_axis)
         inflow_scaler = 1 - vel/self.max_rotor_inflow_vel
+        inflow_scaler = max(0, inflow_scaler)
         X_thrust = inflow_scaler * self.rotor_axis @ np.array(
             [[actuator_input**2, actuator_input, 1]])
         # Drag computation

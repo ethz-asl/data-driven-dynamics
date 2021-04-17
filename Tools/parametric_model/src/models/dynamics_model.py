@@ -9,6 +9,7 @@ from ..tools import load_ulog, pandas_from_topic, compute_flight_time, resample_
 from ..tools import quaternion_to_rotation_matrix
 import numpy as np
 import yaml
+import time
 
 
 class DynamicsModel():
@@ -16,6 +17,7 @@ class DynamicsModel():
         assert type(
             req_topics_dict) is dict, 'req_topics_dict input must be a dict'
         assert bool(req_topics_dict), 'req_topics_dict can not be empty'
+        self.rel_ulog_path = rel_ulog_path
         self.ulog = load_ulog(rel_ulog_path)
         self.req_topics_dict = req_topics_dict
         self.resample_freq = resample_freq
@@ -82,8 +84,14 @@ class DynamicsModel():
         self.actuator_columns = self.get_topic_list_from_topic_type(
             "actuator_outputs")
         for actuator in self.actuator_columns:
-            self.data_df[actuator] = (self.data_df[actuator] -
-                                      self.min_pwm)/(self.max_pwm - self.min_pwm)
+            actuator_data = self.data_df[actuator].to_numpy()
+            for i in range(actuator_data.shape[0]):
+                if (actuator_data[i] < self.min_pwm):
+                    actuator_data[i] = 0
+                else:
+                    actuator_data[i] = (
+                        actuator_data[i] - self.min_pwm)/(self.max_pwm - self.min_pwm)
+            self.data_df[actuator] = actuator_data
 
     def rot_to_body_frame(self, vec_mat):
         """
@@ -121,9 +129,14 @@ class DynamicsModel():
              len(coefficient_list), "Coefficient name list: ", len(self.coef_name_list))
         coefficient_list = [float(coef) for coef in coefficient_list]
         coef_dict = dict(zip(self.coef_name_list, coefficient_list))
-        self.result_dict = {"coefficients": coef_dict, "metrics": metrics_dict}
+        self.result_dict = {"coefficients": coef_dict,
+                            "metrics": metrics_dict, "log_file": self.rel_ulog_path}
 
-    def save_result_dict_to_yaml(self, file_name="model_results.yml"):
-        with open(file_name, 'w') as outfile:
+    def save_result_dict_to_yaml(self, file_name="model_parameters", result_path=""):
+
+        timestr = time.strftime("%Y-%m-%d-%H-%M-%S")
+        file_path = result_path + file_name + "_" + timestr + ".yaml"
+
+        with open(file_path, 'w') as outfile:
             print(yaml.dump(self.result_dict, default_flow_style=False))
             yaml.dump(self.result_dict, outfile, default_flow_style=False)
