@@ -1,0 +1,15 @@
+coefficients:
+  c_d_wing_xy_lin: 6.426526554656322
+  c_d_wing_xy_offset: 0.3356375903548322
+  c_d_wing_xy_quad: -0.28246248259606876
+  c_d_wing_xy_stall: -3.5870545533677247
+  c_d_wing_y_offset: -0.41693375748158573
+  intercept: -0.010024924059961606
+  vert_rot_drag_lin: 1.5595672441359043
+  vert_rot_drag_offset: -1.0615212994052292
+  vert_rot_thrust_lin: -22.006215686381182
+  vert_rot_thrust_offset: 6.212896613831453
+  vert_rot_thrust_quad: 18.730040961596035
+log_file: logs/2021-04-12/14_28_28.ulg
+metrics:
+  R2: 0.5582478126923816

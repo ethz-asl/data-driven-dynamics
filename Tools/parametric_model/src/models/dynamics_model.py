@@ -132,7 +132,7 @@ class DynamicsModel():
         self.result_dict = {"coefficients": coef_dict,
                             "metrics": metrics_dict, "log_file": self.rel_ulog_path}
 
-    def save_result_dict_to_yaml(self, file_name="model_parameters", result_path="results/"):
+    def save_result_dict_to_yaml(self, file_name="model_parameters", result_path=""):
 
         timestr = time.strftime("%Y-%m-%d-%H-%M-%S")
         file_path = result_path + file_name + "_" + timestr + ".yaml"

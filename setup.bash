@@ -9,8 +9,6 @@ export GAZEBO_PLUGIN_PATH=$GAZEBO_PLUGIN_PATH:${SCRIPT_DIR}/build
 export GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH:${SCRIPT_DIR}/models
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${SCRIPT_DIR}/build
 
-export PX4_ROOT=~/src/PX4-Autopilot
-
 export GAZEBO_PLUGIN_PATH=$GAZEBO_PLUGIN_PATH:${PX4_ROOT}/build/px4_sitl_gazebo_default/build_gazebo
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${PX4_ROOT}/build/px4_sitl_gazebo_default/build_gazebo
 
