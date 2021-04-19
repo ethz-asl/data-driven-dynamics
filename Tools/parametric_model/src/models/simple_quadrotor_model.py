@@ -30,7 +30,7 @@ The script estimates [k_1, c, b]
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import math
+import argparse
 
 from sklearn.linear_model import LinearRegression
 from .dynamics_model import DynamicsModel
@@ -79,7 +79,7 @@ class SimpleQuadRotorModel(DynamicsModel):
 
     def prepare_regression_mat(self):
         self.normalize_actuators()
-        self.compute_airspeed_from_groundspeed(["vx", "vy", "vz"])
+        self.compute_airspeed()
         accel_mat = self.data_df[[
             "accelerometer_m_s2[0]", "accelerometer_m_s2[1]", "accelerometer_m_s2[2]"]].to_numpy()
         self.data_df[["ax_body", "ay_body", "az_body"]] = accel_mat
