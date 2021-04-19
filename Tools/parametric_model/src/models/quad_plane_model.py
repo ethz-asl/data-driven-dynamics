@@ -10,11 +10,11 @@ import pandas as pd
 import math
 import argparse
 
-from ..dynamics_model import DynamicsModel
-from ..aerodynamic_models import LinearPlateAeroModel
-from ..rotor_models import GazeboRotorModel
+from .dynamics_model import DynamicsModel
+from .aerodynamic_models import LinearPlateAeroModel
+from .rotor_models import GazeboRotorModel
 from sklearn.linear_model import LinearRegression
-from ..model_plots import model_plots, quad_plane_model_plots
+from .model_plots import model_plots, quad_plane_model_plots
 
 
 class QuadPlaneModel(DynamicsModel):

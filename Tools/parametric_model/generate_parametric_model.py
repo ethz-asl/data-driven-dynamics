@@ -4,8 +4,8 @@ __maintainer__ = "Manuel Galliker"
 __license__ = "BSD 3"
 
 
-from src.models.simple_quadrotor_model import SimpleQuadRotorModel
-from src.models.quad_plane_model import QuadPlaneModel
+from src.models import SimpleQuadRotorModel
+from src.models import QuadPlaneModel
 import argparse
 
 
@@ -23,7 +23,6 @@ def start_model_estimation(arg_list):
         print("no valid model selected")
 
     model.estimate_model()
-    model.plot_model_prediction()
 
     return
 
