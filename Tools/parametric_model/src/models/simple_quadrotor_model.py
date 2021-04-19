@@ -34,10 +34,10 @@ import math
 import argparse
 
 from sklearn.linear_model import LinearRegression
-from ..dynamics_model import DynamicsModel
-from ..rotor_models import GazeboRotorModel
-from ..model_plots import model_plots
-from ..aerodynamic_models import SimpleDragModel
+from .dynamics_model import DynamicsModel
+from .rotor_models import GazeboRotorModel
+from .model_plots import model_plots
+from .aerodynamic_models import SimpleDragModel
 
 
 class SimpleQuadRotorModel(DynamicsModel):
@@ -94,7 +94,8 @@ class SimpleQuadRotorModel(DynamicsModel):
     def prepare_regression_mat(self):
         self.normalize_actuators()
         self.compute_airspeed()
-        accel_mat = self.data_df[["accelerometer_m_s2[0]", "accelerometer_m_s2[1]", "accelerometer_m_s2[2]"]].to_numpy()
+        accel_mat = self.data_df[[
+            "accelerometer_m_s2[0]", "accelerometer_m_s2[1]", "accelerometer_m_s2[2]"]].to_numpy()
         self.data_df[["ax_body", "ay_body", "az_body"]] = accel_mat
         y = (accel_mat).flatten()
         X_rotor = self.compute_rotor_features()
