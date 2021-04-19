@@ -8,7 +8,6 @@ https://docs.px4.io/master/en/simulation/gazebo_vehicles.html#standard_vtol """
 import numpy as np
 import pandas as pd
 import math
-import argparse
 
 from .dynamics_model import DynamicsModel
 from .aerodynamic_models import LinearPlateAeroModel
@@ -124,15 +123,3 @@ class QuadPlaneModel(DynamicsModel):
             y, y_pred, self.data_df[["u5", "u6", "u7"]], self.data_df["timestamp"])
 
         return
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description='Estimate dynamics model from flight log.')
-    parser.add_argument('log_path', metavar='log_path', type=str,
-                        help='the path of the log to process relative to the project directory.')
-    args = parser.parse_args()
-    rel_ulog_path = args.log_path
-    # estimate simple multirotor drag model
-    quadPlaneModel = QuadPlaneModel(rel_ulog_path)
-    quadPlaneModel.estimate_model()
