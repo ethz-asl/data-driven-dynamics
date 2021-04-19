@@ -30,7 +30,7 @@ The script estimates [k_1, c, b]
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import argparse
+import math
 
 from sklearn.linear_model import LinearRegression
 from .dynamics_model import DynamicsModel
@@ -147,16 +147,3 @@ class SimpleQuadRotorModel(DynamicsModel):
             u_collective[r] = u0 + u1 + u2 + u3
             u_squared_collective[r] = u0**2 + u1**2 + u2**2 + u3**2
         return u_collective, u_squared_collective
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description='Estimate dynamics model from flight log.')
-    parser.add_argument('log_path', metavar='log_path', type=str,
-                        help='the path of the log to process relative to the project directory.')
-    args = parser.parse_args()
-    rel_ulog_path = args.log_path
-    # estimate simple multirotor drag model
-    rotorModel = RotorModel(rel_ulog_path)
-    rotorModel.estimate_model()
-    rotorModel.plot_model_prediction()
