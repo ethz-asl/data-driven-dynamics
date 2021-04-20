@@ -6,7 +6,6 @@ __license__ = "BSD 3"
 https://docs.px4.io/master/en/simulation/gazebo_vehicles.html#standard_vtol """
 
 import numpy as np
-import pandas as pd
 import math
 
 from .dynamics_model import DynamicsModel
@@ -21,11 +20,12 @@ class QuadPlaneModel(DynamicsModel):
         req_topic_dict = {
             "actuator_outputs": {"ulog_name": ["timestamp", "output[0]", "output[1]", "output[2]", "output[3]", "output[4]", "output[5]", "output[6]", "output[7]"],
                                  "dataframe_name":  ["timestamp", "u0", "u1", "u2", "u3", "u4", "u5", "u6", "u7"]},
-            "vehicle_local_position": {"ulog_name": ["timestamp", "ax", "ay", "az", "vx", "vy", "vz"]},
+            "vehicle_local_position": {"ulog_name": ["timestamp", "vx", "vy", "vz"]},
             "vehicle_attitude": {"ulog_name": ["timestamp", "q[0]", "q[1]", "q[2]", "q[3]"],
                                  "dataframe_name":  ["timestamp", "q0", "q1", "q2", "q3"]},
             "vehicle_angular_velocity":  {"ulog_name": ["timestamp", "xyz[0]", "xyz[1]", "xyz[2]"],
                                           "dataframe_name":  ["timestamp", "ang_vel_x", "ang_vel_y", "ang_vel_z"]},
+            "sensor_combined": {"ulog_name": ["timestamp", "accelerometer_m_s2[0]", "accelerometer_m_s2[1]", "accelerometer_m_s2[2]"]},
             "vehicle_angular_acceleration": {"ulog_name": ["timestamp", "xyz[0]", "xyz[1]", "xyz[2]"],
                                              "dataframe_name":  ["timestamp", "ang_acc_x", "ang_acc_y", "ang_acc_z"]},
         }
@@ -35,19 +35,6 @@ class QuadPlaneModel(DynamicsModel):
                                              [0, 0, 0, 0, 0],
                                              [-1, -1, -1, -1, 0]]
                                             )
-
-    def compute_airspeed(self):
-        groundspeed_ned_mat = (self.data_df[["vx", "vy", "vz"]]).to_numpy()
-        airspeed_body_mat = self.rot_to_body_frame(groundspeed_ned_mat)
-        aoa_vec = np.zeros((airspeed_body_mat.shape[0], 1))
-        for i in range(airspeed_body_mat.shape[0]):
-            aoa_vec[i, :] = math.atan2(
-                airspeed_body_mat[i, 2], airspeed_body_mat[i, 0])
-        airspeed_body_mat = np.hstack((airspeed_body_mat, aoa_vec))
-        airspeed_body_df = pd.DataFrame(airspeed_body_mat, columns=[
-            "V_air_body_x", "V_air_body_y", "V_air_body_z", "AoA"])
-        self.data_df = pd.concat(
-            [self.data_df, airspeed_body_df], axis=1, join="inner")
 
     def compute_rotor_features(self):
         u_mat = self.data_df[["u0", "u1", "u2", "u3", "u4"]].to_numpy()
@@ -81,7 +68,7 @@ class QuadPlaneModel(DynamicsModel):
 
     def prepare_regression_matrices(self):
         self.normalize_actuators()
-        self.compute_airspeed()
+        self.compute_airspeed_from_groundspeed(["vx", "vy", "vz"])
         X_lin_thrust = self.compute_rotor_features()
         airspeed_mat = self.data_df[["V_air_body_x",
                                      "V_air_body_y", "V_air_body_z"]].to_numpy()
@@ -91,8 +78,9 @@ class QuadPlaneModel(DynamicsModel):
         X_lin_aero, aero_coef_list = aero_model.compute_aero_features(
             airspeed_mat, aoa_mat, flap_commands)
         self.coef_name_list.extend(aero_coef_list)
-        accel_mat = self.data_df[["ax", "ay", "az"]].to_numpy()
-        y_lin = (self.rot_to_body_frame(accel_mat)).flatten()
+        accel_body_mat = self.data_df[[
+            "accelerometer_m_s2[0]", "accelerometer_m_s2[1]", "accelerometer_m_s2[2]"]].to_numpy()
+        y_lin = (accel_body_mat).flatten()
         X_lin = np.hstack((X_lin_thrust, X_lin_aero))
         return X_lin, y_lin
 

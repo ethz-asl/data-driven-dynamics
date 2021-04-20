@@ -57,19 +57,6 @@ class SimpleQuadRotorModel(DynamicsModel):
                                              [-1, -1, -1, -1]]
                                             )
 
-    def compute_airspeed(self):
-        groundspeed_ned_mat = (self.data_df[["vx", "vy", "vz"]]).to_numpy()
-        airspeed_body_mat = self.rot_to_body_frame(groundspeed_ned_mat)
-        aoa_vec = np.zeros((airspeed_body_mat.shape[0], 1))
-        for i in range(airspeed_body_mat.shape[0]):
-            aoa_vec[i, :] = math.atan2(
-                airspeed_body_mat[i, 2], airspeed_body_mat[i, 0])
-        airspeed_body_mat = np.hstack((airspeed_body_mat, aoa_vec))
-        airspeed_body_df = pd.DataFrame(airspeed_body_mat, columns=[
-            "V_air_body_x", "V_air_body_y", "V_air_body_z", "AoA"])
-        self.data_df = pd.concat(
-            [self.data_df, airspeed_body_df], axis=1, join="inner")
-
     def compute_rotor_features(self):
         u_mat = self.data_df[["u0", "u1", "u2", "u3"]].to_numpy()
         v_airspeed_mat = self.data_df[[
@@ -92,7 +79,7 @@ class SimpleQuadRotorModel(DynamicsModel):
 
     def prepare_regression_mat(self):
         self.normalize_actuators()
-        self.compute_airspeed()
+        self.compute_airspeed_from_groundspeed(["vx", "vy", "vz"])
         accel_mat = self.data_df[[
             "accelerometer_m_s2[0]", "accelerometer_m_s2[1]", "accelerometer_m_s2[2]"]].to_numpy()
         self.data_df[["ax_body", "ay_body", "az_body"]] = accel_mat

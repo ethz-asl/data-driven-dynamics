@@ -10,6 +10,8 @@ from ..tools import quaternion_to_rotation_matrix
 import numpy as np
 import yaml
 import time
+import math
+import pandas as pd
 
 
 class DynamicsModel():
@@ -48,6 +50,19 @@ class DynamicsModel():
             except:
                 return False
         return True
+
+    def compute_airspeed_from_groundspeed(self, airspeed_topic_list):
+        groundspeed_ned_mat = (self.data_df[airspeed_topic_list]).to_numpy()
+        airspeed_body_mat = self.rot_to_body_frame(groundspeed_ned_mat)
+        aoa_vec = np.zeros((airspeed_body_mat.shape[0], 1))
+        for i in range(airspeed_body_mat.shape[0]):
+            aoa_vec[i, :] = math.atan2(
+                airspeed_body_mat[i, 2], airspeed_body_mat[i, 0])
+        airspeed_body_mat = np.hstack((airspeed_body_mat, aoa_vec))
+        airspeed_body_df = pd.DataFrame(airspeed_body_mat, columns=[
+            "V_air_body_x", "V_air_body_y", "V_air_body_z", "AoA"])
+        self.data_df = pd.concat(
+            [self.data_df, airspeed_body_df], axis=1, join="inner")
 
     def compute_resampled_dataframe(self):
         # setup object to crop dataframes for flight data
