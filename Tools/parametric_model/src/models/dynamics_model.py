@@ -96,17 +96,28 @@ class DynamicsModel():
         # To be adjusted using parameters:
         self.min_pwm = 1000
         self.max_pwm = 2000
+        self.trim_pwm = 1500
         self.actuator_columns = self.get_topic_list_from_topic_type(
             "actuator_outputs")
-        for actuator in self.actuator_columns:
-            actuator_data = self.data_df[actuator].to_numpy()
-            for i in range(actuator_data.shape[0]):
-                if (actuator_data[i] < self.min_pwm):
-                    actuator_data[i] = 0
-                else:
-                    actuator_data[i] = (
-                        actuator_data[i] - self.min_pwm)/(self.max_pwm - self.min_pwm)
-            self.data_df[actuator] = actuator_data
+        self.actuator_type = self.req_topics_dict["actuator_outputs"]["actuator_type"]
+        self.actuator_type.remove("timestamp")
+        for i in range(len(self.actuator_columns)):
+            actuator_data = self.data_df[self.actuator_columns[i]].to_numpy()
+            if (self.actuator_type[i] == "motor"):
+                for j in range(actuator_data.shape[0]):
+                    if (actuator_data[j] < self.min_pwm):
+                        actuator_data[j] = 0
+                    else:
+                        actuator_data[j] = (
+                            actuator_data[j] - self.min_pwm)/(self.max_pwm - self.min_pwm)
+            else:
+                for j in range(actuator_data.shape[0]):
+                    if (actuator_data[j] < self.min_pwm):
+                        actuator_data[j] = 0
+                    else:
+                        actuator_data[j] = 2*(
+                            actuator_data[j] - self.trim_pwm)/(self.max_pwm - self.min_pwm)
+            self.data_df[self.actuator_columns[i]] = actuator_data
 
     def rot_to_body_frame(self, vec_mat):
         """
