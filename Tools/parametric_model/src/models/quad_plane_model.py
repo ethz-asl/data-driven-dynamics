@@ -19,7 +19,8 @@ class QuadPlaneModel(DynamicsModel):
     def __init__(self, rel_ulog_path):
         req_topic_dict = {
             "actuator_outputs": {"ulog_name": ["timestamp", "output[0]", "output[1]", "output[2]", "output[3]", "output[4]", "output[5]", "output[6]", "output[7]"],
-                                 "dataframe_name":  ["timestamp", "u0", "u1", "u2", "u3", "u4", "u5", "u6", "u7"]},
+                                 "dataframe_name":  ["timestamp", "u0", "u1", "u2", "u3", "u4", "u5", "u6", "u7"],
+                                 "actuator_type":  ["timestamp", "motor", "motor", "motor", "motor", "motor", "flap", "flap", "flap"]},
             "vehicle_local_position": {"ulog_name": ["timestamp", "vx", "vy", "vz"]},
             "vehicle_attitude": {"ulog_name": ["timestamp", "q[0]", "q[1]", "q[2]", "q[3]"],
                                  "dataframe_name":  ["timestamp", "q0", "q1", "q2", "q3"]},
@@ -43,7 +44,7 @@ class QuadPlaneModel(DynamicsModel):
 
         # Vertical Rotor Features
         # all vertical rotors are assumed to have the same rotor parameters, therefore their feature matrices are added.
-        X_vertical_rotors = np.zeros((3*self.data_df.shape[0], 5))
+        X_vertical_rotors = np.zeros((3*self.data_df.shape[0], 4))
         for i in range(0, (u_mat.shape[1]-1)):
             currActuator = GazeboRotorModel(self.actuator_directions[:, i])
             X_curr_rotor, vert_rotors_coef_list = currActuator.compute_actuator_feature_matrix(

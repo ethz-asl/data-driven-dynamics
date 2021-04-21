@@ -28,9 +28,8 @@ The script estimates [k_1, c, b]
 """
 
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
-import argparse
+import math
 
 from sklearn.linear_model import LinearRegression
 from .dynamics_model import DynamicsModel
@@ -43,7 +42,8 @@ class SimpleQuadRotorModel(DynamicsModel):
     def __init__(self, rel_ulog_path):
         req_topic_dict = {
             "actuator_outputs": {"ulog_name": ["timestamp", "output[0]", "output[1]", "output[2]", "output[3]"],
-                                 "dataframe_name":  ["timestamp", "u0", "u1", "u2", "u3"]},
+                                 "dataframe_name":  ["timestamp", "u0", "u1", "u2", "u3"],
+                                 "actuator_type":  ["timestamp", "motor", "motor", "motor", "motor"]},
             "vehicle_local_position": {"ulog_name": ["timestamp", "vx", "vy", "vz"]},
             "sensor_combined": {"ulog_name": ["timestamp", "accelerometer_m_s2[0]", "accelerometer_m_s2[1]", "accelerometer_m_s2[2]"]},
             "vehicle_attitude": {"ulog_name": ["timestamp", "q[0]", "q[1]", "q[2]", "q[3]"],
