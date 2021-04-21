@@ -10,7 +10,7 @@ from pyulog import core
 
 
 def load_ulog(rel_ulog_path):
-    proj_path = Path(os.getcwd()).parent.parent
+    proj_path = Path(os.getcwd())
     log_file_path = os.path.join(proj_path, rel_ulog_path)
     ulog = core.ULog(log_file_path)
     return ulog
