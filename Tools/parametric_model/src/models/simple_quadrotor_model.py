@@ -64,7 +64,7 @@ class SimpleQuadRotorModel(DynamicsModel):
 
         # Vertical Rotor Features
         # all vertical rotors are assumed to have the same rotor parameters, therefore their feature matrices are added.
-        X_vertical_rotors = np.zeros((3*self.data_df.shape[0], 5))
+        X_vertical_rotors = np.zeros((3*self.data_df.shape[0], 4))
         for i in range(0, (u_mat.shape[1]-1)):
             currActuator = GazeboRotorModel(self.actuator_directions[:, i])
             X_curr_rotor, vert_rotors_coef_list = currActuator.compute_actuator_feature_matrix(
@@ -79,7 +79,7 @@ class SimpleQuadRotorModel(DynamicsModel):
 
     def prepare_regression_mat(self):
         self.normalize_actuators()
-        self.compute_airspeed()
+        self.compute_airspeed_from_groundspeed(["vx", "vy", "vz"])
         accel_mat = self.data_df[[
             "accelerometer_m_s2[0]", "accelerometer_m_s2[1]", "accelerometer_m_s2[2]"]].to_numpy()
         self.data_df[["ax_body", "ay_body", "az_body"]] = accel_mat
