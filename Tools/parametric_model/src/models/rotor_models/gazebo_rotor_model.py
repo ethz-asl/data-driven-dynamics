@@ -46,8 +46,12 @@ class GazeboRotorModel():
         # Drag computation
         v_airspeed_perpendicular_to_rotor_axis = v_airspeed - \
             v_airspeed_parallel_to_rotor_axis
-        X_drag = v_airspeed_perpendicular_to_rotor_axis @ np.array(
-            [[actuator_input, 1]])
+        if (np.linalg.norm(v_airspeed_perpendicular_to_rotor_axis) >= 0.1):
+            X_drag = v_airspeed_perpendicular_to_rotor_axis @ np.array(
+                [[actuator_input]])
+        else:
+            X_drag = np.zeros((3, 1))
+
         X_forces = np.hstack((X_drag, X_thrust))
 
         return X_forces
@@ -64,6 +68,6 @@ class GazeboRotorModel():
             X_curr = self.compute_actuator_force_features(
                 actuator_input_vec[i], v_airspeed_mat[i, :].reshape((3, 1)))
             X_actuator_forces = np.vstack((X_actuator_forces, X_curr))
-        coef_list = ["rot_drag_lin", "rot_drag_offset",
-                     "rot_thrust_quad", "rot_thrust_lin", "rot_thrust_offset"]
+        coef_list = ["rot_drag_lin", "rot_thrust_quad",
+                     "rot_thrust_lin", "rot_thrust_offset"]
         return X_actuator_forces, coef_list
