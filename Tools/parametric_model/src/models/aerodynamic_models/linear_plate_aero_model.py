@@ -71,22 +71,33 @@ class LinearPlateAeroModel():
         X_wing = np.hstack((F_xz_body_frame, F_y_body_frame))
         return X_wing
 
-    def compute_aileron_feature(self, v_airspeed, angle_of_attack, flap_commands):
+    def compute_control_surface_feature(self, v_airspeed, angle_of_attack, flap_commands):
         """
         Model description:
         TBD... the model itself is currently not finished. Tried different things but was not happy yet with the results. 
+        flap_commands: 
+        1: aileron command left/right
+        2. aileron command left/right
+        3. elevator command
         """
 
         v_xz = math.sqrt(v_airspeed[0]**2 + v_airspeed[2]**2)
-        X_rudder_aero = np.zeros((3, 5))
-        X_rudder_aero[0, 0] = v_xz**2
-        X_rudder_aero[0, 1] = - (flap_commands[2])*v_xz**2
-        X_rudder_aero[0, 2] = - (flap_commands[2])**2*v_xz**2
-        X_rudder_aero[1, 3] = (flap_commands[0])*v_xz**2
-        X_rudder_aero[1, 4] = (flap_commands[1])*v_xz**2
+        X_flaps_aero = np.zeros((3, 5))
+
+        # aileron drag
+        X_flaps_aero[0, 0] = -(abs(flap_commands[0]) +
+                               abs(flap_commands[1]))*v_xz**2
+        X_flaps_aero[0, 1] = -(abs(flap_commands[0]) +
+                               abs(flap_commands[1]))**2*v_xz**2
+
+        # elevator drag
+        X_flaps_aero[0, 2] = -(abs(flap_commands[2]))*v_xz**2
+        X_flaps_aero[0, 3] = -(abs(flap_commands[2]))**2*v_xz**2
+        # elevator lift
+        X_flaps_aero[2, 4] = -(flap_commands[2])*v_xz**2
         R_aero_to_body = Rotation.from_rotvec(
             [0, -angle_of_attack, 0]).as_matrix()
-        X_rudder_body = R_aero_to_body @ X_rudder_aero
+        X_rudder_body = R_aero_to_body @ X_flaps_aero
         return X_rudder_body
 
     def compute_single_aero_feature(self, v_airspeed, angle_of_attack, flap_commands):
@@ -100,7 +111,7 @@ class LinearPlateAeroModel():
         roll_commands = numpy array of dimension (1,3) with columns for [u_roll_1, u_roll_2, u_pitch_collective]
         """
         X_wing = self.compute_main_wing_feature(v_airspeed, angle_of_attack)
-        X_rudder = self.compute_aileron_feature(
+        X_rudder = self.compute_control_surface_feature(
             v_airspeed, angle_of_attack, flap_commands)
         return np.hstack((X_wing, X_rudder))
 
@@ -121,8 +132,8 @@ class LinearPlateAeroModel():
             X_aero = np.vstack((X_aero, X_curr))
         wing_coef_list = ["c_d_wing_xy_offset", "c_d_wing_xy_lin", "c_d_wing_xy_quad", "c_d_wing_xy_stall",
                           "c_l_wing_xy_offset", "c_l_wing_xy_lin", "c_l_wing_xy_stall", "c_d_wing_y_offset"]
-        flap_coef_list = ["c_d_x_flap_offset", "c_d_x_flap_lin",
-                          "c_d_x_flap_quad", "c_d_y_flap_1", "c_d_y_flap_2"]
+        flap_coef_list = ["c_d_ail_lin",
+                          "c_d_ail_quad", "c_d_ele_lin", "c_d_ele_quad", "c_l_ele_lin"]
         aero_coef_list = wing_coef_list + flap_coef_list
         return X_aero, aero_coef_list
 
