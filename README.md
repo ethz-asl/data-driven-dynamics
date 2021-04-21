@@ -65,17 +65,17 @@ source setup.bash
 Generate the parametric model using:
 
 ```
-cd Tools/parametric_model
-python3 generate_parametric_model model log_file
+python3 Tools/parametric_model/generate_parametric_model model log_file
 ```
 
 Hereby the arguments model and log_file can be used to specify the model and the log files respectively. As an example you could use:
 
 ```
-python3 generate_parametric_model.py --model simple_quadrotor_model $(pwd)/logs/2021-04-12/14_28_28.ulg
+python3 Tools/parametric_model/generate_parametric_model.py --model simple_quadrotor_model logs/2021-04-12/14_28_28.ulg
 ```
 
 Or more simply from the root of the repository
+
 ```
 make estimate-model [model=<modeltype>] [log=<log path>]
 ```
