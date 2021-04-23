@@ -87,3 +87,11 @@ Current model choices are:
 - quad_plane_model
 
 The results of the model estimation will be saved into the Tools/parametric_model/results folder as a yaml file.
+
+## Testing the functionality of Parametric model
+
+To ensure that the parametric model works as expected you can perform a set of pytests, which are stored in `Tools/parametric_model/tests`. To start the tests you have to run the shell script:
+
+`Tools/parametric_model/test_parametric_model.sh`
+
+Currently only the transformation from body to intertial frame and vise versa are checked. This should be expanded in the future.
