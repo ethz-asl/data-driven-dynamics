@@ -64,7 +64,7 @@ class SimpleQuadRotorModel(DynamicsModel):
 
         # Vertical Rotor Features
         # all vertical rotors are assumed to have the same rotor parameters, therefore their feature matrices are added.
-        X_vertical_rotors = np.zeros((3*self.data_df.shape[0], 4))
+        X_vertical_rotors = np.zeros((3*self.data_df.shape[0], 3))
         for i in range(0, (u_mat.shape[1]-1)):
             currActuator = GazeboRotorModel(self.actuator_directions[:, i])
             X_curr_rotor, vert_rotors_coef_list = currActuator.compute_actuator_feature_matrix(
