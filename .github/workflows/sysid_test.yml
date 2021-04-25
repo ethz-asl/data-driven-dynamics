@@ -6,7 +6,7 @@ on:
       - master
   pull_request:
     branches:
-      - '*'
+      - "*"
 
 jobs:
   build:
@@ -15,12 +15,13 @@ jobs:
       fail-fast: false
       matrix:
         container:
-        - 'px4io/px4-dev-simulation-focal:2020-11-18' # Gazebo 11
-        - 'px4io/px4-dev-simulation-bionic:2020-11-18' # Gazebo 9
+          - "px4io/px4-dev-simulation-focal:2020-11-18" # Gazebo 11
     container: ${{ matrix.container }}
     steps:
-    - uses: actions/checkout@v1
-    - name: submodule update
-      run: git submodule update --init --recursive
-    - name: Install python dependencies
-      run: pip3 install -r Tools/parametric_model/requirements.txt
+      - uses: actions/checkout@v1
+      - name: submodule update
+        run: git submodule update --init --recursive
+      - name: Install python dependencies
+        run: pip3 install -r Tools/parametric_model/requirements.txt
+      - name: Run pytest on parametric model
+        run: Tools/parametric_model/test_parametric_model.sh
