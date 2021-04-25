@@ -37,6 +37,11 @@ class QuadPlaneModel(DynamicsModel):
                                              [-1, -1, -1, -1, 0]]
                                             )
 
+        self.actuator_positions = np.array([[1, -1, -1, -1],
+                                            [1, 1, -1, 1],
+                                            [0, 0, 0, 0]]
+                                           )
+
     def compute_rotor_features(self):
         u_mat = self.data_df[["u0", "u1", "u2", "u3", "u4"]].to_numpy()
         v_airspeed_mat = self.data_df[[
@@ -44,28 +49,43 @@ class QuadPlaneModel(DynamicsModel):
 
         # Vertical Rotor Features
         # all vertical rotors are assumed to have the same rotor parameters, therefore their feature matrices are added.
-        X_vertical_rotors = np.zeros((3*self.data_df.shape[0], 3))
         for i in range(0, (u_mat.shape[1]-1)):
-            currActuator = GazeboRotorModel(self.actuator_directions[:, i])
-            X_curr_rotor, vert_rotors_coef_list = currActuator.compute_actuator_feature_matrix(
+            currActuator = GazeboRotorModel(
+                self.actuator_directions[:, i], self.actuator_positions[:, i])
+            X_force_curr, X_moment_curr, vert_rot_forces_coef_list, vert_rot_moments_coef_list = currActuator.compute_actuator_feature_matrix(
                 u_mat[:, i], v_airspeed_mat)
-            X_vertical_rotors = X_vertical_rotors + X_curr_rotor
-        for i in range(len(vert_rotors_coef_list)):
-            vert_rotors_coef_list[i] = "vert_" + vert_rotors_coef_list[i]
-        # Forward Rotor Feature
+            if 'X_vert_rot_forces' in vars():
+                X_vert_rot_forces += X_force_curr
+                X_vert_rot_moments += X_moment_curr
+            else:
+                X_vert_rot_forces = X_force_curr
+                X_vert_rot_moments = X_moment_curr
+        for i in range(len(vert_rot_forces_coef_list)):
+            vert_rot_forces_coef_list[i] = "vert_" + \
+                vert_rot_forces_coef_list[i]
+        for i in range(len(vert_rot_moments_coef_list)):
+            vert_rot_moments_coef_list[i] = "vert_" + \
+                vert_rot_moments_coef_list[i]
+
+        # Horizontal Rotor Features
         forwardActuator = GazeboRotorModel(self.actuator_directions[:, 4])
-        X_forward_rotor, forward_rotors_coef_list = forwardActuator.compute_actuator_feature_matrix(
+        X_hor_rot_forces, X_hor_rot_moments, hor_rot_forces_coef_list, hor_rot_moments_coef_list = forwardActuator.compute_actuator_feature_matrix(
             u_mat[:, 4], v_airspeed_mat)
-        for i in range(len(forward_rotors_coef_list)):
-            forward_rotors_coef_list[i] = "forward_" + \
-                forward_rotors_coef_list[i]
+        for i in range(len(hor_rot_forces_coef_list)):
+            hor_rot_forces_coef_list[i] = "horizontal_" + \
+                hor_rot_forces_coef_list[i]
+        for i in range(len(hor_rot_moments_coef_list)):
+            hor_rot_moments_coef_list[i] = "horizontal_" + \
+                hor_rot_moments_coef_list[i]
 
         # Combine all rotor feature matrices
-        X_rotor_features = np.hstack(
-            (X_vertical_rotors, X_forward_rotor))
+        X_rot_forces = np.hstack(
+            (X_vert_rot_forces, X_hor_rot_forces))
+        X_rot_force_features = np.hstack(
+            (X_vert_rot_moments, X_hor_rot_moments))
         self.coef_name_list.extend(
-            (vert_rotors_coef_list + forward_rotors_coef_list))
-        return X_rotor_features
+            (vert_rot_forces_coef_list + hor_rot_forces_coef_list))
+        return X_rot_force_features
 
     def prepare_regression_matrices(self):
         self.normalize_actuators()

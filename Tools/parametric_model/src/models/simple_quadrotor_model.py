@@ -54,8 +54,13 @@ class SimpleQuadRotorModel(DynamicsModel):
         self.rotor_count = 4
         self.actuator_directions = np.array([[0, 0, 0, 0],
                                              [0, 0, 0, 0],
-                                             [-1, -1, -1, -1]]
+                                             [-1, 1, -1, 1]]
                                             )
+
+        self.actuator_positions = np.array([[1, -1, -1, -1],
+                                            [1, 1, -1, 1],
+                                            [0, 0, 0, 0]]
+                                           )
 
     def compute_rotor_features(self):
         u_mat = self.data_df[["u0", "u1", "u2", "u3"]].to_numpy()
@@ -66,15 +71,17 @@ class SimpleQuadRotorModel(DynamicsModel):
         # all vertical rotors are assumed to have the same rotor parameters, therefore their feature matrices are added.
         X_vertical_rotors = np.zeros((3*self.data_df.shape[0], 3))
         for i in range(0, (u_mat.shape[1]-1)):
-            currActuator = GazeboRotorModel(self.actuator_directions[:, i])
-            X_curr_rotor, vert_rotors_coef_list = currActuator.compute_actuator_feature_matrix(
+            currActuator = GazeboRotorModel(
+                self.actuator_directions[:, i], self.actuator_positions[:, i])
+            X_force_curr, X_moment_curr, vert_rot_forces_coef_list, vert_rot_moments_coef_list = currActuator.compute_actuator_feature_matrix(
                 u_mat[:, i], v_airspeed_mat)
-            X_vertical_rotors = X_vertical_rotors + X_curr_rotor
-        for i in range(len(vert_rotors_coef_list)):
-            vert_rotors_coef_list[i] = "vert_" + vert_rotors_coef_list[i]
+            X_vertical_rotors = X_vertical_rotors + X_force_curr
+        for i in range(len(vert_rot_forces_coef_list)):
+            vert_rot_forces_coef_list[i] = "vert_" + \
+                vert_rot_forces_coef_list[i]
 
         # Combine all rotor feature matrices
-        self.coef_name_list.extend(vert_rotors_coef_list)
+        self.coef_name_list.extend(vert_rot_forces_coef_list)
         return X_vertical_rotors
 
     def prepare_regression_mat(self):
