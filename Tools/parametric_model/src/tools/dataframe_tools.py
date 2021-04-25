@@ -50,11 +50,8 @@ def resample_dataframes(df_list, t_start, t_end, f_des=100.0, slerp_enabled=Fals
                 q_new = slerp_interpolate_from_df(df, new_t_list[i])
                 q_mat = np.vstack((q_mat, q_new))
             attitude_col_names = list(df.columns)
-            print(attitude_col_names)
             attitude_col_names.remove("timestamp")
-            print(attitude_col_names)
             new_df = pd.DataFrame(q_mat, columns=attitude_col_names)
-            print(new_df)
 
         else:
             new_df = pd.DataFrame()
@@ -62,8 +59,9 @@ def resample_dataframes(df_list, t_start, t_end, f_des=100.0, slerp_enabled=Fals
                 new_df[col] = np.interp(new_t_list, df.timestamp, df[col])
 
         res_df = pd.concat([res_df, new_df], axis=1)
+        res_df = res_df.loc[:, ~res_df.columns.duplicated()]
 
-    return res_df.T.drop_duplicates().T
+    return res_df
 
 
 def slerp_interpolate_from_df(df, new_t):
