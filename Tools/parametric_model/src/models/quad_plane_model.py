@@ -116,16 +116,19 @@ class QuadPlaneModel(DynamicsModel):
         X = block_diag(X_forces, X_moments)
         self.coef_name_list.extend(rotor_forces_coef_list + aero_coef_list +
                                    rotor_moments_coef_list + X_body_rot_moment_coef_list)
+        # define separate features for plotting
+        self.X_forces = X[0:X_forces.shape[0], :]
+        self.X_moments = X[X_forces.shape[0]:X.shape[0], :]
 
         # prepare linear and angular accelerations as regressand for forces
         accel_body_mat = self.data_df[[
             "accelerometer_m_s2[0]", "accelerometer_m_s2[1]", "accelerometer_m_s2[2]"]].to_numpy()
         angular_accel_body_mat = self.data_df[[
             "ang_acc_x", "ang_acc_y", "ang_acc_z"]].to_numpy()
-        y = np.hstack(((accel_body_mat).flatten(),
-                      angular_accel_body_mat.flatten()))
-        print(X.shape)
-        print(y.shape)
+        # define separate features for plotting
+        self.y_forces = accel_body_mat.flatten()
+        self.y_moments = angular_accel_body_mat.flatten()
+        y = np.hstack((self.y_forces, self.y_moments))
 
         return X, y
 
@@ -135,24 +138,28 @@ class QuadPlaneModel(DynamicsModel):
         self.data_df_len = self.data_df.shape[0]
         print("resampled data contains ", self.data_df_len, "timestamps.")
         X, y = self.prepare_regression_matrices()
-        reg = LinearRegression().fit(X, y)
+        self.reg = LinearRegression().fit(X, y)
 
         print("regression complete")
-        metrics_dict = {"R2": float(reg.score(X, y))}
+        metrics_dict = {"R2": float(self.reg.score(X, y))}
         self.coef_name_list.extend(["intercept"])
-        coef_list = list(reg.coef_) + [reg.intercept_]
+        coef_list = list(self.reg.coef_) + [self.reg.intercept_]
         self.generate_model_dict(coef_list, metrics_dict)
         self.save_result_dict_to_yaml(file_name="quad_plane_model")
 
-        y_pred = reg.predict(X)
+        return
+
+    def plot_model_predicitons(self):
+
+        y_forces_pred = self.reg.predict(self.X_forces)
+        y_moments_pred = self.reg.predict(self.X_moments)
 
         model_plots.plot_accel_predeictions(
-            y, y_pred, self.data_df["timestamp"])
+            self.y_forces, y_forces_pred, self.data_df["timestamp"])
+        model_plots.plot_angular_accel_predeictions(
+            self.y_moments, y_moments_pred, self.data_df["timestamp"])
         model_plots.plot_airspeed_and_AoA(
             self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "AoA"]], self.data_df["timestamp"])
-        model_plots.plot_accel_and_airspeed_in_y_direction(
-            y, y_pred, self.data_df["V_air_body_y"], self.data_df["timestamp"])
         quad_plane_model_plots.plot_accel_predeictions_with_flap_outputs(
-            y, y_pred, self.data_df[["u5", "u6", "u7"]], self.data_df["timestamp"])
-
+            self.y_forces, y_forces_pred, self.data_df[["u5", "u6", "u7"]], self.data_df["timestamp"])
         return

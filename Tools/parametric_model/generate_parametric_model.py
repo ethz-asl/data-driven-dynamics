@@ -23,6 +23,7 @@ def start_model_estimation(arg_list):
         print("no valid model selected")
 
     model.estimate_model()
+    model.plot_model_predicitons()
 
     return
 

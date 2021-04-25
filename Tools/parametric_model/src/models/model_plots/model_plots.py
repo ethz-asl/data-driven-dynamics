@@ -11,8 +11,8 @@ import numpy as np
 def plot_accel_predeictions(stacked_acc_vec, stacked_acc_vec_pred, timestamp_array):
     """
     Input:
-    acc_vec: numpy array of shape (3*n,1) containing stacked accelerations [a_x_1, a_y_1, a_z_1, a_x_2, ...]^T in body frame
-    acc_vec_pred: numpy array of shape (3*n,1) containing stacked predicted accelerations [a_x_1, a_y_1, a_z_1, a_x_2, ...]^T in body frame
+    stacked_acc_vec: numpy array of shape (3*n,1) containing stacked accelerations [a_x_1, a_y_1, a_z_1, a_x_2, ...]^T in body frame
+    stacked_acc_vec_pred: numpy array of shape (3*n,1) containing stacked predicted accelerations [a_x_1, a_y_1, a_z_1, a_x_2, ...]^T in body frame
     timestamp_array: numpy array with n entries of corresponding timestamps.
     """
     stacked_acc_vec = np.array(stacked_acc_vec)
@@ -23,7 +23,7 @@ def plot_accel_predeictions(stacked_acc_vec, stacked_acc_vec_pred, timestamp_arr
     acc_mat_pred = stacked_acc_vec_pred.reshape((-1, 3))
 
     fig, (ax1, ax2, ax3) = plt.subplots(3)
-    fig.suptitle('Vertically stacked subplots')
+    fig.suptitle('Predictions of linear accelerations')
     ax1.plot(timestamp_array, acc_mat[:, 0], label='measurement')
     ax1.plot(timestamp_array, acc_mat_pred[:, 0], label='prediction')
     ax2.plot(timestamp_array, acc_mat[:, 1], label='measurement')
@@ -34,6 +34,40 @@ def plot_accel_predeictions(stacked_acc_vec, stacked_acc_vec_pred, timestamp_arr
     ax1.set_title('acceleration in x direction of body frame [m/s^2]')
     ax2.set_title('acceleration in y direction of body frame [m/s^2]')
     ax3.set_title('acceleration in z direction of body frame [m/s^2]')
+    plt.legend()
+    plt.show()
+    return
+
+
+def plot_angular_accel_predeictions(stacked_acc_vec, stacked_acc_vec_pred, timestamp_array):
+    """
+    Input:
+    stacked_acc_vec: numpy array of shape (3*n,1) containing stacked angular accelerations [w_x_1, w_y_1, w_z_1, w_x_2, ...]^T in body frame
+    stacked_acc_vec_pred: numpy array of shape (3*n,1) containing stacked predicted angular accelerations [w_x_1, w_y_1, w_z_1, w_x_2, ...]^T in body frame
+    timestamp_array: numpy array with n entries of corresponding timestamps.
+    """
+    stacked_acc_vec = np.array(stacked_acc_vec)
+    stacked_acc_vec_pred = np.array(stacked_acc_vec_pred)
+    timestamp_array = np.array(timestamp_array)
+
+    acc_mat = stacked_acc_vec.reshape((-1, 3))
+    acc_mat_pred = stacked_acc_vec_pred.reshape((-1, 3))
+
+    fig, (ax1, ax2, ax3) = plt.subplots(3)
+    fig.suptitle('Prediction of angular accelerations')
+    ax1.plot(timestamp_array, acc_mat[:, 0], label='measurement')
+    ax1.plot(timestamp_array, acc_mat_pred[:, 0], label='prediction')
+    ax2.plot(timestamp_array, acc_mat[:, 1], label='measurement')
+    ax2.plot(timestamp_array, acc_mat_pred[:, 1], label='prediction')
+    ax3.plot(timestamp_array, acc_mat[:, 2], label='measurement')
+    ax3.plot(timestamp_array, acc_mat_pred[:, 2], label='prediction')
+
+    ax1.set_title(
+        'angular acceleration in x direction of body frame [rad/s^2]')
+    ax2.set_title(
+        'angular acceleration in y direction of body frame [rad/s^2]')
+    ax3.set_title(
+        'angular acceleration in z direction of body frame [rad/s^2]')
     plt.legend()
     plt.show()
     return
@@ -50,7 +84,7 @@ def plot_airspeed_and_AoA(airspeed_mat, timestamp_array):
     timestamp_array = np.array(timestamp_array)
 
     fig, (ax1, ax2, ax3, ax4) = plt.subplots(4)
-    fig.suptitle('Vertically stacked subplots')
+    fig.suptitle('Airspeed and Angle of Attack')
     ax1.plot(timestamp_array, airspeed_mat[:, 0], label='measurement')
     ax2.plot(timestamp_array, airspeed_mat[:, 1], label='measurement')
     ax3.plot(timestamp_array, airspeed_mat[:, 2], label='measurement')
@@ -82,7 +116,7 @@ def plot_accel_and_airspeed_in_y_direction(stacked_acc_vec, stacked_acc_vec_pred
     acc_mat_pred = stacked_acc_vec_pred.reshape((-1, 3))
 
     fig, (ax1, ax2, ax3) = plt.subplots(3)
-    fig.suptitle('Vertically stacked subplots')
+    fig.suptitle('Acceleration and Airspeed in y direction')
     ax1.plot(timestamp_array, v_a_y, label='measurement')
     ax2.plot(timestamp_array, v_a_y**2, label='measurement')
     ax3.plot(timestamp_array, acc_mat[:, 1], label='measurement')
