@@ -64,6 +64,24 @@ class DynamicsModel():
         self.data_df = pd.concat(
             [self.data_df, airspeed_body_df], axis=1, join="inner")
 
+    def compute_body_rotation_features(self, angular_vel_topic_list):
+        """Include the moment contribution due to rotation body frame: 
+        w x Iw = X_body_rot * v
+        Where v = (I_y-I_z, I_z-I_x, I_x- I_y)^T
+        is comprised of the inertia moments we want to estimate
+        """
+        angular_vel_mat = (self.data_df[angular_vel_topic_list]).to_numpy()
+        X_body_rot = np.zeros((3*angular_vel_mat.shape[0], 3))
+        X_body_rot_coef_list = ["I_y-I_z", "I_z-I_x", "I_x- I_y"]
+        for i in range(angular_vel_mat.shape[0]):
+            X_body_rot[3*i, 0] = angular_vel_mat[i,
+                                                 1]*angular_vel_mat[i, 2]
+            X_body_rot[3*i + 1, 0] = angular_vel_mat[i, 2] * \
+                angular_vel_mat[i, 0]
+            X_body_rot[3*i + 2, 0] = angular_vel_mat[i, 0] * \
+                angular_vel_mat[i, 1]
+        return X_body_rot, X_body_rot_coef_list
+
     def compute_resampled_dataframe(self):
         # setup object to crop dataframes for flight data
         fts = compute_flight_time(self.ulog)
