@@ -100,29 +100,32 @@ class SimpleQuadRotorModel(DynamicsModel):
             airspeed_mat, aoa_mat)
         self.coef_name_list.extend(aero_coef_list)
         X = np.hstack((X_rotor, X_aero))
-        print("datapoints for regression: ", self.data_df.shape[0])
+        print("datapoints for self.regression: ", self.data_df.shape[0])
         return X, y
 
     def estimate_model(self):
         print("estimating simple quadrotor model...")
-        X, y = self.prepare_regression_mat()
-        reg = LinearRegression().fit(X, y)
+        self.X, self.y = self.prepare_regression_mat()
+        self.reg = LinearRegression().fit(self.X, self.y)
         print("regression complete")
-        y_pred = reg.predict(X)
-        metrics_dict = {"R2": float(reg.score(X, y))}
+        metrics_dict = {"R2": float(self.reg.score(self.X, self.y))}
         self.coef_name_list.extend(["intercept"])
-        coef_list = list(reg.coef_) + [reg.intercept_]
+        coef_list = list(self.reg.coef_) + [self.reg.intercept_]
         self.generate_model_dict(coef_list, metrics_dict)
         self.save_result_dict_to_yaml(file_name="simple_quadrotor_model")
-        model_plots.plot_accel_predeictions(
-            y, y_pred, self.data_df["timestamp"])
-        model_plots.plot_airspeed_and_AoA(
-            self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "AoA"]], self.data_df["timestamp"])
-        model_plots.plot_accel_and_airspeed_in_y_direction(
-            y, y_pred, self.data_df["V_air_body_y"], self.data_df["timestamp"])
         return
 
-    def plot_model_prediction(self):
+    def plot_model_predicitons(self):
+
+        y_pred = self.reg.predict(self.X)
+
+        model_plots.plot_accel_predeictions(
+            self.y, y_pred, self.data_df["timestamp"])
+        model_plots.plot_airspeed_and_AoA(
+            self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "AoA"]], self.data_df["timestamp"])
+        return
+
+    def plot_motor_model_prediction(self):
         # plot model prediction
         u = np.linspace(0.0, 1, num=101, endpoint=True)
         u_coll_pred = self.rotor_count*u
