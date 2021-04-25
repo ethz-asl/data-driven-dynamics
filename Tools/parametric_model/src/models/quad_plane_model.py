@@ -12,6 +12,7 @@ from .dynamics_model import DynamicsModel
 from .aerodynamic_models import LinearPlateAeroModel
 from .rotor_models import GazeboRotorModel
 from sklearn.linear_model import LinearRegression
+from scipy.linalg import block_diag
 from .model_plots import model_plots, quad_plane_model_plots
 
 
@@ -52,7 +53,7 @@ class QuadPlaneModel(DynamicsModel):
         for i in range(0, (u_mat.shape[1]-1)):
             currActuator = GazeboRotorModel(
                 self.actuator_directions[:, i], self.actuator_positions[:, i])
-            X_force_curr, X_moment_curr, vert_rot_forces_coef_list, vert_rot_moments_coef_list = currActuator.compute_actuator_feature_matrix(
+            X_force_curr, X_moment_curr, vert_rotor_forces_coef_list, vert_rotor_moments_coef_list = currActuator.compute_actuator_feature_matrix(
                 u_mat[:, i], v_airspeed_mat)
             if 'X_vert_rot_forces' in vars():
                 X_vert_rot_forces += X_force_curr
@@ -60,50 +61,73 @@ class QuadPlaneModel(DynamicsModel):
             else:
                 X_vert_rot_forces = X_force_curr
                 X_vert_rot_moments = X_moment_curr
-        for i in range(len(vert_rot_forces_coef_list)):
-            vert_rot_forces_coef_list[i] = "vert_" + \
-                vert_rot_forces_coef_list[i]
-        for i in range(len(vert_rot_moments_coef_list)):
-            vert_rot_moments_coef_list[i] = "vert_" + \
-                vert_rot_moments_coef_list[i]
+        for i in range(len(vert_rotor_forces_coef_list)):
+            vert_rotor_forces_coef_list[i] = "vert_" + \
+                vert_rotor_forces_coef_list[i]
+        for i in range(len(vert_rotor_moments_coef_list)):
+            vert_rotor_moments_coef_list[i] = "vert_" + \
+                vert_rotor_moments_coef_list[i]
 
         # Horizontal Rotor Features
         forwardActuator = GazeboRotorModel(self.actuator_directions[:, 4])
-        X_hor_rot_forces, X_hor_rot_moments, hor_rot_forces_coef_list, hor_rot_moments_coef_list = forwardActuator.compute_actuator_feature_matrix(
+        X_hor_rot_forces, X_hor_rot_moments, hor_rotor_forces_coef_list, hor_rotor_moments_coef_list = forwardActuator.compute_actuator_feature_matrix(
             u_mat[:, 4], v_airspeed_mat)
-        for i in range(len(hor_rot_forces_coef_list)):
-            hor_rot_forces_coef_list[i] = "horizontal_" + \
-                hor_rot_forces_coef_list[i]
-        for i in range(len(hor_rot_moments_coef_list)):
-            hor_rot_moments_coef_list[i] = "horizontal_" + \
-                hor_rot_moments_coef_list[i]
+        for i in range(len(hor_rotor_forces_coef_list)):
+            hor_rotor_forces_coef_list[i] = "horizontal_" + \
+                hor_rotor_forces_coef_list[i]
+        for i in range(len(hor_rotor_moments_coef_list)):
+            hor_rotor_moments_coef_list[i] = "horizontal_" + \
+                hor_rotor_moments_coef_list[i]
 
         # Combine all rotor feature matrices
-        X_rot_forces = np.hstack(
+        X_rotor_forces = np.hstack(
             (X_vert_rot_forces, X_hor_rot_forces))
-        X_rot_force_features = np.hstack(
+        X_rotor_moments = np.hstack(
             (X_vert_rot_moments, X_hor_rot_moments))
-        self.coef_name_list.extend(
-            (vert_rot_forces_coef_list + hor_rot_forces_coef_list))
-        return X_rot_force_features
+        rotor_forces_coef_list = vert_rotor_forces_coef_list + hor_rotor_forces_coef_list
+        rotor_moments_coef_list = vert_rotor_moments_coef_list + hor_rotor_moments_coef_list
+        return X_rotor_forces, X_rotor_moments, rotor_forces_coef_list, rotor_moments_coef_list
 
     def prepare_regression_matrices(self):
+
+        # Prepare data
         self.normalize_actuators()
         self.compute_airspeed_from_groundspeed(["vx", "vy", "vz"])
-        X_lin_thrust = self.compute_rotor_features()
+
+        # Rotor features
+        X_rotor_forces, X_rotor_moments, rotor_forces_coef_list, rotor_moments_coef_list = self.compute_rotor_features()
+
+        # Aerodynamics features
         airspeed_mat = self.data_df[["V_air_body_x",
                                      "V_air_body_y", "V_air_body_z"]].to_numpy()
         flap_commands = self.data_df[["u5", "u6", "u7"]].to_numpy()
         aoa_mat = self.data_df[["AoA"]].to_numpy()
         aero_model = LinearPlateAeroModel(20.0)
-        X_lin_aero, aero_coef_list = aero_model.compute_aero_features(
+        X_aero_forces, aero_coef_list = aero_model.compute_aero_features(
             airspeed_mat, aoa_mat, flap_commands)
-        self.coef_name_list.extend(aero_coef_list)
+
+        # features due to rotation of body frame
+        X_body_rot_moment, X_body_rot_moment_coef_list = self.compute_body_rotation_features(
+            ["ang_vel_x", "ang_vel_y", "ang_vel_z"])
+
+        # Concat features
+        X_forces = np.hstack((X_rotor_forces, X_aero_forces))
+        X_moments = np.hstack((X_rotor_moments, X_body_rot_moment))
+        X = block_diag(X_forces, X_moments)
+        self.coef_name_list.extend(rotor_forces_coef_list + aero_coef_list +
+                                   rotor_moments_coef_list + X_body_rot_moment_coef_list)
+
+        # prepare linear and angular accelerations as regressand for forces
         accel_body_mat = self.data_df[[
             "accelerometer_m_s2[0]", "accelerometer_m_s2[1]", "accelerometer_m_s2[2]"]].to_numpy()
-        y_lin = (accel_body_mat).flatten()
-        X_lin = np.hstack((X_lin_thrust, X_lin_aero))
-        return X_lin, y_lin
+        angular_accel_body_mat = self.data_df[[
+            "ang_acc_x", "ang_acc_y", "ang_acc_z"]].to_numpy()
+        y = np.hstack(((accel_body_mat).flatten(),
+                      angular_accel_body_mat.flatten()))
+        print(X.shape)
+        print(y.shape)
+
+        return X, y
 
     def estimate_model(self):
         print("estimating quad plane model...")

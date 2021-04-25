@@ -76,5 +76,5 @@ class GazeboRotorModel():
         coef_list_forces = ["rot_drag_lin", "rot_thrust_quad",
                             "rot_thrust_lin"]
         coef_list_moments = ["c_m_leaver_x_quad", "c_m_leaver_x_lin", "c_m_leaver_y_quad", "c_m_leaver_y_lin",
-                             "c_m_drag_z_quad", "c_m_drag_z_lin"]
+                             "c_m_drag_z_quad", "c_m_drag_z_lin", "c_m_rolling"]
         return X_forces, X_moments, coef_list_forces, coef_list_moments
