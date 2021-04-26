@@ -33,14 +33,19 @@ class QuadPlaneModel(DynamicsModel):
         }
         super(QuadPlaneModel, self).__init__(rel_ulog_path, req_topic_dict)
         self.stall_angle = 20 * math.pi/180
+
+        # direction of generated force in FRD body frame
         self.actuator_directions = np.array([[0, 0, 0, 0, 1],
                                              [0, 0, 0, 0, 0],
-                                             [-1, -1, -1, -1, 0]]
-                                            )
+                                             [-1, -1, -1, -1, 0]])
 
-        self.actuator_positions = np.array([[1, -1, -1, -1],
-                                            [1, 1, -1, 1],
-                                            [0, 0, 0, 0]]
+        # turning direction or rotor: 1 for same direction as force, -1 for opposite direction
+        self.actuator_turning_directions = [-1, -1, 1, 1, -1]
+
+        # rotor location in FRD body frame
+        self.actuator_positions = np.array([[0.35, -0.35, 0.35, -0.35, 0.22],
+                                            [0.35, -0.35, -0.35, 0.35, 0],
+                                            [-0.07, -0.07, -0.07, -0.07, 0]]
                                            )
 
     def compute_rotor_features(self):
@@ -52,7 +57,7 @@ class QuadPlaneModel(DynamicsModel):
         # all vertical rotors are assumed to have the same rotor parameters, therefore their feature matrices are added.
         for i in range(0, (u_mat.shape[1]-1)):
             currActuator = GazeboRotorModel(
-                self.actuator_directions[:, i], self.actuator_positions[:, i])
+                self.actuator_directions[:, i], self.actuator_positions[:, i], self.actuator_turning_directions[i])
             X_force_curr, X_moment_curr, vert_rotor_forces_coef_list, vert_rotor_moments_coef_list = currActuator.compute_actuator_feature_matrix(
                 u_mat[:, i], v_airspeed_mat)
             if 'X_vert_rot_forces' in vars():
@@ -69,7 +74,8 @@ class QuadPlaneModel(DynamicsModel):
                 vert_rotor_moments_coef_list[i]
 
         # Horizontal Rotor Features
-        forwardActuator = GazeboRotorModel(self.actuator_directions[:, 4])
+        forwardActuator = GazeboRotorModel(
+            self.actuator_directions[:, 4], self.actuator_positions[:, 4], self.actuator_turning_directions[4])
         X_hor_rot_forces, X_hor_rot_moments, hor_rotor_forces_coef_list, hor_rotor_moments_coef_list = forwardActuator.compute_actuator_feature_matrix(
             u_mat[:, 4], v_airspeed_mat)
         for i in range(len(hor_rotor_forces_coef_list)):

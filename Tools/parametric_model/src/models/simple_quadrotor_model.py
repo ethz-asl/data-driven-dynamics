@@ -54,8 +54,10 @@ class SimpleQuadRotorModel(DynamicsModel):
         self.rotor_count = 4
         self.actuator_directions = np.array([[0, 0, 0, 0],
                                              [0, 0, 0, 0],
-                                             [-1, 1, -1, 1]]
+                                             [-1, -1, -1, -1]]
                                             )
+
+        self.actuator_turning_directions = [-1, -1, 1, 1]
 
         self.actuator_positions = np.array([[1, -1, -1, -1],
                                             [1, 1, -1, 1],

@@ -8,10 +8,10 @@ import math
 
 
 class GazeboRotorModel():
-    def __init__(self, rotor_axis=np.array([[0], [0], [-1]]), rotor_position=np.array([[1], [1], [0]]),  max_rotor_inflow_vel=25.0, turning_direction=1):
+    def __init__(self, rotor_axis=np.array([[0], [0], [-1]]), rotor_position=np.array([[1], [1], [0]]), turning_direction=1):
         # no more thrust produced at this airspeed inflow velocity
-        self.max_rotor_inflow_vel = max_rotor_inflow_vel
-        self.rotor_axis = rotor_axis.reshape((3, 1))
+        self.rotor_axis = rotor_axis.reshape(3, 1)
+        self.rotor_position = rotor_position.reshape(3, 1)
         self.turning_direction = turning_direction
 
     def compute_actuator_force_features(self, actuator_input, v_airspeed):
@@ -42,21 +42,22 @@ class GazeboRotorModel():
 
         X_forces = np.hstack((X_drag, X_thrust))
 
-        X_moments = np.zeros((3, 7))
+        X_moments = np.zeros((3, 5))
+
+        leaver_moment_vec = np.cross(
+            self.rotor_position.flatten(), self.rotor_axis.flatten())
         # Thrust leaver moment
-        X_moments[0, 0] = actuator_input**2
-        X_moments[0, 1] = actuator_input*v_air_parallel
-        X_moments[1, 2] = actuator_input**2
-        X_moments[1, 3] = actuator_input*v_air_parallel
+        X_moments[:, 0] = leaver_moment_vec * actuator_input**2
+        X_moments[:, 1] = leaver_moment_vec * actuator_input*v_air_parallel
 
         # Rotor drag moment
-        X_moments[2, 4] = - self.turning_direction * actuator_input**2
-        X_moments[2, 5] = - self.turning_direction * \
+        X_moments[2, 2] = - self.turning_direction * actuator_input**2
+        X_moments[2, 3] = - self.turning_direction * \
             actuator_input*v_air_parallel
 
         # Rotor Rolling Moment
-        X_moments[:, 6] = (np.cross(np.cross(
-            v_airspeed_perpendicular_to_rotor_axis.flatten(), self.rotor_axis.flatten()), self.rotor_axis.flatten())).reshape(3)
+        X_moments[:, 4] = -1 * v_airspeed_perpendicular_to_rotor_axis.flatten() * \
+            self.turning_direction * actuator_input
 
         return X_forces, X_moments
 
@@ -75,6 +76,6 @@ class GazeboRotorModel():
             X_moments = np.vstack((X_moments, X_moment_curr))
         coef_list_forces = ["rot_drag_lin", "rot_thrust_quad",
                             "rot_thrust_lin"]
-        coef_list_moments = ["c_m_leaver_x_quad", "c_m_leaver_x_lin", "c_m_leaver_y_quad", "c_m_leaver_y_lin",
+        coef_list_moments = ["c_m_leaver_quad", "c_m_leaver_lin",
                              "c_m_drag_z_quad", "c_m_drag_z_lin", "c_m_rolling"]
         return X_forces, X_moments, coef_list_forces, coef_list_moments
