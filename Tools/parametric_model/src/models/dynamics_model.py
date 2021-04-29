@@ -15,19 +15,24 @@ import pandas as pd
 
 
 class DynamicsModel():
-    def __init__(self, rel_ulog_path, req_topics_dict, resample_freq=100.0):
+    def __init__(self, rel_ulog_path=None, rel_csv_path=None, req_topics_dict=None, resample_freq=100.0):
         assert type(
             req_topics_dict) is dict, 'req_topics_dict input must be a dict'
         assert bool(req_topics_dict), 'req_topics_dict can not be empty'
-        self.rel_ulog_path = rel_ulog_path
-        self.ulog = load_ulog(rel_ulog_path)
         self.req_topics_dict = req_topics_dict
-        self.resample_freq = resample_freq
-        print(self.req_topics_dict.keys())
-        assert self.check_ulog_for_req_topics(
-        ), 'not all required topics or topic types are contained in the log file'
 
-        self.compute_resampled_dataframe()
+        if rel_csv_path is not None:
+            print("tbd")
+        else:
+            self.rel_ulog_path = rel_ulog_path
+            self.ulog = load_ulog(rel_ulog_path)
+
+            self.resample_freq = resample_freq
+            print(self.req_topics_dict.keys())
+            assert self.check_ulog_for_req_topics(
+            ), 'not all required topics or topic types are contained in the log file'
+
+            self.compute_resampled_dataframe()
 
         self.quat_columns = self.get_topic_list_from_topic_type(
             "vehicle_attitude")
@@ -176,7 +181,7 @@ class DynamicsModel():
         self.result_dict = {"coefficients": coef_dict,
                             "metrics": metrics_dict, "log_file": self.rel_ulog_path}
 
-    def save_result_dict_to_yaml(self, file_name="model_parameters", result_path=""):
+    def save_result_dict_to_yaml(self, file_name="model_parameters", result_path="resources/model_results/"):
 
         timestr = time.strftime("%Y-%m-%d-%H-%M-%S")
         file_path = result_path + file_name + "_" + timestr + ".yaml"
