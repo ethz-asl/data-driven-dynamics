@@ -50,8 +50,8 @@ class SimpleQuadRotorModel(DynamicsModel):
                                  "dataframe_name":  ["timestamp", "q0", "q1", "q2", "q3"]},
         }
         super(SimpleQuadRotorModel, self).__init__(
-            rel_ulog_path, req_topic_dict)
-        self.rotor_count = 4
+            rel_ulog_path=rel_ulog_path, req_topics_dict=req_topic_dict)
+        self.rotor_count = 5
         self.actuator_directions = np.array([[0, 0, 0, 0],
                                              [0, 0, 0, 0],
                                              [-1, -1, -1, -1]]

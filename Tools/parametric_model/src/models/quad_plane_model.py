@@ -31,7 +31,8 @@ class QuadPlaneModel(DynamicsModel):
             "vehicle_angular_acceleration": {"ulog_name": ["timestamp", "xyz[0]", "xyz[1]", "xyz[2]"],
                                              "dataframe_name":  ["timestamp", "ang_acc_x", "ang_acc_y", "ang_acc_z"]},
         }
-        super(QuadPlaneModel, self).__init__(rel_ulog_path, req_topic_dict)
+        super(QuadPlaneModel, self).__init__(
+            rel_ulog_path=rel_ulog_path, req_topics_dict=req_topic_dict)
         self.stall_angle = 20 * math.pi/180
 
         # direction of generated force in FRD body frame

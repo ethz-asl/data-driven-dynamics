@@ -1,0 +1,3 @@
+[submodule "Tools/visual_dataframe_selector"]
+	path = Tools/visual_dataframe_selector
+	url = https://github.com/manumerous/visual_dataframe_selector
