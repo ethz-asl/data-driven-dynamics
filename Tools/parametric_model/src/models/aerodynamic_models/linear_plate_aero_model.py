@@ -121,7 +121,7 @@ class LinearPlateAeroModel():
 
         v_airspeed_mat: numpy array of dimension (n,3) with columns for [v_a_x, v_a_y, v_a_z]
         angle_of_attack_vec: vector of size (n) with corresponding AoA values
-        roll_commands = numpy array of dimension (n,3) with columns for [u_roll_1, u_roll_2, u_pitch_collective]
+        flap_commands = numpy array of dimension (n,3) with columns for [u_aileron_right, u_aileron_left, u_elevator]
         """
         X_aero = self.compute_single_aero_feature(
             v_airspeed_mat[0, :], angle_of_attack_vec[0], flap_commands[0, :])
