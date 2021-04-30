@@ -53,6 +53,7 @@ class DynamicsModel():
                     topic = ulog_topic_list[topic_index]
                     topic_data = (topic_type_data[topic])
             except:
+                print("Missing topic type: ", topic_type)
                 return False
         return True
 
