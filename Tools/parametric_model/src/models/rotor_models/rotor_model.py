@@ -7,7 +7,7 @@ import pandas as pd
 import math
 
 
-class GazeboRotorModel():
+class RotorModel():
     def __init__(self, rotor_axis=np.array([[0], [0], [-1]]), rotor_position=np.array([[1], [1], [0]]), turning_direction=1):
         # no more thrust produced at this airspeed inflow velocity
         self.rotor_axis = rotor_axis.reshape(3, 1)
