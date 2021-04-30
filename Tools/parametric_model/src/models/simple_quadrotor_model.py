@@ -33,7 +33,7 @@ import math
 
 from sklearn.linear_model import LinearRegression
 from .dynamics_model import DynamicsModel
-from .rotor_models import GazeboRotorModel
+from .rotor_models import RotorModel
 from .model_plots import model_plots
 from .aerodynamic_models import SimpleDragModel
 
@@ -73,7 +73,7 @@ class SimpleQuadRotorModel(DynamicsModel):
         # all vertical rotors are assumed to have the same rotor parameters, therefore their feature matrices are added.
         X_vertical_rotors = np.zeros((3*self.data_df.shape[0], 3))
         for i in range(0, (u_mat.shape[1]-1)):
-            currActuator = GazeboRotorModel(
+            currActuator = RotorModel(
                 self.actuator_directions[:, i], self.actuator_positions[:, i])
             X_force_curr, X_moment_curr, vert_rot_forces_coef_list, vert_rot_moments_coef_list = currActuator.compute_actuator_feature_matrix(
                 u_mat[:, i], v_airspeed_mat)

@@ -10,7 +10,7 @@ import math
 
 from .dynamics_model import DynamicsModel
 from .aerodynamic_models import LinearPlateAeroModel
-from .rotor_models import GazeboRotorModel
+from .rotor_models import RotorModel
 from sklearn.linear_model import LinearRegression
 from scipy.linalg import block_diag
 from .model_plots import model_plots, quad_plane_model_plots
@@ -56,7 +56,7 @@ class QuadPlaneModel(DynamicsModel):
         # Vertical Rotor Features
         # all vertical rotors are assumed to have the same rotor parameters, therefore their feature matrices are added.
         for i in range(0, (u_mat.shape[1]-1)):
-            currActuator = GazeboRotorModel(
+            currActuator = RotorModel(
                 self.actuator_directions[:, i], self.actuator_positions[:, i], self.actuator_turning_directions[i])
             X_force_curr, X_moment_curr, vert_rotor_forces_coef_list, vert_rotor_moments_coef_list = currActuator.compute_actuator_feature_matrix(
                 u_mat[:, i], v_airspeed_mat)
@@ -74,7 +74,7 @@ class QuadPlaneModel(DynamicsModel):
                 vert_rotor_moments_coef_list[i]
 
         # Horizontal Rotor Features
-        forwardActuator = GazeboRotorModel(
+        forwardActuator = RotorModel(
             self.actuator_directions[:, 4], self.actuator_positions[:, 4], self.actuator_turning_directions[4])
         X_hor_rot_forces, X_hor_rot_moments, hor_rotor_forces_coef_list, hor_rotor_moments_coef_list = forwardActuator.compute_actuator_feature_matrix(
             u_mat[:, 4], v_airspeed_mat)
