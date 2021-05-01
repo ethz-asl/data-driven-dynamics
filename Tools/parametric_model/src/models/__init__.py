@@ -12,3 +12,5 @@ from . import quad_plane_model
 from .quad_plane_model import QuadPlaneModel
 from . import simple_quadrotor_model
 from .simple_quadrotor_model import SimpleQuadRotorModel
+from . import model_config
+from . model_config import ModelConfig
