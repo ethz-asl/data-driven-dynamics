@@ -1,0 +1,54 @@
+# general information
+model_name: "template"
+model_type: "template_model"
+model_file: "template"
+
+# all vectors in FRD body frame if not specified otherwise
+
+# the model configuration is used in the model you choose and can therefore vary in the amounts of topics.
+# Generally it should have the following structure to interface with the standart rotor model and standart aerodynamics model:
+model_config:
+  actuators:
+    rotors:
+      # For example
+      - rotor_0:
+        description: "front right rotor" # for human readability
+        dataframe_name: "u0" # column name in the dataframe, has to be contained in the dataframe name in required_ulog_topics or required_csv_topics
+        rotor_axis:
+          - 0
+          - 0
+          - -1
+        turning_direction: -1
+        position:
+          - 0.35
+          - 0.35
+          - -0.07
+
+    control_surfaces:
+      # For example
+      - control_surface_0:
+        description: "aileron_right" # for human readability
+        dataframe_name: "u1" # column name in the dataframe, has to be contained in the dataframe name in required_ulog_topics or required_csv_topics
+
+  aerodynamics:
+    stall_angle_deg: 20
+
+# the data configuration is used in dynamics_model.py to load and arrange the data
+dynamics_model_config:
+  resample_freq: 100.0
+  data:
+    required_ulog_topics: # only used when load_from_csv = False
+      topic_type: # name of the topic type/category as found in the ulog
+        ulog_name: # list of required topics as found in iulog
+          - "timestamp"
+          - "topic1"
+          - "topic2"
+        dataframe name: # List of names of each topic is assigned in the dataframe. if no dataframe_name is specified the ulog name is used.
+          # This is needed since sometimes different properties have the same name in the ulog. E.g. xyz.
+          - "timestamp"
+          - "u0"
+          - "u1"
+        actuator_type: # only needed for actuators, is requzired for normalization
+          - "timestamp"
+          - "motor"
+          - "control_surcafe"
