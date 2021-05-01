@@ -73,8 +73,11 @@ class SimpleQuadRotorModel(DynamicsModel):
         return X_vertical_rotors
 
     def prepare_regression_mat(self):
-        self.normalize_actuators()
-        self.compute_airspeed_from_groundspeed(["vx", "vy", "vz"])
+
+        if "V_air_body_x" not in self.data_df:
+            self.normalize_actuators()
+            self.compute_airspeed_from_groundspeed(["vx", "vy", "vz"])
+
         accel_mat = self.data_df[[
             "accelerometer_m_s2[0]", "accelerometer_m_s2[1]", "accelerometer_m_s2[2]"]].to_numpy()
         self.data_df[["ax_body", "ay_body", "az_body"]] = accel_mat

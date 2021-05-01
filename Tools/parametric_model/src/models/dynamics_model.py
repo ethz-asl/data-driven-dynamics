@@ -23,17 +23,28 @@ class DynamicsModel():
         self.config_dict = config_dict
         self.resample_freq = config_dict["resample_freq"]
         self.req_topics_dict = config_dict["data"]["required_ulog_topics"]
+        self.req_dataframe_topic_list = config_dict["data"]["req_dataframe_topic_list"]
+        self.rel_data_path = rel_data_path
 
-        if (rel_data_path[-4:] == ".cvs"):
-            print("tbd")
+        if (rel_data_path[-4:] == ".csv"):
+            self.data_df = pd.read_csv(rel_data_path, index_col=0)
+            print(self.data_df.columns)
+            for req_topic in self.req_dataframe_topic_list:
+                assert(
+                    req_topic in self.data_df), ("missing topic in loaded csv: " + str(req_topic))
 
         elif (rel_data_path[-4:] == ".ulg"):
-            self.rel_ulog_path = rel_data_path
+
             self.ulog = load_ulog(rel_data_path)
             assert self.check_ulog_for_req_topics(
             ), 'not all required topics or topic types are contained in the log file'
 
             self.compute_resampled_dataframe()
+
+        else:
+            print("ERROR: file extension needs to be either csv or ulg:")
+            print(rel_data_path)
+            exit(1)
 
         self.quat_columns = self.get_topic_list_from_topic_type(
             "vehicle_attitude")
@@ -185,7 +196,7 @@ class DynamicsModel():
         coefficient_list = [float(coef) for coef in coefficient_list]
         coef_dict = dict(zip(self.coef_name_list, coefficient_list))
         self.result_dict = {"coefficients": coef_dict,
-                            "metrics": metrics_dict, "log_file": self.rel_ulog_path}
+                            "metrics": metrics_dict, "log_file": self.rel_data_path}
 
     def save_result_dict_to_yaml(self, file_name="model_parameters", result_path="resources/model_results/"):
 
