@@ -62,22 +62,26 @@ Link the latest log files to your local logs folder using:
 source setup.bash
 ```
 
-Generate the parametric model using:
+Generate the parametric model using a log file (ulog or csv):
 
 ```
 python3 Tools/parametric_model/generate_parametric_model model log_file
-```
-
-Hereby the arguments model and log_file can be used to specify the model and the log files respectively. As an example you could use:
-
-```
-python3 Tools/parametric_model/generate_parametric_model.py --model simple_quadrotor_model logs/2021-04-12/14_28_28.ulg
 ```
 
 Or more simply from the root of the repository
 
 ```
 make estimate-model [model=<modeltype>] [log=<log path>]
+```
+
+Hereby the arguments model and log_file can be used to specify the model and the log files respectively. As an example you could use the reference log_files:
+
+```
+python Tools/parametric_model/generate_parametric_model.py --model quad_plane_model resources/simple_quadplane_model.ulg
+```
+
+```
+python3 Tools/parametric_model/generate_parametric_model.py --model quad_plane_model resources/simple_quadplane_model.csv
 ```
 
 Current model choices are:

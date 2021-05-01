@@ -82,9 +82,9 @@ class QuadPlaneModel(DynamicsModel):
 
     def prepare_regression_matrices(self):
 
-        # Prepare data
-        self.normalize_actuators()
-        self.compute_airspeed_from_groundspeed(["vx", "vy", "vz"])
+        if "V_air_body_x" not in self.data_df:
+            self.normalize_actuators()
+            self.compute_airspeed_from_groundspeed(["vx", "vy", "vz"])
 
         # Rotor features
         X_rotor_forces, X_rotor_moments, rotor_forces_coef_list, rotor_moments_coef_list = self.compute_rotor_features()
