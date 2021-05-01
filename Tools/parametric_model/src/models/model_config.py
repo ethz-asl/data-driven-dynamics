@@ -33,6 +33,29 @@ class ModelConfig():
         self.dynamics_model_config = config_dict["dynamics_model_config"]
         self.model_config = config_dict["model_config"]
 
+        self.generate_req_topic_list()
+        print("Initializing of configuration succesfull. ")
+
+        return
+
+    def generate_req_topic_list(self):
+        req_dataframe_topic_list = []
+        req_ulog_topics_dict = self.dynamics_model_config["data"]["required_ulog_topics"]
+        for req_ulog_topic in req_ulog_topics_dict.keys():
+            topic_dict = req_ulog_topics_dict[req_ulog_topic]
+            if "dataframe_name" in topic_dict.keys():
+                req_dataframe_topic_list.extend(topic_dict["dataframe_name"])
+            else:
+                req_dataframe_topic_list.extend(topic_dict["ulog_name"])
+        # drop duplicates
+        seen = set()
+        result = []
+        for topic in req_dataframe_topic_list:
+            if topic not in seen:
+                seen.add(topic)
+                result.append(topic)
+        req_dataframe_topic_list = result
+        self.dynamics_model_config["data"]["req_dataframe_topic_list"] = req_dataframe_topic_list
         return
 
     def check_dynamics_model_config(self, config_dict):
@@ -46,7 +69,6 @@ class ModelConfig():
             "No entry for data detected in config yaml."
 
         data_dict = dynamics_model_config["data"]
-        print(data_dict)
 
         assert ("required_ulog_topics" in data_dict), \
             "No entry for required_ulog_topics in config yaml."

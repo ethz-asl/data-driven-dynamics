@@ -125,7 +125,7 @@ class QuadPlaneModel(DynamicsModel):
         return X, y
 
     def estimate_model(self):
-        print("estimating quad plane model...")
+        print("Estimating quad plane model using the following data:")
         print(self.data_df.columns)
         self.data_df_len = self.data_df.shape[0]
         print("resampled data contains ", self.data_df_len, "timestamps.")

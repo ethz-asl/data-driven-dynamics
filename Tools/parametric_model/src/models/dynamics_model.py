@@ -30,8 +30,6 @@ class DynamicsModel():
         elif (rel_data_path[-4:] == ".ulg"):
             self.rel_ulog_path = rel_data_path
             self.ulog = load_ulog(rel_data_path)
-
-            print(self.req_topics_dict.keys())
             assert self.check_ulog_for_req_topics(
             ), 'not all required topics or topic types are contained in the log file'
 
