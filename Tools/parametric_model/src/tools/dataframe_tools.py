@@ -21,7 +21,7 @@ def compute_flight_time(ulog):
     return flight_time
 
 
-def resample_dataframes(df_list, t_start, t_end, f_des=100.0, slerp_enabled=False):
+def resample_dataframe_list(df_list, t_start, t_end, f_des=100.0, slerp_enabled=False):
     """create a single dataframe by resampling all dataframes to f_des [Hz]
 
     Inputs:     df_list : List of ulog topic dataframes to resample

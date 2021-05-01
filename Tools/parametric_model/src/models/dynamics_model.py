@@ -5,7 +5,7 @@ __license__ = "BSD 3"
 """ The model class contains properties shared between all models and shgall simplyfy automated checks and the later
 export to a sitl gazebo model by providing a unified interface for all models. """
 
-from ..tools import load_ulog, pandas_from_topic, compute_flight_time, resample_dataframes
+from ..tools import load_ulog, pandas_from_topic, compute_flight_time, resample_dataframe_list
 from ..tools import quaternion_to_rotation_matrix
 import numpy as np
 import yaml
@@ -15,19 +15,22 @@ import pandas as pd
 
 
 class DynamicsModel():
-    def __init__(self, rel_ulog_path=None, rel_csv_path=None, req_topics_dict=None, resample_freq=100.0):
+    def __init__(self, config_dict, rel_data_path):
+
         assert type(
-            req_topics_dict) is dict, 'req_topics_dict input must be a dict'
-        assert bool(req_topics_dict), 'req_topics_dict can not be empty'
-        self.req_topics_dict = req_topics_dict
+            config_dict) is dict, 'req_topics_dict input must be a dict'
+        assert bool(config_dict), 'req_topics_dict can not be empty'
+        self.config_dict = config_dict
+        self.resample_freq = config_dict["resample_freq"]
+        self.req_topics_dict = config_dict["data"]["required_ulog_topics"]
 
-        if rel_csv_path is not None:
+        if (rel_data_path[-4:] == ".cvs"):
             print("tbd")
-        else:
-            self.rel_ulog_path = rel_ulog_path
-            self.ulog = load_ulog(rel_ulog_path)
 
-            self.resample_freq = resample_freq
+        elif (rel_data_path[-4:] == ".ulg"):
+            self.rel_ulog_path = rel_data_path
+            self.ulog = load_ulog(rel_data_path)
+
             print(self.req_topics_dict.keys())
             assert self.check_ulog_for_req_topics(
             ), 'not all required topics or topic types are contained in the log file'
@@ -56,6 +59,33 @@ class DynamicsModel():
                 print("Missing topic type: ", topic_type)
                 return False
         return True
+
+    def compute_resampled_dataframe(self):
+        # setup object to crop dataframes for flight data
+        fts = compute_flight_time(self.ulog)
+        df_list = []
+        # getting data
+        for topic_type in self.req_topics_dict.keys():
+            topic_dict = self.req_topics_dict[topic_type]
+            curr_df = pandas_from_topic(self.ulog, [topic_type])
+            curr_df = curr_df[topic_dict["ulog_name"]]
+            if "dataframe_name" in topic_dict.keys():
+                assert (len(topic_dict["dataframe_name"]) == len(topic_dict["ulog_name"])), (
+                    'could not rename topics of type', topic_type, "due to rename list not having an entry for every topic.")
+                curr_df.columns = topic_dict["dataframe_name"]
+            df_list.append(curr_df)
+        resampled_df = resample_dataframe_list(
+            df_list, fts["t_start"], fts["t_end"], self.resample_freq)
+        self.data_df = resampled_df.dropna()
+
+    def get_topic_list_from_topic_type(self, topic_type):
+        topic_type_name_dict = self.req_topics_dict[topic_type]
+        if "dataframe_name" in topic_type_name_dict.keys():
+            topic_columns = topic_type_name_dict["dataframe_name"].copy()
+        else:
+            topic_columns = topic_type_name_dict["ulog_name"].copy()
+        topic_columns.remove("timestamp")
+        return topic_columns
 
     def compute_airspeed_from_groundspeed(self, airspeed_topic_list):
         groundspeed_ned_mat = (self.data_df[airspeed_topic_list]).to_numpy()
@@ -88,33 +118,6 @@ class DynamicsModel():
                 angular_vel_mat[i, 1]
         return X_body_rot, X_body_rot_coef_list
 
-    def compute_resampled_dataframe(self):
-        # setup object to crop dataframes for flight data
-        fts = compute_flight_time(self.ulog)
-        df_list = []
-        # getting data
-        for topic_type in self.req_topics_dict.keys():
-            topic_dict = self.req_topics_dict[topic_type]
-            curr_df = pandas_from_topic(self.ulog, [topic_type])
-            curr_df = curr_df[topic_dict["ulog_name"]]
-            if "dataframe_name" in topic_dict.keys():
-                assert (len(topic_dict["dataframe_name"]) == len(topic_dict["ulog_name"])), (
-                    'could not rename topics of type', topic_type, "due to rename list not having an entry for every topic.")
-                curr_df.columns = topic_dict["dataframe_name"]
-            df_list.append(curr_df)
-        resampled_df = resample_dataframes(
-            df_list, fts["t_start"], fts["t_end"], self.resample_freq)
-        self.data_df = resampled_df.dropna()
-
-    def get_topic_list_from_topic_type(self, topic_type):
-        topic_type_name_dict = self.req_topics_dict[topic_type]
-        if "dataframe_name" in topic_type_name_dict.keys():
-            topic_columns = topic_type_name_dict["dataframe_name"].copy()
-        else:
-            topic_columns = topic_type_name_dict["ulog_name"].copy()
-        topic_columns.remove("timestamp")
-        return topic_columns
-
     def normalize_actuators(self):
         # u : normalize actuator output from pwm to be scaled between 0 and 1
         # To be adjusted using parameters:
@@ -134,13 +137,17 @@ class DynamicsModel():
                     else:
                         actuator_data[j] = (
                             actuator_data[j] - self.min_pwm)/(self.max_pwm - self.min_pwm)
-            else:
+            elif (self.actuator_type[i] == "control_surcafe"):
                 for j in range(actuator_data.shape[0]):
                     if (actuator_data[j] < self.min_pwm):
                         actuator_data[j] = 0
                     else:
                         actuator_data[j] = 2*(
                             actuator_data[j] - self.trim_pwm)/(self.max_pwm - self.min_pwm)
+            else:
+                print("actuator type unknown:", self.actuator_type[i])
+                print("normalization failed")
+                exit(1)
             self.data_df[self.actuator_columns[i]] = actuator_data
 
     def rot_to_body_frame(self, vec_mat):

@@ -5,6 +5,6 @@ __maintainer__ = "Manuel Galliker"
 __license__ = "BSD 3"
 
 from .ulog_tools import load_ulog, pandas_from_topic
-from .dataframe_tools import resample_dataframes, crop_df, compute_flight_time
+from .dataframe_tools import resample_dataframe_list, crop_df, compute_flight_time
 from .ulog_utils import quaternion_to_rotation_matrix, slerp
 from .math_tools import sym_sigmoid
