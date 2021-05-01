@@ -43,9 +43,10 @@ model_config:
           - 0
           - -1
         turning_direction: 1
-        position: 0.35
+        position:
+          - 0.35
           - -0.35
-          - - 0.07
+          - -0.07
 
       - rotor_3:
         description: "back right rotor"
@@ -58,7 +59,7 @@ model_config:
         position:
           - -0.35
           - 0.35
-          - - 0.07
+          - -0.07
 
       - rotor_4:
         description: "puller rotor"

@@ -14,40 +14,19 @@ from .rotor_models import RotorModel
 from sklearn.linear_model import LinearRegression
 from scipy.linalg import block_diag
 from .model_plots import model_plots, quad_plane_model_plots
+from .model_config import ModelConfig
 
 
 class QuadPlaneModel(DynamicsModel):
-    def __init__(self, rel_ulog_path):
-        req_topic_dict = {
-            "actuator_outputs": {"ulog_name": ["timestamp", "output[0]", "output[1]", "output[2]", "output[3]", "output[4]", "output[5]", "output[6]", "output[7]"],
-                                 "dataframe_name":  ["timestamp", "u0", "u1", "u2", "u3", "u4", "u5", "u6", "u7"],
-                                 "actuator_type":  ["timestamp", "motor", "motor", "motor", "motor", "motor", "flap", "flap", "flap"]},
-            "vehicle_local_position": {"ulog_name": ["timestamp", "vx", "vy", "vz"]},
-            "vehicle_attitude": {"ulog_name": ["timestamp", "q[0]", "q[1]", "q[2]", "q[3]"],
-                                 "dataframe_name":  ["timestamp", "q0", "q1", "q2", "q3"]},
-            "vehicle_angular_velocity":  {"ulog_name": ["timestamp", "xyz[0]", "xyz[1]", "xyz[2]"],
-                                          "dataframe_name":  ["timestamp", "ang_vel_x", "ang_vel_y", "ang_vel_z"]},
-            "sensor_combined": {"ulog_name": ["timestamp", "accelerometer_m_s2[0]", "accelerometer_m_s2[1]", "accelerometer_m_s2[2]"]},
-            "vehicle_angular_acceleration": {"ulog_name": ["timestamp", "xyz[0]", "xyz[1]", "xyz[2]"],
-                                             "dataframe_name":  ["timestamp", "ang_acc_x", "ang_acc_y", "ang_acc_z"]},
-        }
+    def __init__(self, rel_data_path, config_file="qpm_gazebo_standart_vtol_config.yaml"):
+        self.config = ModelConfig(config_file)
         super(QuadPlaneModel, self).__init__(
-            rel_ulog_path=rel_ulog_path, req_topics_dict=req_topic_dict)
-        self.stall_angle = 20 * math.pi/180
+            config_dict=self.config.dynamics_model_config, rel_data_path=rel_data_path)
 
-        # direction of generated force in FRD body frame
-        self.actuator_directions = np.array([[0, 0, 0, 0, 1],
-                                             [0, 0, 0, 0, 0],
-                                             [-1, -1, -1, -1, 0]])
-
-        # turning direction or rotor: 1 for same direction as force, -1 for opposite direction
-        self.actuator_turning_directions = [-1, -1, 1, 1, -1]
-
-        # rotor location in FRD body frame
-        self.actuator_positions = np.array([[0.35, -0.35, 0.35, -0.35, 0.22],
-                                            [0.35, -0.35, -0.35, 0.35, 0],
-                                            [-0.07, -0.07, -0.07, -0.07, 0]]
-                                           )
+        self.rotor_config_list = self.config.model_config["actuators"]["rotors"]
+        self.rotor_count = len(self.rotor_config_list)
+        self.stall_angle = math.pi/180 * \
+            self.config.model_config["aerodynamics"]["stall_angle_deg"]
 
     def compute_rotor_features(self):
         u_mat = self.data_df[["u0", "u1", "u2", "u3", "u4"]].to_numpy()
@@ -56,9 +35,12 @@ class QuadPlaneModel(DynamicsModel):
 
         # Vertical Rotor Features
         # all vertical rotors are assumed to have the same rotor parameters, therefore their feature matrices are added.
-        for i in range(0, (u_mat.shape[1]-1)):
+        for i in range((self.rotor_count-1)):
+            rotor_dict = self.rotor_config_list[i]
+            rotor_axis = np.array(rotor_dict["rotor_axis"])
+            rotor_position = np.array(rotor_dict["position"])
             currActuator = RotorModel(
-                self.actuator_directions[:, i], self.actuator_positions[:, i], self.actuator_turning_directions[i])
+                rotor_axis, rotor_position, rotor_dict["turning_direction"])
             X_force_curr, X_moment_curr, vert_rotor_forces_coef_list, vert_rotor_moments_coef_list = currActuator.compute_actuator_feature_matrix(
                 u_mat[:, i], v_airspeed_mat)
             if 'X_vert_rot_forces' in vars():
@@ -75,8 +57,11 @@ class QuadPlaneModel(DynamicsModel):
                 vert_rotor_moments_coef_list[i]
 
         # Horizontal Rotor Features
+        rotor_dict = self.rotor_config_list[4]
+        rotor_axis = np.array(rotor_dict["rotor_axis"])
+        rotor_position = np.array(rotor_dict["position"])
         forwardActuator = RotorModel(
-            self.actuator_directions[:, 4], self.actuator_positions[:, 4], self.actuator_turning_directions[4])
+            rotor_axis, rotor_position, rotor_dict["turning_direction"])
         X_hor_rot_forces, X_hor_rot_moments, hor_rotor_forces_coef_list, hor_rotor_moments_coef_list = forwardActuator.compute_actuator_feature_matrix(
             u_mat[:, 4], v_airspeed_mat)
         for i in range(len(hor_rotor_forces_coef_list)):

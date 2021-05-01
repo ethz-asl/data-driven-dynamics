@@ -2,7 +2,7 @@ __author__ = "Manuel Galliker"
 __maintainer__ = "Manuel Galliker"
 __license__ = "BSD 3"
 
-""" The model in this file estimates a simple motor model for the iris quadrocopter of PXç sitl gazebo.
+""" The model in this file estimates a simple force motor model for the iris quadrocopter of PX4 sitl gazebo.
 
 Start the model identification:
 Call "estimate_model(rel_ulog_path)"
@@ -36,33 +36,16 @@ from .dynamics_model import DynamicsModel
 from .rotor_models import RotorModel
 from .model_plots import model_plots
 from .aerodynamic_models import SimpleDragModel
+from .model_config import ModelConfig
 
 
 class SimpleQuadRotorModel(DynamicsModel):
-    def __init__(self, rel_ulog_path):
-        req_topic_dict = {
-            "actuator_outputs": {"ulog_name": ["timestamp", "output[0]", "output[1]", "output[2]", "output[3]"],
-                                 "dataframe_name":  ["timestamp", "u0", "u1", "u2", "u3"],
-                                 "actuator_type":  ["timestamp", "motor", "motor", "motor", "motor"]},
-            "vehicle_local_position": {"ulog_name": ["timestamp", "vx", "vy", "vz"]},
-            "sensor_combined": {"ulog_name": ["timestamp", "accelerometer_m_s2[0]", "accelerometer_m_s2[1]", "accelerometer_m_s2[2]"]},
-            "vehicle_attitude": {"ulog_name": ["timestamp", "q[0]", "q[1]", "q[2]", "q[3]"],
-                                 "dataframe_name":  ["timestamp", "q0", "q1", "q2", "q3"]},
-        }
+    def __init__(self, rel_data_path, config_file="sqrm_gazebo_standart_config.yaml"):
+        self.config = ModelConfig(config_file)
         super(SimpleQuadRotorModel, self).__init__(
-            rel_ulog_path=rel_ulog_path, req_topics_dict=req_topic_dict)
-        self.rotor_count = 5
-        self.actuator_directions = np.array([[0, 0, 0, 0],
-                                             [0, 0, 0, 0],
-                                             [-1, -1, -1, -1]]
-                                            )
-
-        self.actuator_turning_directions = [-1, -1, 1, 1]
-
-        self.actuator_positions = np.array([[1, -1, -1, -1],
-                                            [1, 1, -1, 1],
-                                            [0, 0, 0, 0]]
-                                           )
+            config_dict=self.config.dynamics_model_config, rel_data_path=rel_data_path)
+        self.rotor_config_list = self.config.model_config["actuators"]["rotors"]
+        self.rotor_count = len(self.rotor_config_list)
 
     def compute_rotor_features(self):
         u_mat = self.data_df[["u0", "u1", "u2", "u3"]].to_numpy()
@@ -72,9 +55,12 @@ class SimpleQuadRotorModel(DynamicsModel):
         # Vertical Rotor Features
         # all vertical rotors are assumed to have the same rotor parameters, therefore their feature matrices are added.
         X_vertical_rotors = np.zeros((3*self.data_df.shape[0], 3))
-        for i in range(0, (u_mat.shape[1]-1)):
+        for i in range(self.rotor_count):
+            rotor_dict = self.rotor_config_list[i]
+            rotor_axis = np.array(rotor_dict["rotor_axis"])
+            rotor_position = np.array(rotor_dict["position"])
             currActuator = RotorModel(
-                self.actuator_directions[:, i], self.actuator_positions[:, i])
+                rotor_axis, rotor_position, rotor_dict["turning_direction"])
             X_force_curr, X_moment_curr, vert_rot_forces_coef_list, vert_rot_moments_coef_list = currActuator.compute_actuator_feature_matrix(
                 u_mat[:, i], v_airspeed_mat)
             X_vertical_rotors = X_vertical_rotors + X_force_curr
