@@ -1,0 +1,65 @@
+# general information
+model_name: "template"
+model_type: "template_model"
+model_file: "template"
+
+# all vectors in FRD body frame if not specified otherwise
+
+# the model configuration is used in the model you choose and can therefore vary in the amounts of topics.
+# Generally it should have the following structure to interface with the standart rotor model and standart aerodynamics model:
+model_config:
+  actuators:
+    rotors:
+      # For example
+      - rotor_0:
+        description: "front right rotor" # for human readability
+        dataframe_name: "u0" # column name in the dataframe, has to be contained in the dataframe name in required_ulog_topics or required_csv_topics
+        rotor_axis:
+          - 0
+          - 0
+          - -1
+        turning_direction: -1
+        position:
+          - 0.35
+          - 0.35
+          - -0.07
+
+    control_surfaces:
+      # For example
+      - control_surface_0:
+        description: "aileron_right" # for human readability
+        dataframe_name: "u1" # column name in the dataframe, has to be contained in the dataframe name in required_ulog_topics or required_csv_topics
+
+  aerodynamics:
+    stall_angle_deg: 20
+
+# the data configuration is used in dynamics_model.py to load and arrange the data
+dynamics_model_config:
+  resample_freq: 100.0
+  data:
+    required_ulog_topics:
+      vehicle_local_position:
+        ulog_name:
+          - "timestamp"
+          - "ax"
+          - "ay"
+          - "az"
+      vehicle_attitude:
+        ulog_name:
+          - "timestamp"
+          - "q[0]"
+          - "q[1]"
+          - "q[2]"
+          - "q[3]"
+        dataframe_name:
+          - "timestamp"
+          - "q0"
+          - "q1"
+          - "q2"
+          - "q3"
+      sensor_combined:
+        ulog_name:
+          - "timestamp"
+          - "accelerometer_m_s2[0]"
+          - "accelerometer_m_s2[1]"
+          - "accelerometer_m_s2[2]"
