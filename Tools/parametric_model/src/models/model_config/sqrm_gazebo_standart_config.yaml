@@ -1,0 +1,133 @@
+---
+# general information
+model_name: "Gazebo Standart Multirotor"
+model_type: "Standart Multirotor"
+model_file:
+  "simple_quadrotor_model.py"
+
+  # all vectors in FRD body frame if not specified otherwise
+model_config:
+  actuators:
+    rotors:
+      - rotor_0:
+        description: "front right rotor"
+        dataframe_name: "u0"
+        rotor_axis:
+          - 0
+          - 0
+          - -1
+        turning_direction: -1
+        position:
+          - 0.13
+          - 0.22
+          - -0.023
+
+      - rotor_1:
+        description: "back left rotor"
+        dataframe_name: "u1"
+        rotor_axis:
+          - 0
+          - 0
+          - -1
+        turning_direction: -1
+        position:
+          - -0.13
+          - -0.2
+          - -0.023
+
+      - rotor_2:
+        description: "front left rotor"
+        dataframe_name: "u2"
+        rotor_axis:
+          - 0
+          - 0
+          - -1
+        turning_direction: 1
+        position:
+          - 0.13
+          - -0.2
+          - -0.023
+
+      - rotor_3:
+        description: "back right rotor"
+        dataframe_name: "u3"
+        rotor_axis:
+          - 0
+          - 0
+          - -1
+        turning_direction: 1
+        position:
+          - -0.13
+          - 0.2
+          - -0.023
+
+dynamics_model_config:
+  resample_freq: 100.0
+  data:
+    required_ulog_topics:
+      actuator_outputs:
+        ulog_name:
+          - "timestamp"
+          - "output[0]"
+          - "output[1]"
+          - "output[2]"
+          - "output[3]"
+        dataframe_name:
+          - "timestamp"
+          - "u0"
+          - "u1"
+          - "u2"
+          - "u3"
+        actuator_type:
+          - "timestamp"
+          - "motor"
+          - "motor"
+          - "motor"
+          - "motor"
+      vehicle_local_position:
+        ulog_name:
+          - "timestamp"
+          - "vx"
+          - "vy"
+          - "vz"
+      vehicle_attitude:
+        ulog_name:
+          - "timestamp"
+          - "q[0]"
+          - "q[1]"
+          - "q[2]"
+          - "q[3]"
+        dataframe_name:
+          - "timestamp"
+          - "q0"
+          - "q1"
+          - "q2"
+          - "q3"
+      vehicle_angular_velocity:
+        ulog_name:
+          - "timestamp"
+          - "xyz[0]"
+          - "xyz[1]"
+          - "xyz[2]"
+        dataframe_name:
+          - "timestamp"
+          - "ang_vel_x"
+          - "ang_vel_y"
+          - "ang_vel_z"
+      sensor_combined:
+        ulog_name:
+          - "timestamp"
+          - "accelerometer_m_s2[0]"
+          - "accelerometer_m_s2[1]"
+          - "accelerometer_m_s2[2]"
+      vehicle_angular_acceleration:
+        ulog_name:
+          - "timestamp"
+          - "xyz[0]"
+          - "xyz[1]"
+          - "xyz[2]"
+        dataframe_name:
+          - "timestamp"
+          - "ang_acc_x"
+          - "ang_acc_y"
+          - "ang_acc_z"
