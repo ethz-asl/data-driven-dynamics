@@ -92,7 +92,8 @@ class SimpleQuadRotorModel(DynamicsModel):
         return X, y
 
     def estimate_model(self):
-        print("estimating simple quadrotor model...")
+        print("Estimating quad plane model using the following data:")
+        print(self.data_df.columns)
         self.X, self.y = self.prepare_regression_mat()
         self.reg = LinearRegression().fit(self.X, self.y)
         print("regression complete")

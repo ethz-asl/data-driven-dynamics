@@ -43,7 +43,7 @@ dynamics_model_config:
           - "timestamp"
           - "topic1"
           - "topic2"
-        dataframe name: # List of names of each topic is assigned in the dataframe. if no dataframe_name is specified the ulog name is used.
+        dataframe_name: # List of names of each topic is assigned in the dataframe. if no dataframe_name is specified the ulog name is used.
           # This is needed since sometimes different properties have the same name in the ulog. E.g. xyz.
           - "timestamp"
           - "u0"
