@@ -5,18 +5,15 @@ __license__ = "BSD 3"
 from _pytest.python import Class
 import pytest
 from src.models import DynamicsModel
+from src.models import ModelConfig
 from src.tools.math_tools import rmse_between_numpy_arrays
 
 
-def test_transformations():
+def test_transformations(config_file="dynamics_model_test_config.yaml"):
     # Setup model with reference log
-    req_topic_dict = {
-        "vehicle_attitude": {"ulog_name": ["timestamp", "q[0]", "q[1]", "q[2]", "q[3]"],
-                             "dataframe_name":  ["timestamp", "q0", "q1", "q2", "q3"]},
-        "vehicle_local_position": {"ulog_name": ["timestamp", "ax", "ay", "az"]},
-        "sensor_combined": {"ulog_name": ["timestamp", "accelerometer_m_s2[0]", "accelerometer_m_s2[1]", "accelerometer_m_s2[2]"]}}
-    model = DynamicsModel(
-        "resources/simple_quadrotor_model.ulg", req_topic_dict, 1)
+    config = ModelConfig(config_file)
+    model = DynamicsModel(config_dict=config.dynamics_model_config,
+                          rel_data_path="resources/simple_quadrotor_model.ulg")
 
     # Add gravity vector to inertial accelerations
     model.data_df["az"] -= 9.81
