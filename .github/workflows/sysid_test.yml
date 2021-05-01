@@ -25,7 +25,9 @@ jobs:
         run: pip3 install -r Tools/parametric_model/requirements.txt
       - name: Run subsystem level tests on parametric model
         run: Tools/parametric_model/test_parametric_model.sh
-      - name: Run quad_plane_model estimation for system level test
-        run: python3 Tools/parametric_model/generate_parametric_model.py --model quad_plane_model resources/simple_quadplane_model.ulg
-      - name: Run simple_multirotor_model estimation for system level test
+      - name: Run simple_multirotor_model estimation for system level test using resource ulog
         run: python3 Tools/parametric_model/generate_parametric_model.py --model simple_quadrotor_model resources/simple_quadrotor_model.ulg
+      - name: Run quad_plane_model estimation for system level test using resource ulog
+        run: python3 Tools/parametric_model/generate_parametric_model.py --model quad_plane_model resources/simple_quadplane_model.ulg
+      - name: Run quad_plane_model estimation for system level test using resource csv
+        run: python3 Tools/parametric_model/generate_parametric_model.py --model quad_plane_model resources/simple_quadplane_model.csv
