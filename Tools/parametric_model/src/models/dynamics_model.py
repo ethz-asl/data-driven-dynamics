@@ -22,6 +22,7 @@ class DynamicsModel():
         assert bool(config_dict), 'req_topics_dict can not be empty'
         self.config_dict = config_dict
         self.resample_freq = config_dict["resample_freq"]
+        print("Resample frequency: ", self.resample_freq, "Hz")
         self.req_topics_dict = config_dict["data"]["required_ulog_topics"]
         self.req_dataframe_topic_list = config_dict["data"]["req_dataframe_topic_list"]
         self.rel_data_path = rel_data_path
