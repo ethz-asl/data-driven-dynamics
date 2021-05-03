@@ -118,7 +118,7 @@ class DynamicsModel():
         """
         angular_vel_mat = (self.data_df[angular_vel_topic_list]).to_numpy()
         X_body_rot = np.zeros((3*angular_vel_mat.shape[0], 3))
-        X_body_rot_coef_list = ["I_y-I_z", "I_z-I_x", "I_x- I_y"]
+        X_body_rot_coef_list = ["I_yy-I_zz", "I_zz-I_xx", "I_xx- I_yy"]
         for i in range(angular_vel_mat.shape[0]):
             X_body_rot[3*i, 0] = angular_vel_mat[i,
                                                  1]*angular_vel_mat[i, 2]
