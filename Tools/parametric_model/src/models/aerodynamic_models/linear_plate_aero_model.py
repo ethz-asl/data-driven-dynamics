@@ -41,21 +41,21 @@ class LinearPlateAeroModel():
 
         # Compute Drag force coeffiecients:
         F_xz_aero_frame[0, 0] = -(
-            1 - sym_sigmoid(angle_of_attack, self.stall_angle))*v_xz**2
+            1 - sym_sigmoid(angle_of_attack, x_offset=self.stall_angle, scale_fac=25))*v_xz**2
         F_xz_aero_frame[0, 1] = -(
-            1 - sym_sigmoid(angle_of_attack, self.stall_angle))*angle_of_attack*v_xz**2
+            1 - sym_sigmoid(angle_of_attack, x_offset=self.stall_angle, scale_fac=25))*angle_of_attack*v_xz**2
         F_xz_aero_frame[0, 2] = -(
-            1 - sym_sigmoid(angle_of_attack, self.stall_angle))*angle_of_attack**2*v_xz**2
+            1 - sym_sigmoid(angle_of_attack, x_offset=self.stall_angle, scale_fac=25))*angle_of_attack**2*v_xz**2
         F_xz_aero_frame[0, 3] = -(sym_sigmoid(angle_of_attack,
-                                  self.stall_angle))*math.sin(angle_of_attack)*v_xz**2
+                                  x_offset=self.stall_angle, scale_fac=25))*math.sin(angle_of_attack)*v_xz**2
 
         # Compute Lift force coefficients:
         F_xz_aero_frame[2, 4] = -(
-            1 - sym_sigmoid(angle_of_attack, self.stall_angle))*angle_of_attack*v_xz**2
+            1 - sym_sigmoid(angle_of_attack, x_offset=self.stall_angle, scale_fac=25))*angle_of_attack*v_xz**2
         F_xz_aero_frame[2, 5] = -(
-            1 - sym_sigmoid(angle_of_attack, self.stall_angle))*v_xz**2
+            1 - sym_sigmoid(angle_of_attack, x_offset=self.stall_angle, scale_fac=25))*v_xz**2
         F_xz_aero_frame[2, 6] = -2 * \
-            sym_sigmoid(angle_of_attack, self.stall_angle) \
+            sym_sigmoid(angle_of_attack, x_offset=self.stall_angle, scale_fac=25) \
             * math.sin(angle_of_attack)*math.cos(angle_of_attack)*v_xz**2
 
         # Transorm from stability axis frame to body FRD frame
