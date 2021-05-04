@@ -4,6 +4,7 @@ __license__ = "BSD 3"
 
 import matplotlib.pyplot as plt
 import numpy as np
+import math
 
 """The functions in this file can be used to plot data of any kind of model"""
 
@@ -110,6 +111,9 @@ def plot_accel_and_airspeed_in_y_direction(stacked_acc_vec, stacked_acc_vec_pred
     stacked_acc_vec = np.array(stacked_acc_vec)
     stacked_acc_vec_pred = np.array(stacked_acc_vec_pred)
     v_a_y = np.array(v_a_y)
+    x_drag_y = np.zeros(v_a_y.shape[0])
+    for i in range(x_drag_y.shape[0]):
+        x_drag_y[i] = -math.copysign(1, v_a_y[i]) * v_a_y[i]**2
     timestamp_array = np.array(timestamp_array)
 
     acc_mat = stacked_acc_vec.reshape((-1, 3))
@@ -118,12 +122,21 @@ def plot_accel_and_airspeed_in_y_direction(stacked_acc_vec, stacked_acc_vec_pred
     fig, (ax1, ax2, ax3) = plt.subplots(3)
     fig.suptitle('Acceleration and Airspeed in y direction')
     ax1.plot(timestamp_array, v_a_y, label='measurement')
-    ax2.plot(timestamp_array, v_a_y**2, label='measurement')
+    ax2.plot(timestamp_array, x_drag_y, label='measurement')
     ax3.plot(timestamp_array, acc_mat[:, 1], label='measurement')
     ax3.plot(timestamp_array, acc_mat_pred[:, 1], label='prediction')
     ax1.set_title('airspeed in y direction of body frame [m/s^2]')
-    ax2.set_title('airspeed in y direction squared of body frame [m/s^2]')
+    ax2.set_title(
+        'features corresponding to drag in y direction')
     ax3.set_title('airspeed in y direction of body frame [m/s^2]')
     plt.legend()
     plt.show()
     return
+
+
+def plot(data, timestamp, plt_title="No title"):
+    print(data)
+    print(timestamp)
+    plt.plot(timestamp, data)
+    plt.title(plt_title)
+    plt.show()
