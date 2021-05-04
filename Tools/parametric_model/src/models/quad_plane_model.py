@@ -130,7 +130,9 @@ class QuadPlaneModel(DynamicsModel):
         self.data_df_len = self.data_df.shape[0]
         print("resampled data contains ", self.data_df_len, "timestamps.")
         X, y = self.prepare_regression_matrices()
-        self.reg = LinearRegression().fit(X, y)
+
+        self.reg = LinearRegression(fit_intercept=False)
+        self.reg.fit(X, y)
 
         print("regression complete")
         metrics_dict = {"R2": float(self.reg.score(X, y))}
@@ -152,6 +154,8 @@ class QuadPlaneModel(DynamicsModel):
             self.y_moments, y_moments_pred, self.data_df["timestamp"])
         model_plots.plot_airspeed_and_AoA(
             self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "AoA"]], self.data_df["timestamp"])
+        model_plots.plot_accel_and_airspeed_in_y_direction(
+            self.y_forces, y_forces_pred, self.data_df["V_air_body_y"], self.data_df["timestamp"])
         quad_plane_model_plots.plot_accel_predeictions_with_flap_outputs(
             self.y_forces, y_forces_pred, self.data_df[["u5", "u6", "u7"]], self.data_df["timestamp"])
         return
