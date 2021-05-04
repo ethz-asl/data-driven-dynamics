@@ -34,8 +34,8 @@ class RotorModel():
         # Drag force computation
         v_airspeed_perpendicular_to_rotor_axis = v_airspeed - \
             v_airspeed_parallel_to_rotor_axis
-        if (np.linalg.norm(v_airspeed_perpendicular_to_rotor_axis) >= 0.1):
-            X_drag = v_airspeed_perpendicular_to_rotor_axis @ np.array(
+        if (np.linalg.norm(v_airspeed_perpendicular_to_rotor_axis) >= 0.05):
+            X_drag = - v_airspeed_perpendicular_to_rotor_axis @ np.array(
                 [[actuator_input]])
         else:
             X_drag = np.zeros((3, 1))
