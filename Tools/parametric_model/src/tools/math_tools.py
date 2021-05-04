@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 
 def cropped_sym_sigmoid(x, x_offset=0, scale_fac=30):
-    y = sym_sigmoid(x, x_offset=0, scale_fac=30)
+    y = sym_sigmoid(x, x_offset, scale_fac)
     if y < 0.025:
         y = 0
     elif y > 0.975:
