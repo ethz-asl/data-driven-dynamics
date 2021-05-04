@@ -98,7 +98,8 @@ class SimpleQuadRotorModel(DynamicsModel):
         print("Estimating quad plane model using the following data:")
         print(self.data_df.columns)
         self.X, self.y = self.prepare_regression_mat()
-        self.reg = LinearRegression().fit(self.X, self.y)
+        self.reg = LinearRegression(fit_intercept=False)
+        self.reg.fit(self.X, self.y)
         print("regression complete")
         metrics_dict = {"R2": float(self.reg.score(self.X, self.y))}
         self.coef_name_list.extend(["intercept"])
