@@ -89,6 +89,7 @@ model_config:
 
   aerodynamics:
     stall_angle_deg: 20
+    sig_scale_factor: 30
 
 dynamics_model_config:
   resample_freq: 100.0
