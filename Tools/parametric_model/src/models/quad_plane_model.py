@@ -5,16 +5,17 @@ __license__ = "BSD 3"
 """Model to estimate the system parameters of gazebos standart vtol quadplane:
 https://docs.px4.io/master/en/simulation/gazebo_vehicles.html#standard_vtol """
 
+
 import numpy as np
 import math
 
 from .dynamics_model import DynamicsModel
-from .aerodynamic_models import LinearPlateAeroModel
 from .rotor_models import RotorModel
 from sklearn.linear_model import LinearRegression
 from scipy.linalg import block_diag
 from .model_plots import model_plots, quad_plane_model_plots
 from .model_config import ModelConfig
+from .aerodynamic_models import AeroModelAAE
 
 
 class QuadPlaneModel(DynamicsModel):
@@ -27,6 +28,7 @@ class QuadPlaneModel(DynamicsModel):
         self.rotor_count = len(self.rotor_config_list)
         self.stall_angle = math.pi/180 * \
             self.config.model_config["aerodynamics"]["stall_angle_deg"]
+        self.sig_scale_fac = self.config.model_config["aerodynamics"]["sig_scale_factor"]
 
     def compute_rotor_features(self):
         u_mat = self.data_df[["u0", "u1", "u2", "u3", "u4"]].to_numpy()
@@ -94,7 +96,8 @@ class QuadPlaneModel(DynamicsModel):
                                      "V_air_body_y", "V_air_body_z"]].to_numpy()
         flap_commands = self.data_df[["u5", "u6", "u7"]].to_numpy()
         aoa_mat = self.data_df[["AoA"]].to_numpy()
-        aero_model = LinearPlateAeroModel(20.0)
+        aero_model = AeroModelAAE(
+            stall_angle=20.0, sig_scale_fac=self.sig_scale_fac)
         X_aero_forces, aero_coef_list = aero_model.compute_aero_features(
             airspeed_mat, aoa_mat, flap_commands)
 

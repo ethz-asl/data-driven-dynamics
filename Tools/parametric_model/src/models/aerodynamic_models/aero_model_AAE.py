@@ -5,13 +5,16 @@ __license__ = "BSD 3"
 import math
 import numpy as np
 
-from ...tools import sym_sigmoid
+from ...tools import cropped_sym_sigmoid
 from scipy.spatial.transform import Rotation
 
+# AAE stands for aileron, aileron, elevator
 
-class LinearPlateAeroModel():
-    def __init__(self, stall_angle=35.0):
+
+class AeroModelAAE():
+    def __init__(self, stall_angle=35.0, sig_scale_fac=30):
         self.stall_angle = stall_angle*math.pi/180.0
+        self.sig_scale_fac = sig_scale_fac
 
     def compute_main_wing_feature(self, v_airspeed, angle_of_attack):
         """
@@ -33,29 +36,29 @@ class LinearPlateAeroModel():
                 F_Drag = 0.5 * density * area * V_air_xz^2 * sin(AoA) * c_d_stall
 
         The two models are interpolated with a symmetric sigmoid function obtained by multiplying two logistic functions:
-            if abs(AoA) < stall_angle: sym_sigmoid(AoA) = 0
-            if abs(AoA) > stall_angle: sym_sigmoid(AoA) = 1
+            if abs(AoA) < stall_angle: cropped_sym_sigmoid(AoA) = 0
+            if abs(AoA) > stall_angle: cropped_sym_sigmoid(AoA) = 1
         """
         v_xz = math.sqrt(v_airspeed[0]**2 + v_airspeed[2]**2)
         F_xz_aero_frame = np.zeros((3, 7))
 
         # Compute Drag force coeffiecients:
         F_xz_aero_frame[0, 0] = -(
-            1 - sym_sigmoid(angle_of_attack, x_offset=self.stall_angle, scale_fac=25))*v_xz**2
+            1 - cropped_sym_sigmoid(angle_of_attack, x_offset=self.stall_angle, scale_fac=self.sig_scale_fac))*v_xz**2
         F_xz_aero_frame[0, 1] = -(
-            1 - sym_sigmoid(angle_of_attack, x_offset=self.stall_angle, scale_fac=25))*angle_of_attack*v_xz**2
+            1 - cropped_sym_sigmoid(angle_of_attack, x_offset=self.stall_angle, scale_fac=self.sig_scale_fac))*angle_of_attack*v_xz**2
         F_xz_aero_frame[0, 2] = -(
-            1 - sym_sigmoid(angle_of_attack, x_offset=self.stall_angle, scale_fac=25))*angle_of_attack**2*v_xz**2
-        F_xz_aero_frame[0, 3] = -(sym_sigmoid(angle_of_attack,
-                                  x_offset=self.stall_angle, scale_fac=25))*math.sin(angle_of_attack)*v_xz**2
+            1 - cropped_sym_sigmoid(angle_of_attack, x_offset=self.stall_angle, scale_fac=self.sig_scale_fac))*angle_of_attack**2*v_xz**2
+        F_xz_aero_frame[0, 3] = -(cropped_sym_sigmoid(angle_of_attack,
+                                  x_offset=self.stall_angle, scale_fac=self.sig_scale_fac))*math.sin(angle_of_attack)*v_xz**2
 
         # Compute Lift force coefficients:
         F_xz_aero_frame[2, 4] = -(
-            1 - sym_sigmoid(angle_of_attack, x_offset=self.stall_angle, scale_fac=25))*angle_of_attack*v_xz**2
+            1 - cropped_sym_sigmoid(angle_of_attack, x_offset=self.stall_angle, scale_fac=self.sig_scale_fac))*angle_of_attack*v_xz**2
         F_xz_aero_frame[2, 5] = -(
-            1 - sym_sigmoid(angle_of_attack, x_offset=self.stall_angle, scale_fac=25))*v_xz**2
+            1 - cropped_sym_sigmoid(angle_of_attack, x_offset=self.stall_angle, scale_fac=self.sig_scale_fac))*v_xz**2
         F_xz_aero_frame[2, 6] = -2 * \
-            sym_sigmoid(angle_of_attack, x_offset=self.stall_angle, scale_fac=25) \
+            cropped_sym_sigmoid(angle_of_attack, x_offset=self.stall_angle, scale_fac=self.sig_scale_fac) \
             * math.sin(angle_of_attack)*math.cos(angle_of_attack)*v_xz**2
 
         # Transorm from stability axis frame to body FRD frame
@@ -66,7 +69,7 @@ class LinearPlateAeroModel():
         """
         Compute drag in y direction of body frame using a single coefficient: 
         F_y = 0.5 * density * area * V_air_y^2 * c_d_y"""
-        F_y_body_frame = -np.array([0, math.copysign(
+        F_y_body_frame = np.array([0, -math.copysign(
             1, v_airspeed[1]) * v_airspeed[1]**2, 0]).reshape(3, 1)
         X_wing = np.hstack((F_xz_body_frame, F_y_body_frame))
         return X_wing
@@ -130,8 +133,8 @@ class LinearPlateAeroModel():
             X_curr = self.compute_single_aero_feature(
                 v_airspeed_mat[i, :], angle_of_attack_vec[i], flap_commands[i, :])
             X_aero = np.vstack((X_aero, X_curr))
-        wing_coef_list = ["c_d_wing_xy_offset", "c_d_wing_xy_lin", "c_d_wing_xy_quad", "c_d_wing_xy_stall",
-                          "c_l_wing_xy_offset", "c_l_wing_xy_lin", "c_l_wing_xy_stall", "c_d_wing_y_offset"]
+        wing_coef_list = ["c_d_wing_xz_offset", "c_d_wing_xz_lin", "c_d_wing_xz_quad", "c_d_wing_xz_stall",
+                          "c_l_wing_xz_offset", "c_l_wing_xz_lin", "c_l_wing_xz_stall", "c_d_wing_y_offset"]
         flap_coef_list = ["c_d_ail_lin",
                           "c_d_ail_quad", "c_d_ele_lin", "c_d_ele_quad", "c_l_ele_lin"]
         aero_coef_list = wing_coef_list + flap_coef_list
