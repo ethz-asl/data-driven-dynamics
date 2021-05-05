@@ -7,8 +7,9 @@ import numpy as np
 
 from ...tools import cropped_sym_sigmoid
 from scipy.spatial.transform import Rotation
+from progress.bar import Bar
 
-# AAE stands for aileron, aileron, elevator
+# Delta stands for a wing only configuration with two ailevons
 
 
 class AeroModelDelta():
@@ -122,13 +123,17 @@ class AeroModelDelta():
         angle_of_attack_vec: vector of size (n) with corresponding AoA values
         flap_commands = numpy array of dimension (n,3) with columns for [u_aileron_right, u_aileron_left, u_elevator]
         """
+        print("Starting computation of aero features...")
         X_aero = self.compute_single_aero_feature(
             v_airspeed_mat[0, :], angle_of_attack_vec[0], flap_commands[0, :])
-
+        aero_features_bar = Bar(
+            'Feature Computatiuon', max=v_airspeed_mat.shape[0])
         for i in range(1, len(angle_of_attack_vec)):
             X_curr = self.compute_single_aero_feature(
                 v_airspeed_mat[i, :], angle_of_attack_vec[i], flap_commands[i, :])
             X_aero = np.vstack((X_aero, X_curr))
+            aero_features_bar.next()
+        aero_features_bar.finish()
         wing_coef_list = ["c_d_wing_xz_offset", "c_d_wing_xz_lin", "c_d_wing_xz_quad", "c_d_wing_xz_stall",
                           "c_l_wing_xz_offset", "c_l_wing_xz_lin", "c_l_wing_xz_stall", "c_d_wing_y_offset"]
         flap_coef_list = ["c_d_ail_lin",
@@ -138,4 +143,4 @@ class AeroModelDelta():
 
 
 if __name__ == "__main__":
-    linearPlateAeroModel = AeroModelAAE(20.0)
+    linearPlateAeroModel = AeroModelDelta(20.0)

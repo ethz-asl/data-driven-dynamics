@@ -8,5 +8,6 @@ matplotlib>=3.3.4
 PyYAML>=5.4.1
 argparse>=1.4.0
 pytest==6.2.3
+progress==1.5
 
 

@@ -13,6 +13,8 @@ import time
 import math
 import pandas as pd
 
+from progress.bar import Bar
+
 
 class DynamicsModel():
     def __init__(self, config_dict, rel_data_path):
@@ -71,9 +73,14 @@ class DynamicsModel():
         return True
 
     def compute_resampled_dataframe(self):
+        print("Starting data resampling of topic types: ",
+              self.req_topics_dict.keys())
         # setup object to crop dataframes for flight data
         fts = compute_flight_time(self.ulog)
         df_list = []
+        topic_type_bar = Bar('Resampling', max=len(
+            self.req_topics_dict.keys()))
+
         # getting data
         for topic_type in self.req_topics_dict.keys():
             topic_dict = self.req_topics_dict[topic_type]
@@ -84,6 +91,8 @@ class DynamicsModel():
                     'could not rename topics of type', topic_type, "due to rename list not having an entry for every topic.")
                 curr_df.columns = topic_dict["dataframe_name"]
             df_list.append(curr_df)
+            topic_type_bar.next()
+        topic_type_bar.finish()
         resampled_df = resample_dataframe_list(
             df_list, fts["t_start"], fts["t_end"], self.resample_freq)
         self.data_df = resampled_df.dropna()

@@ -5,6 +5,7 @@ __license__ = "BSD 3"
 import numpy as np
 import pandas as pd
 import math
+from progress.bar import Bar
 
 
 class RotorModel():
@@ -69,11 +70,15 @@ class RotorModel():
         """
         X_forces, X_moments = self.compute_actuator_force_features(
             actuator_input_vec[0], v_airspeed_mat[0, :].reshape((3, 1)))
+        rotor_features_bar = Bar(
+            'Feature Computatiuon', max=actuator_input_vec.shape[0])
         for i in range(1, actuator_input_vec.shape[0]):
             X_force_curr, X_moment_curr = self.compute_actuator_force_features(
                 actuator_input_vec[i], v_airspeed_mat[i, :].reshape((3, 1)))
             X_forces = np.vstack((X_forces, X_force_curr))
             X_moments = np.vstack((X_moments, X_moment_curr))
+            rotor_features_bar.next()
+        rotor_features_bar.finish()
         coef_list_forces = ["rot_drag_lin", "rot_thrust_quad",
                             "rot_thrust_lin"]
         coef_list_moments = ["c_m_leaver_quad", "c_m_leaver_lin",
