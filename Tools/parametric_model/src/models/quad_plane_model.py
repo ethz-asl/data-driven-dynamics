@@ -38,6 +38,7 @@ class QuadPlaneModel(DynamicsModel):
         # Vertical Rotor Features
         # all vertical rotors are assumed to have the same rotor parameters, therefore their feature matrices are added.
         for i in range((self.rotor_count-1)):
+            print("Starting computation of rotor features for rotor: ", i)
             rotor_dict = self.rotor_config_list[i]
             rotor_axis = np.array(rotor_dict["rotor_axis"])
             rotor_position = np.array(rotor_dict["position"])
@@ -59,6 +60,7 @@ class QuadPlaneModel(DynamicsModel):
                 vert_rotor_moments_coef_list[i]
 
         # Horizontal Rotor Features
+        print("Starting computation of rotor features for rotor: ", 4)
         rotor_dict = self.rotor_config_list[4]
         rotor_axis = np.array(rotor_dict["rotor_axis"])
         rotor_position = np.array(rotor_dict["position"])
