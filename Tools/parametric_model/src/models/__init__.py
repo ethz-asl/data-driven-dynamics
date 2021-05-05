@@ -10,6 +10,8 @@ from . import model_plots
 from .dynamics_model import DynamicsModel
 from . import quad_plane_model
 from .quad_plane_model import QuadPlaneModel
+from . import delta_quad_plane_model
+from .delta_quad_plane_model import DeltaQuadPlaneModel
 from . import simple_quadrotor_model
 from .simple_quadrotor_model import SimpleQuadRotorModel
 from . import model_config

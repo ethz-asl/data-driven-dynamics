@@ -6,5 +6,7 @@ __license__ = "BSD 3"
 
 from . import aero_model_AAE
 from .aero_model_AAE import AeroModelAAE
+from . import aero_model_Delta
+from .aero_model_Delta import AeroModelDelta
 from . import simple_drag_model
 from .simple_drag_model import SimpleDragModel
