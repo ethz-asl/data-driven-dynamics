@@ -4,8 +4,7 @@ __maintainer__ = "Manuel Galliker"
 __license__ = "BSD 3"
 
 
-from src.models import SimpleQuadRotorModel
-from src.models import QuadPlaneModel
+from src.models import SimpleQuadRotorModel, QuadPlaneModel, DeltaQuadPlaneModel
 import argparse
 
 
@@ -18,6 +17,9 @@ def start_model_estimation(arg_list):
 
     elif (model == "quad_plane_model"):
         model = QuadPlaneModel(rel_ulog_path)
+
+    elif (model == "delta_quad_plane_model"):
+        model = DeltaQuadPlaneModel(rel_ulog_path)
 
     else:
         print("no valid model selected")
