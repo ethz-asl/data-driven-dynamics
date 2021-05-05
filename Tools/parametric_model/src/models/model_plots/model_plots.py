@@ -128,10 +128,69 @@ def plot_accel_and_airspeed_in_y_direction(stacked_acc_vec, stacked_acc_vec_pred
     ax1.set_title('airspeed in y direction of body frame [m/s^2]')
     ax2.set_title(
         'features corresponding to drag in y direction')
-    ax3.set_title('airspeed in y direction of body frame [m/s^2]')
+    ax3.set_title('acceleration y direction of body frame [m/s^2]')
     plt.legend()
     plt.show()
     return
+
+
+def plot_accel_and_airspeed_in_z_direction(stacked_acc_vec, stacked_acc_vec_pred, v_a_z, timestamp_array):
+    """
+    Input:
+    acc_vec: numpy array of shape (3*n,1) containing stacked accelerations [a_x_1, a_y_1, a_z_1, a_x_2, ...]^T in body frame
+    acc_vec_pred: numpy array of shape (3*n,1) containing stacked predicted accelerations [a_x_1, a_y_1, a_z_1, a_x_2, ...]^T in body frame
+    v_a_z: numpy array of shape (n,1) containing the airspeed in y direction
+    timestamp_array: numpy array with n entries of corresponding timestamps.
+    """
+
+    stacked_acc_vec = np.array(stacked_acc_vec)
+    stacked_acc_vec_pred = np.array(stacked_acc_vec_pred)
+    v_a_z = np.array(v_a_z)
+    x_drag_z = np.zeros(v_a_z.shape[0])
+    for i in range(x_drag_z.shape[0]):
+        x_drag_z[i] = -math.copysign(1, v_a_z[i]) * v_a_z[i]**2
+    timestamp_array = np.array(timestamp_array)
+
+    acc_mat = stacked_acc_vec.reshape((-1, 3))
+    acc_mat_pred = stacked_acc_vec_pred.reshape((-1, 3))
+
+    fig, (ax1, ax2, ax3) = plt.subplots(3)
+    fig.suptitle('Acceleration and Airspeed in z direction')
+    ax1.plot(timestamp_array, v_a_z, label='measurement')
+    ax2.plot(timestamp_array, x_drag_z, label='measurement')
+    ax3.plot(timestamp_array, acc_mat[:, 2], label='measurement')
+    ax3.plot(timestamp_array, acc_mat_pred[:, 2], label='prediction')
+    ax1.set_title('airspeed in z direction of body frame [m/s^2]')
+    ax2.set_title(
+        '- sign(v_a)*v_a^2 in body frame [m/s^2]')
+    ax3.set_title('acceleration z direction of body frame [m/s^2]')
+    plt.legend()
+    plt.show()
+    return
+
+
+def plot_az_and_collective_input(stacked_acc_vec, stacked_acc_vec_pred, u_mat, timestamp_array):
+
+    u_mat = np.array(u_mat)
+    u_collective = np.zeros(u_mat.shape[0])
+    for i in range(u_mat.shape[1]):
+        u_collective = u_collective + u_mat[:, i]
+
+    stacked_acc_vec = np.array(stacked_acc_vec)
+    stacked_acc_vec_pred = np.array(stacked_acc_vec_pred)
+    acc_mat = stacked_acc_vec.reshape((-1, 3))
+    acc_mat_pred = stacked_acc_vec_pred.reshape((-1, 3))
+
+    fig, (ax1, ax2) = plt.subplots(2)
+    fig.suptitle('Acceleration and Collective Input in z direction')
+    ax1.plot(timestamp_array, u_collective, label='measurement')
+    ax2.plot(timestamp_array, acc_mat[:, 2], label='measurement')
+    ax2.plot(timestamp_array, acc_mat_pred[:, 2], label='prediction')
+    ax1.set_title('collective input')
+    ax2.set_title(
+        'acceleration in z direction of body frame [m/s^2]')
+    plt.legend()
+    plt.show()
 
 
 def plot(data, timestamp, plt_title="No title"):
