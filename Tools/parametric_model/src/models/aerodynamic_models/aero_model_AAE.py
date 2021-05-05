@@ -142,4 +142,4 @@ class AeroModelAAE():
 
 
 if __name__ == "__main__":
-    linearPlateAeroModel = LinearPlateAeroModel(20.0)
+    linearPlateAeroModel = AeroModelAAE(20.0)
