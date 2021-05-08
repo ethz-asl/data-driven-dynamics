@@ -35,6 +35,8 @@ model_config:
 
 # the data configuration is used in dynamics_model.py to load and arrange the data
 dynamics_model_config:
+  estimate_forces: True
+  estimate_moments: False
   resample_freq: 100.0
   data:
     required_ulog_topics: # only used when load_from_csv = False

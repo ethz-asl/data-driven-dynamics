@@ -4,3 +4,4 @@ logs*
 .vscode/
 __pycache__/
 resources/model_results/*.yaml
+*.pyc

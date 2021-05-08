@@ -13,6 +13,8 @@ import time
 import math
 import pandas as pd
 
+from .rotor_models import RotorModel
+
 from progress.bar import Bar
 
 
@@ -28,6 +30,9 @@ class DynamicsModel():
         self.req_topics_dict = config_dict["data"]["required_ulog_topics"]
         self.req_dataframe_topic_list = config_dict["data"]["req_dataframe_topic_list"]
         self.rel_data_path = rel_data_path
+
+        self.estimate_forces = config_dict["estimate_forces"]
+        self.estimate_moments = config_dict["estimate_moments"]
 
         if (rel_data_path[-4:] == ".csv"):
             self.data_df = pd.read_csv(rel_data_path, index_col=0)
@@ -120,7 +125,7 @@ class DynamicsModel():
             [self.data_df, airspeed_body_df], axis=1, join="inner")
 
     def compute_body_rotation_features(self, angular_vel_topic_list):
-        """Include the moment contribution due to rotation body frame: 
+        """Include the moment contribution due to rotation body frame:
         w x Iw = X_body_rot * v
         Where v = (I_y-I_z, I_z-I_x, I_x- I_y)^T
         is comprised of the inertia moments we want to estimate
@@ -168,6 +173,63 @@ class DynamicsModel():
                 print("normalization failed")
                 exit(1)
             self.data_df[self.actuator_columns[i]] = actuator_data
+
+    def compute_rotor_features(self, rotors_config_dict):
+
+        v_airspeed_mat = self.data_df[[
+            "V_air_body_x", "V_air_body_y", "V_air_body_z"]].to_numpy()
+
+        for rotor_group in rotors_config_dict.keys():
+            rotor_group_list = rotors_config_dict[rotor_group]
+            if (self.estimate_forces):
+                X_force_collector = np.zeros((3*v_airspeed_mat.shape[0], 3))
+            if (self.estimate_moments):
+                X_moment_collector = np.zeros((3*v_airspeed_mat.shape[0], 5))
+            for rotor_config_dict in rotor_group_list:
+                rotor_input_name = rotor_config_dict["dataframe_name"]
+                u_vec = self.data_df[rotor_input_name]
+                rotor = RotorModel(rotor_config_dict)
+                rotor.initialize_actuator_airspeed(v_airspeed_mat)
+
+                if (self.estimate_forces):
+                    X_force_curr, curr_rotor_forces_coef_list = rotor.compute_actuator_force_matrix(
+                        u_vec)
+                    X_force_collector = X_force_collector + X_force_curr
+                    # Include rotor group name in coefficient names:
+                    for i in range(len(curr_rotor_forces_coef_list)):
+                        curr_rotor_forces_coef_list[i] = rotor_group + \
+                            curr_rotor_forces_coef_list[i]
+
+                if (self.estimate_moments):
+                    X_moment_curr, curr_rotor_moments_coef_list = rotor.compute_actuator_moment_matrix(
+                        u_vec)
+                    X_moment_collector = X_moment_collector + X_moment_curr
+                    # Include rotor group name in coefficient names:
+                    for i in range(len(curr_rotor_moments_coef_list)):
+                        curr_rotor_moments_coef_list[i] = rotor_group + \
+                            curr_rotor_moments_coef_list[i]
+
+            if (self.estimate_forces):
+                if 'X_rotor_forces' not in vars():
+                    X_rotor_forces = X_force_collector
+                    self.rotor_forces_coef_list = curr_rotor_forces_coef_list
+                else:
+                    X_rotor_forces = np.hstack(
+                        (X_rotor_forces, X_force_collector))
+                    self.rotor_forces_coef_list += curr_rotor_forces_coef_list
+                self.X_rotor_forces = X_rotor_forces
+
+            if (self.estimate_moments):
+                if 'X_rotor_moments' not in vars():
+                    X_rotor_moments = X_moment_collector
+                    self.rotor_moments_coef_list = curr_rotor_moments_coef_list
+                else:
+                    X_rotor_moments = np.hstack(
+                        (X_rotor_moments, X_moment_collector))
+                    self.rotor_moments_coef_list += curr_rotor_moments_coef_list
+                self.X_rotor_moments = X_rotor_moments
+
+        return
 
     def rot_to_body_frame(self, vec_mat):
         """

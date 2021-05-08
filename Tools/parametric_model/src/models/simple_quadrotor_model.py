@@ -44,33 +44,10 @@ class SimpleQuadRotorModel(DynamicsModel):
         self.config = ModelConfig(config_file)
         super(SimpleQuadRotorModel, self).__init__(
             config_dict=self.config.dynamics_model_config, rel_data_path=rel_data_path)
-        self.rotor_config_list = self.config.model_config["actuators"]["rotors"]
-        self.rotor_count = len(self.rotor_config_list)
+        self.rotor_config_dict = self.config.model_config["actuators"]["rotors"]
 
-    def compute_rotor_features(self):
-        u_mat = self.data_df[["u0", "u1", "u2", "u3"]].to_numpy()
-        v_airspeed_mat = self.data_df[[
-            "V_air_body_x", "V_air_body_y", "V_air_body_z"]].to_numpy()
-
-        # Vertical Rotor Features
-        # all vertical rotors are assumed to have the same rotor parameters, therefore their feature matrices are added.
-        X_vertical_rotors = np.zeros((3*self.data_df.shape[0], 3))
-        for i in range(self.rotor_count):
-            rotor_dict = self.rotor_config_list[i]
-            rotor_axis = np.array(rotor_dict["rotor_axis"])
-            rotor_position = np.array(rotor_dict["position"])
-            currActuator = RotorModel(
-                rotor_axis, rotor_position, rotor_dict["turning_direction"])
-            X_force_curr, X_moment_curr, vert_rot_forces_coef_list, vert_rot_moments_coef_list = currActuator.compute_actuator_feature_matrix(
-                u_mat[:, i], v_airspeed_mat)
-            X_vertical_rotors = X_vertical_rotors + X_force_curr
-        for i in range(len(vert_rot_forces_coef_list)):
-            vert_rot_forces_coef_list[i] = "vert_" + \
-                vert_rot_forces_coef_list[i]
-
-        # Combine all rotor feature matrices
-        self.coef_name_list.extend(vert_rot_forces_coef_list)
-        return X_vertical_rotors
+        assert (self.estimate_moments ==
+                False), "Estimation of moments is not yet implemented in DeltaQuadPlaneModel. Disable in config file to estimate forces."
 
     def prepare_regression_mat(self):
 
@@ -82,15 +59,19 @@ class SimpleQuadRotorModel(DynamicsModel):
             "accelerometer_m_s2[0]", "accelerometer_m_s2[1]", "accelerometer_m_s2[2]"]].to_numpy()
         self.data_df[["ax_body", "ay_body", "az_body"]] = accel_mat
         y = (accel_mat).flatten()
-        X_rotor = self.compute_rotor_features()
+
+        # Rotor features
+        self.compute_rotor_features(self.rotor_config_dict)
+
         aoa_mat = self.data_df[["AoA"]].to_numpy()
         airspeed_mat = self.data_df[["V_air_body_x",
                                      "V_air_body_y", "V_air_body_z"]].to_numpy()
         aero_model = SimpleDragModel(35.0)
         X_aero, aero_coef_list = aero_model.compute_aero_features(
             airspeed_mat, aoa_mat)
-        self.coef_name_list.extend(aero_coef_list)
-        X = np.hstack((X_rotor, X_aero))
+        self.coef_name_list.extend(
+            self.rotor_forces_coef_list + aero_coef_list)
+        X = np.hstack((self.X_rotor_forces, X_aero))
         print("datapoints for self.regression: ", self.data_df.shape[0])
         return X, y
 
