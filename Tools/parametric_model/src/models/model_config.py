@@ -79,3 +79,8 @@ class ModelConfig():
             assert("ulog_name" in topic_type_dict), \
                 print(topic_type, " does not contain an entry for ulog_name")
         return
+
+    def check_estimation_bools(self):
+        # check that at least estimating forces or moments is enabled.
+        assert (self.dynamics_model_config["estimate_forces"] or self.dynamics_model_config["estimate_moments"]), \
+            "Neither estimation of forces or moments is activated in config file."

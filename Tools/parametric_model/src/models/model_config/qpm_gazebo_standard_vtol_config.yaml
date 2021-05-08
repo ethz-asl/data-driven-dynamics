@@ -9,70 +9,72 @@ model_file:
 model_config:
   actuators:
     rotors:
-      - rotor_0:
-        description: "front right rotor"
-        dataframe_name: "u0"
-        rotor_axis:
-          - 0
-          - 0
-          - -1
-        turning_direction: -1
-        position:
-          - 0.35
-          - 0.35
-          - -0.07
+      # All rotors in the same group will share the coefficients
+      vertical_:
+        - rotor_0:
+          description: "front right rotor"
+          dataframe_name: "u0"
+          rotor_axis:
+            - 0
+            - 0
+            - -1
+          turning_direction: -1
+          position:
+            - 0.35
+            - 0.35
+            - -0.07
 
-      - rotor_1:
-        description: "back left rotor"
-        dataframe_name: "u1"
-        rotor_axis:
-          - 0
-          - 0
-          - -1
-        turning_direction: -1
-        position:
-          - -0.35
-          - -0.35
-          - -0.07
+        - rotor_1:
+          description: "back left rotor"
+          dataframe_name: "u1"
+          rotor_axis:
+            - 0
+            - 0
+            - -1
+          turning_direction: -1
+          position:
+            - -0.35
+            - -0.35
+            - -0.07
 
-      - rotor_2:
-        description: "front left rotor"
-        dataframe_name: "u2"
-        rotor_axis:
-          - 0
-          - 0
-          - -1
-        turning_direction: 1
-        position:
-          - 0.35
-          - -0.35
-          - -0.07
+        - rotor_2:
+          description: "front left rotor"
+          dataframe_name: "u2"
+          rotor_axis:
+            - 0
+            - 0
+            - -1
+          turning_direction: 1
+          position:
+            - 0.35
+            - -0.35
+            - -0.07
 
-      - rotor_3:
-        description: "back right rotor"
-        dataframe_name: "u3"
-        rotor_axis:
-          - 0
-          - 0
-          - -1
-        turning_direction: 1
-        position:
-          - -0.35
-          - 0.35
-          - -0.07
-
-      - rotor_4:
-        description: "puller rotor"
-        dataframe_name: "u4"
-        rotor_axis:
-          - 1
-          - 0
-          - 0
-        turning_direction: -1
-        position:
-          - 0.22
-          - 0
-          - 0
+        - rotor_3:
+          description: "back right rotor"
+          dataframe_name: "u3"
+          rotor_axis:
+            - 0
+            - 0
+            - -1
+          turning_direction: 1
+          position:
+            - -0.35
+            - 0.35
+            - -0.07
+      puller_:
+        - rotor_4:
+          description: "puller rotor"
+          dataframe_name: "u4"
+          rotor_axis:
+            - 1
+            - 0
+            - 0
+          turning_direction: -1
+          position:
+            - 0.22
+            - 0
+            - 0
 
     control_surfaces:
       - control_surface_0:
@@ -92,6 +94,8 @@ model_config:
     sig_scale_factor: 30
 
 dynamics_model_config:
+  estimate_forces: True
+  estimate_moments: True
   resample_freq: 100.0
   data:
     required_ulog_topics:

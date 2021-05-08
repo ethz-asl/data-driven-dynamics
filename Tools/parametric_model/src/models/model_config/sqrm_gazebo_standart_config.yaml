@@ -9,59 +9,62 @@ model_file:
 model_config:
   actuators:
     rotors:
-      - rotor_0:
-        description: "front right rotor"
-        dataframe_name: "u0"
-        rotor_axis:
-          - 0
-          - 0
-          - -1
-        turning_direction: -1
-        position:
-          - 0.13
-          - 0.22
-          - -0.023
+      vertical_:
+        - rotor_0:
+          description: "front right rotor"
+          dataframe_name: "u0"
+          rotor_axis:
+            - 0
+            - 0
+            - -1
+          turning_direction: -1
+          position:
+            - 0.13
+            - 0.22
+            - -0.023
 
-      - rotor_1:
-        description: "back left rotor"
-        dataframe_name: "u1"
-        rotor_axis:
-          - 0
-          - 0
-          - -1
-        turning_direction: -1
-        position:
-          - -0.13
-          - -0.2
-          - -0.023
+        - rotor_1:
+          description: "back left rotor"
+          dataframe_name: "u1"
+          rotor_axis:
+            - 0
+            - 0
+            - -1
+          turning_direction: -1
+          position:
+            - -0.13
+            - -0.2
+            - -0.023
 
-      - rotor_2:
-        description: "front left rotor"
-        dataframe_name: "u2"
-        rotor_axis:
-          - 0
-          - 0
-          - -1
-        turning_direction: 1
-        position:
-          - 0.13
-          - -0.2
-          - -0.023
+        - rotor_2:
+          description: "front left rotor"
+          dataframe_name: "u2"
+          rotor_axis:
+            - 0
+            - 0
+            - -1
+          turning_direction: 1
+          position:
+            - 0.13
+            - -0.2
+            - -0.023
 
-      - rotor_3:
-        description: "back right rotor"
-        dataframe_name: "u3"
-        rotor_axis:
-          - 0
-          - 0
-          - -1
-        turning_direction: 1
-        position:
-          - -0.13
-          - 0.2
-          - -0.023
+        - rotor_3:
+          description: "back right rotor"
+          dataframe_name: "u3"
+          rotor_axis:
+            - 0
+            - 0
+            - -1
+          turning_direction: 1
+          position:
+            - -0.13
+            - 0.2
+            - -0.023
 
 dynamics_model_config:
+  estimate_forces: True
+  estimate_moments: False
   resample_freq: 100.0
   data:
     required_ulog_topics:
