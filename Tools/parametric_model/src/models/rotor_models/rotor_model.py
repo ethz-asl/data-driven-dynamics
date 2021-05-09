@@ -9,7 +9,7 @@ from progress.bar import Bar
 
 
 class RotorModel():
-    def __init__(self, rotor_config_dict, actuator_input_vec, v_airspeed_mat, density=1.225):
+    def __init__(self, rotor_config_dict, actuator_input_vec, v_airspeed_mat, density=1.225, angular_vel_mat=None):
         """
         Inputs:
         actuator_input_vec: vector of actuator inputs (normalized between 0 and 1), numpy array of shape (n, 1)
@@ -34,9 +34,18 @@ class RotorModel():
         # air density in kg/m^3
         self.density = density
 
-        self.initialize_actuator_airspeed(v_airspeed_mat)
+        self.initialize_actuator_airspeed(v_airspeed_mat, angular_vel_mat)
 
-    def initialize_actuator_airspeed(self, v_airspeed_mat):
+    def initialize_actuator_airspeed(self, v_airspeed_mat, angular_vel_mat):
+
+        # adjust airspeed with angular acceleration is angular_vel_mat is passed as argument
+        if angular_vel_mat is not None:
+            assert (v_airspeed_mat.shape ==
+                    angular_vel_mat.shape), "RotorModel: v_airspeed_mat and angular_vel_mat differ in size."
+            for i in range(v_airspeed_mat.shape[0]):
+                v_airspeed_mat[i, :] = v_airspeed_mat[i, :] + \
+                    np.cross(angular_vel_mat[i, :],
+                             self.rotor_position.flatten())
 
         self.v_airspeed_parallel_to_rotor_axis = np.zeros(
             v_airspeed_mat.shape)
