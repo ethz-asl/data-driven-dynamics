@@ -174,7 +174,7 @@ class DynamicsModel():
                 exit(1)
             self.data_df[self.actuator_columns[i]] = actuator_data
 
-    def compute_rotor_features(self, rotors_config_dict):
+    def compute_rotor_features(self, rotors_config_dict, angular_vel_mat=None):
 
         v_airspeed_mat = self.data_df[[
             "V_air_body_x", "V_air_body_y", "V_air_body_z"]].to_numpy()
@@ -188,7 +188,8 @@ class DynamicsModel():
             for rotor_config_dict in rotor_group_list:
                 rotor_input_name = rotor_config_dict["dataframe_name"]
                 u_vec = self.data_df[rotor_input_name]
-                rotor = RotorModel(rotor_config_dict, u_vec, v_airspeed_mat)
+                rotor = RotorModel(
+                    rotor_config_dict, u_vec, v_airspeed_mat, angular_vel_mat=angular_vel_mat)
 
                 if (self.estimate_forces):
                     X_force_curr, curr_rotor_forces_coef_list = rotor.compute_actuator_force_matrix()

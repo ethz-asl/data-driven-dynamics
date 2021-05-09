@@ -39,7 +39,9 @@ class QuadPlaneModel(DynamicsModel):
             self.compute_airspeed_from_groundspeed(["vx", "vy", "vz"])
 
         # Rotor features
-        self.compute_rotor_features(self.rotor_config_dict)
+        angular_vel_mat = self.data_df[[
+            "ang_vel_x", "ang_vel_y", "ang_vel_z"]].to_numpy()
+        self.compute_rotor_features(self.rotor_config_dict, angular_vel_mat)
 
         if (self.estimate_forces):
             # Aerodynamics features
