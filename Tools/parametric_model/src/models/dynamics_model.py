@@ -178,9 +178,11 @@ class DynamicsModel():
 
         v_airspeed_mat = self.data_df[[
             "V_air_body_x", "V_air_body_y", "V_air_body_z"]].to_numpy()
+        self.rotor_dict = {}
 
         for rotor_group in rotors_config_dict.keys():
             rotor_group_list = rotors_config_dict[rotor_group]
+            self.rotor_dict[rotor_group] = []
             if (self.estimate_forces):
                 X_force_collector = np.zeros((3*v_airspeed_mat.shape[0], 3))
             if (self.estimate_moments):
@@ -190,6 +192,7 @@ class DynamicsModel():
                 u_vec = self.data_df[rotor_input_name]
                 rotor = RotorModel(
                     rotor_config_dict, u_vec, v_airspeed_mat, angular_vel_mat=angular_vel_mat)
+                self.rotor_dict[rotor_group].append(rotor)
 
                 if (self.estimate_forces):
                     X_force_curr, curr_rotor_forces_coef_list = rotor.compute_actuator_force_matrix()

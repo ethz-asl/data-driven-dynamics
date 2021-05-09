@@ -24,6 +24,7 @@ class RotorModel():
         self.turning_direction = rotor_config_dict["turning_direction"]
         self.rotor_name = rotor_config_dict["description"]
         self.actuator_input_vec = actuator_input_vec
+        self.n_timestamps = actuator_input_vec.shape[0]
 
         # prop diameter in meters
         if "diameter" in rotor_config_dict.keys():
@@ -42,7 +43,7 @@ class RotorModel():
         if angular_vel_mat is not None:
             assert (v_airspeed_mat.shape ==
                     angular_vel_mat.shape), "RotorModel: v_airspeed_mat and angular_vel_mat differ in size."
-            for i in range(v_airspeed_mat.shape[0]):
+            for i in range(self.n_timestamps):
                 v_airspeed_mat[i, :] = v_airspeed_mat[i, :] + \
                     np.cross(angular_vel_mat[i, :],
                              self.rotor_position.flatten())
@@ -53,7 +54,7 @@ class RotorModel():
         self.v_airspeed_perpendicular_to_rotor_axis = np.zeros(
             v_airspeed_mat.shape)
 
-        for i in range(v_airspeed_mat.shape[0]):
+        for i in range(self.n_timestamps):
             v_airspeed = v_airspeed_mat[i, :]
             self.v_airspeed_parallel_to_rotor_axis[i, :] = (np.vdot(
                 self.rotor_axis, v_airspeed) * self.rotor_axis).flatten()
@@ -123,7 +124,7 @@ class RotorModel():
             self.actuator_input_vec[0], self.v_air_parallel_abs[0], self.v_airspeed_perpendicular_to_rotor_axis[0, :].reshape((3, 1)))
         rotor_features_bar = Bar(
             'Feature Computatiuon', max=self.actuator_input_vec.shape[0])
-        for i in range(1, self.actuator_input_vec.shape[0]):
+        for i in range(1, self.n_timestamps):
             X_force_curr = self.compute_actuator_force_features(
                 self.actuator_input_vec[i], self.v_air_parallel_abs[i], self.v_airspeed_perpendicular_to_rotor_axis[i, :].reshape((3, 1)))
             X_forces = np.vstack((X_forces, X_force_curr))
@@ -131,6 +132,8 @@ class RotorModel():
         rotor_features_bar.finish()
         coef_list_forces = ["rot_drag_lin", "rot_thrust_quad",
                             "rot_thrust_lin"]
+        self.X_forces = X_forces
+        self.X_thrust = X_forces[:, 1:]
         return X_forces, coef_list_forces
 
     def compute_actuator_moment_matrix(self):
@@ -143,7 +146,7 @@ class RotorModel():
             self.actuator_input_vec[0], self.v_air_parallel_abs[0], self.v_airspeed_perpendicular_to_rotor_axis[0, :].reshape((3, 1)))
         rotor_features_bar = Bar(
             'Feature Computatiuon', max=self.actuator_input_vec.shape[0])
-        for i in range(1, self.actuator_input_vec.shape[0]):
+        for i in range(1, self.n_timestamps):
             X_moment_curr = self.compute_actuator_moment_features(
                 self.actuator_input_vec[i], self.v_air_parallel_abs[i], self.v_airspeed_perpendicular_to_rotor_axis[i, :].reshape((3, 1)))
             X_moments = np.vstack((X_moments, X_moment_curr))
@@ -152,3 +155,14 @@ class RotorModel():
         coef_list_moments = ["c_m_leaver_quad", "c_m_leaver_lin",
                              "c_m_drag_z_quad", "c_m_drag_z_lin", "c_m_rolling"]
         return X_moments, coef_list_moments
+
+    def predict_thrust_force(self, thrust_coef_list):
+        """
+        Inputs: thrust_coef_list = ["rot_thrust_quad", "rot_thrust_lin"]
+        """
+        thrust_coef = np.array(thrust_coef_list).reshape(2, 1)
+        stacked_force_vec = self.X_thrust @ thrust_coef
+        print(stacked_force_vec)
+        force_mat = stacked_force_vec.reshape((self.n_timestamps, 3))
+        print(force_mat)
+        return force_mat
