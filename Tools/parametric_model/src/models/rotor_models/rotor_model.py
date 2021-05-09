@@ -9,7 +9,7 @@ from progress.bar import Bar
 
 
 class RotorModel():
-    def __init__(self, rotor_config_dict, actuator_input_vec, v_airspeed_mat, density=1.225, angular_vel_mat=None):
+    def __init__(self, rotor_config_dict, actuator_input_vec, v_airspeed_mat, air_density=1.225, angular_vel_mat=None):
         """
         Inputs:
         actuator_input_vec: vector of actuator inputs (normalized between 0 and 1), numpy array of shape (n, 1)
@@ -33,18 +33,21 @@ class RotorModel():
             self.prop_diameter = 1
         self.prop_area = math.pi*self.prop_diameter**2 / 4
         # air density in kg/m^3
-        self.density = density
+        self.air_density = air_density
 
-        self.initialize_actuator_airspeed(v_airspeed_mat, angular_vel_mat)
+        self.compute_local_airspeed(v_airspeed_mat, angular_vel_mat)
 
-    def initialize_actuator_airspeed(self, v_airspeed_mat, angular_vel_mat):
+    def compute_local_airspeed(self, v_airspeed_mat, angular_vel_mat):
 
         # adjust airspeed with angular acceleration is angular_vel_mat is passed as argument
+
+        self.local_airspeed_mat = np.zeros(v_airspeed_mat.shape)
+
         if angular_vel_mat is not None:
             assert (v_airspeed_mat.shape ==
                     angular_vel_mat.shape), "RotorModel: v_airspeed_mat and angular_vel_mat differ in size."
             for i in range(self.n_timestamps):
-                v_airspeed_mat[i, :] = v_airspeed_mat[i, :] + \
+                self.local_airspeed_mat[i, :] = v_airspeed_mat[i, :] + \
                     np.cross(angular_vel_mat[i, :],
                              self.rotor_position.flatten())
 
@@ -55,12 +58,12 @@ class RotorModel():
             v_airspeed_mat.shape)
 
         for i in range(self.n_timestamps):
-            v_airspeed = v_airspeed_mat[i, :]
+            v_local_airspeed = self.local_airspeed_mat[i, :]
             self.v_airspeed_parallel_to_rotor_axis[i, :] = (np.vdot(
-                self.rotor_axis, v_airspeed) * self.rotor_axis).flatten()
+                self.rotor_axis, v_local_airspeed) * self.rotor_axis).flatten()
             self.v_air_parallel_abs[i] = np.linalg.norm(
                 self.v_airspeed_parallel_to_rotor_axis)
-            self.v_airspeed_perpendicular_to_rotor_axis[i, :] = v_airspeed - \
+            self.v_airspeed_perpendicular_to_rotor_axis[i, :] = v_local_airspeed - \
                 self.v_airspeed_parallel_to_rotor_axis[i, :]
 
         self.airspeed_initialized = True
@@ -78,7 +81,7 @@ class RotorModel():
         # Thrust force computation
 
         X_thrust = self.rotor_axis @ np.array(
-            [[actuator_input**2, (actuator_input*v_air_parallel_abs)]]) * self.density * self.prop_diameter**4
+            [[actuator_input**2, (actuator_input*v_air_parallel_abs)]]) * self.air_density * self.prop_diameter**4
         # Drag force computation
         if (np.linalg.norm(v_airspeed_perpendicular_to_rotor_axis) >= 0.05):
             X_drag = - v_airspeed_perpendicular_to_rotor_axis @ np.array(
@@ -98,15 +101,15 @@ class RotorModel():
             self.rotor_position.flatten(), self.rotor_axis.flatten())
         # Thrust leaver moment
         X_moments[:, 0] = leaver_moment_vec * actuator_input**2 * \
-            self.density * self.prop_diameter**4
+            self.air_density * self.prop_diameter**4
         X_moments[:, 1] = leaver_moment_vec * \
-            actuator_input*v_air_parallel_abs * self.density * self.prop_diameter**4
+            actuator_input*v_air_parallel_abs * self.air_density * self.prop_diameter**4
 
         # Rotor drag moment
         X_moments[2, 2] = - self.turning_direction * \
-            actuator_input**2 * self.density * self.prop_diameter**5
+            actuator_input**2 * self.air_density * self.prop_diameter**5
         X_moments[2, 3] = - self.turning_direction * \
-            actuator_input*v_air_parallel_abs * self.density * self.prop_diameter**5
+            actuator_input*v_air_parallel_abs * self.air_density * self.prop_diameter**5
 
         # Rotor Rolling Moment
         X_moments[:, 4] = -1 * v_airspeed_perpendicular_to_rotor_axis.flatten() * \
