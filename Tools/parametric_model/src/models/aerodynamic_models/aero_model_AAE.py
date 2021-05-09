@@ -41,7 +41,7 @@ class AeroModelAAE():
             if abs(AoA) > stall_angle: cropped_sym_sigmoid(AoA) = 1
         """
         v_xz = math.sqrt(v_airspeed[0]**2 + v_airspeed[2]**2)
-        F_xz_aero_frame = np.zeros((3, 7))
+        F_xz_aero_frame = np.zeros((3, 8))
 
         # Compute Drag force coeffiecients:
         F_xz_aero_frame[0, 0] = -(
@@ -51,14 +51,15 @@ class AeroModelAAE():
         F_xz_aero_frame[0, 2] = -(
             1 - cropped_sym_sigmoid(angle_of_attack, x_offset=self.stall_angle, scale_fac=self.sig_scale_fac))*angle_of_attack**2*v_xz**2
         F_xz_aero_frame[0, 3] = -(cropped_sym_sigmoid(angle_of_attack,
-                                  x_offset=self.stall_angle, scale_fac=self.sig_scale_fac))*math.sin(angle_of_attack)*v_xz**2
-
+                                  x_offset=self.stall_angle, scale_fac=self.sig_scale_fac))*(1 - math.sin(angle_of_attack)**2)*v_xz**2
+        F_xz_aero_frame[0, 4] = -(cropped_sym_sigmoid(angle_of_attack,
+                                  x_offset=self.stall_angle, scale_fac=self.sig_scale_fac))*(math.sin(angle_of_attack)**2)*v_xz**2
         # Compute Lift force coefficients:
-        F_xz_aero_frame[2, 4] = -(
-            1 - cropped_sym_sigmoid(angle_of_attack, x_offset=self.stall_angle, scale_fac=self.sig_scale_fac))*angle_of_attack*v_xz**2
         F_xz_aero_frame[2, 5] = -(
+            1 - cropped_sym_sigmoid(angle_of_attack, x_offset=self.stall_angle, scale_fac=self.sig_scale_fac))*angle_of_attack*v_xz**2
+        F_xz_aero_frame[2, 6] = -(
             1 - cropped_sym_sigmoid(angle_of_attack, x_offset=self.stall_angle, scale_fac=self.sig_scale_fac))*v_xz**2
-        F_xz_aero_frame[2, 6] = -2 * \
+        F_xz_aero_frame[2, 7] = -2 * \
             cropped_sym_sigmoid(angle_of_attack, x_offset=self.stall_angle, scale_fac=self.sig_scale_fac) \
             * math.sin(angle_of_attack)*math.cos(angle_of_attack)*v_xz**2
 
@@ -138,7 +139,7 @@ class AeroModelAAE():
             X_aero = np.vstack((X_aero, X_curr))
             aero_features_bar.next()
         aero_features_bar.finish()
-        wing_coef_list = ["c_d_wing_xz_offset", "c_d_wing_xz_lin", "c_d_wing_xz_quad", "c_d_wing_xz_stall",
+        wing_coef_list = ["c_d_wing_xz_offset", "c_d_wing_xz_lin", "c_d_wing_xz_quad", "c_d_wing_xz_stall_min", "c_d_wing_xz_stall_90_deg",
                           "c_l_wing_xz_offset", "c_l_wing_xz_lin", "c_l_wing_xz_stall", "c_d_wing_y_offset"]
         flap_coef_list = ["c_d_ail_lin",
                           "c_d_ail_quad", "c_d_ele_lin", "c_d_ele_quad", "c_l_ele_lin"]
