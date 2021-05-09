@@ -188,12 +188,10 @@ class DynamicsModel():
             for rotor_config_dict in rotor_group_list:
                 rotor_input_name = rotor_config_dict["dataframe_name"]
                 u_vec = self.data_df[rotor_input_name]
-                rotor = RotorModel(rotor_config_dict)
-                rotor.initialize_actuator_airspeed(v_airspeed_mat)
+                rotor = RotorModel(rotor_config_dict, u_vec, v_airspeed_mat)
 
                 if (self.estimate_forces):
-                    X_force_curr, curr_rotor_forces_coef_list = rotor.compute_actuator_force_matrix(
-                        u_vec)
+                    X_force_curr, curr_rotor_forces_coef_list = rotor.compute_actuator_force_matrix()
                     X_force_collector = X_force_collector + X_force_curr
                     # Include rotor group name in coefficient names:
                     for i in range(len(curr_rotor_forces_coef_list)):
@@ -201,8 +199,7 @@ class DynamicsModel():
                             curr_rotor_forces_coef_list[i]
 
                 if (self.estimate_moments):
-                    X_moment_curr, curr_rotor_moments_coef_list = rotor.compute_actuator_moment_matrix(
-                        u_vec)
+                    X_moment_curr, curr_rotor_moments_coef_list = rotor.compute_actuator_moment_matrix()
                     X_moment_collector = X_moment_collector + X_moment_curr
                     # Include rotor group name in coefficient names:
                     for i in range(len(curr_rotor_moments_coef_list)):

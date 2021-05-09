@@ -9,7 +9,13 @@ from progress.bar import Bar
 
 
 class RotorModel():
-    def __init__(self, rotor_config_dict, density=1.225):
+    def __init__(self, rotor_config_dict, actuator_input_vec, v_airspeed_mat, density=1.225):
+        """
+        Inputs:
+        actuator_input_vec: vector of actuator inputs (normalized between 0 and 1), numpy array of shape (n, 1)
+        v_airspeed_mat: matrix of vertically stacked airspeed vectors, numpy array of shape (n, 3)
+        """
+
         # no more thrust produced at this airspeed inflow velocity
         self.rotor_axis = np.array(
             rotor_config_dict["rotor_axis"]).reshape(3, 1)
@@ -17,6 +23,7 @@ class RotorModel():
             rotor_config_dict["position"]).reshape(3, 1)
         self.turning_direction = rotor_config_dict["turning_direction"]
         self.rotor_name = rotor_config_dict["description"]
+        self.actuator_input_vec = actuator_input_vec
 
         # prop diameter in meters
         if "diameter" in rotor_config_dict.keys():
@@ -26,6 +33,8 @@ class RotorModel():
         self.prop_area = math.pi*self.prop_diameter**2 / 4
         # air density in kg/m^3
         self.density = density
+
+        self.initialize_actuator_airspeed(v_airspeed_mat)
 
     def initialize_actuator_airspeed(self, v_airspeed_mat):
 
@@ -95,23 +104,19 @@ class RotorModel():
 
         return X_moments
 
-    def compute_actuator_force_matrix(self, actuator_input_vec):
-        """
-        Inputs:
-        actuator_input_vec: vector of actuator inputs (normalized between 0 and 1), numpy array of shape (n, 1)
-        v_airspeed_mat: matrix of vertically stacked airspeed vectors, numpy array of shape (n, 3)
-        """
+    def compute_actuator_force_matrix(self):
+
         assert (self.airspeed_initialized), "Airspeed is not initialized. Call initialize_actuator_airspeed(v_airspeed_mat) first."
 
         print("Computing force features for rotor:", self.rotor_name)
 
         X_forces = self.compute_actuator_force_features(
-            actuator_input_vec[0], self.v_air_parallel_abs[0], self.v_airspeed_perpendicular_to_rotor_axis[0, :].reshape((3, 1)))
+            self.actuator_input_vec[0], self.v_air_parallel_abs[0], self.v_airspeed_perpendicular_to_rotor_axis[0, :].reshape((3, 1)))
         rotor_features_bar = Bar(
-            'Feature Computatiuon', max=actuator_input_vec.shape[0])
-        for i in range(1, actuator_input_vec.shape[0]):
+            'Feature Computatiuon', max=self.actuator_input_vec.shape[0])
+        for i in range(1, self.actuator_input_vec.shape[0]):
             X_force_curr = self.compute_actuator_force_features(
-                actuator_input_vec[i], self.v_air_parallel_abs[i], self.v_airspeed_perpendicular_to_rotor_axis[i, :].reshape((3, 1)))
+                self.actuator_input_vec[i], self.v_air_parallel_abs[i], self.v_airspeed_perpendicular_to_rotor_axis[i, :].reshape((3, 1)))
             X_forces = np.vstack((X_forces, X_force_curr))
             rotor_features_bar.next()
         rotor_features_bar.finish()
@@ -119,23 +124,19 @@ class RotorModel():
                             "rot_thrust_lin"]
         return X_forces, coef_list_forces
 
-    def compute_actuator_moment_matrix(self, actuator_input_vec):
-        """
-        Inputs:
-        actuator_input_vec: vector of actuator inputs (normalized between 0 and 1), numpy array of shape (n, 1)
-        v_airspeed_mat: matrix of vertically stacked airspeed vectors, numpy array of shape (n, 3)
-        """
+    def compute_actuator_moment_matrix(self):
+
         assert (self.airspeed_initialized), "Airspeed is not initialized. Call initialize_actuator_airspeed(v_airspeed_mat) first."
 
         print("Computing moment features for rotor:", self.rotor_name)
 
         X_moments = self.compute_actuator_moment_features(
-            actuator_input_vec[0], self.v_air_parallel_abs[0], self.v_airspeed_perpendicular_to_rotor_axis[0, :].reshape((3, 1)))
+            self.actuator_input_vec[0], self.v_air_parallel_abs[0], self.v_airspeed_perpendicular_to_rotor_axis[0, :].reshape((3, 1)))
         rotor_features_bar = Bar(
-            'Feature Computatiuon', max=actuator_input_vec.shape[0])
-        for i in range(1, actuator_input_vec.shape[0]):
+            'Feature Computatiuon', max=self.actuator_input_vec.shape[0])
+        for i in range(1, self.actuator_input_vec.shape[0]):
             X_moment_curr = self.compute_actuator_moment_features(
-                actuator_input_vec[i], self.v_air_parallel_abs[i], self.v_airspeed_perpendicular_to_rotor_axis[i, :].reshape((3, 1)))
+                self.actuator_input_vec[i], self.v_air_parallel_abs[i], self.v_airspeed_perpendicular_to_rotor_axis[i, :].reshape((3, 1)))
             X_moments = np.vstack((X_moments, X_moment_curr))
             rotor_features_bar.next()
         rotor_features_bar.finish()
