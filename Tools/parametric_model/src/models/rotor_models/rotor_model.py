@@ -9,7 +9,7 @@ from progress.bar import Bar
 
 
 class RotorModel():
-    def __init__(self, rotor_config_dict):
+    def __init__(self, rotor_config_dict, density=1.225):
         # no more thrust produced at this airspeed inflow velocity
         self.rotor_axis = np.array(
             rotor_config_dict["rotor_axis"]).reshape(3, 1)
@@ -17,6 +17,15 @@ class RotorModel():
             rotor_config_dict["position"]).reshape(3, 1)
         self.turning_direction = rotor_config_dict["turning_direction"]
         self.rotor_name = rotor_config_dict["description"]
+
+        # prop diameter in meters
+        if "diameter" in rotor_config_dict.keys():
+            self.prop_diameter = rotor_config_dict["diameter"]
+        else:
+            self.prop_diameter = 1
+        self.prop_area = math.pi*self.prop_diameter**2 / 4
+        # air density in kg/m^3
+        self.density = density
 
     def initialize_actuator_airspeed(self, v_airspeed_mat):
 
@@ -50,7 +59,7 @@ class RotorModel():
         # Thrust force computation
 
         X_thrust = self.rotor_axis @ np.array(
-            [[actuator_input**2, (actuator_input*v_air_parallel_abs)]])
+            [[actuator_input**2, (actuator_input*v_air_parallel_abs)]]) * self.density * self.prop_diameter**4
         # Drag force computation
         if (np.linalg.norm(v_airspeed_perpendicular_to_rotor_axis) >= 0.05):
             X_drag = - v_airspeed_perpendicular_to_rotor_axis @ np.array(
@@ -69,14 +78,16 @@ class RotorModel():
         leaver_moment_vec = np.cross(
             self.rotor_position.flatten(), self.rotor_axis.flatten())
         # Thrust leaver moment
-        X_moments[:, 0] = leaver_moment_vec * actuator_input**2
+        X_moments[:, 0] = leaver_moment_vec * actuator_input**2 * \
+            self.density * self.prop_diameter**4
         X_moments[:, 1] = leaver_moment_vec * \
-            actuator_input*v_air_parallel_abs
+            actuator_input*v_air_parallel_abs * self.density * self.prop_diameter**4
 
         # Rotor drag moment
-        X_moments[2, 2] = - self.turning_direction * actuator_input**2
+        X_moments[2, 2] = - self.turning_direction * \
+            actuator_input**2 * self.density * self.prop_diameter**5
         X_moments[2, 3] = - self.turning_direction * \
-            actuator_input*v_air_parallel_abs
+            actuator_input*v_air_parallel_abs * self.density * self.prop_diameter**5
 
         # Rotor Rolling Moment
         X_moments[:, 4] = -1 * v_airspeed_perpendicular_to_rotor_axis.flatten() * \
