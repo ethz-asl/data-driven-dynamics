@@ -39,10 +39,10 @@ from .aerodynamic_models import SimpleDragModel
 from .model_config import ModelConfig
 
 
-class SimpleQuadRotorModel(DynamicsModel):
+class QuadRotorModel(DynamicsModel):
     def __init__(self, rel_data_path, config_file="sqrm_gazebo_standart_config.yaml"):
         self.config = ModelConfig(config_file)
-        super(SimpleQuadRotorModel, self).__init__(
+        super(QuadRotorModel, self).__init__(
             config_dict=self.config.dynamics_model_config, rel_data_path=rel_data_path)
         self.rotor_config_dict = self.config.model_config["actuators"]["rotors"]
 
@@ -86,7 +86,7 @@ class SimpleQuadRotorModel(DynamicsModel):
         self.coef_name_list.extend(["intercept"])
         coef_list = list(self.reg.coef_) + [self.reg.intercept_]
         self.generate_model_dict(coef_list, metrics_dict)
-        self.save_result_dict_to_yaml(file_name="simple_quadrotor_model")
+        self.save_result_dict_to_yaml(file_name="quadrotor_model")
         return
 
     def plot_model_predicitons(self):
