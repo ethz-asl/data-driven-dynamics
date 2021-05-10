@@ -26,8 +26,8 @@ jobs:
       - name: Run subsystem level tests on parametric model
         run: Tools/parametric_model/test_parametric_model.sh
       - name: Run simple_multirotor_model estimation for system level test using resource ulog
-        run: python3 Tools/parametric_model/generate_parametric_model.py --model quadrotor_model resources/quadrotor_model.ulg
+        run: make estimate-model model=quadrotor_model
       - name: Run quad_plane_model estimation for system level test using resource ulog
-        run: python3 Tools/parametric_model/generate_parametric_model.py --model quad_plane_model resources/simple_quadplane_model.ulg
+        run: make estimate-model model=quad_plane_model
       - name: Run quad_plane_model estimation for system level test using resource csv
-        run: python3 Tools/parametric_model/generate_parametric_model.py --model quad_plane_model resources/simple_quadplane_model.csv
+        run: make estimate-model model=quadrotor_model log=resources/simple_quadplane_model.csv
