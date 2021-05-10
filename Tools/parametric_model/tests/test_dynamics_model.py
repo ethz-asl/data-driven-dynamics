@@ -13,7 +13,7 @@ def test_transformations(config_file="dynamics_model_test_config.yaml"):
     # Setup model with reference log
     config = ModelConfig(config_file)
     model = DynamicsModel(config_dict=config.dynamics_model_config,
-                          rel_data_path="resources/simple_quadrotor_model.ulg")
+                          rel_data_path="resources/quadrotor_model.ulg")
 
     # Add gravity vector to inertial accelerations
     model.data_df["az"] -= 9.81

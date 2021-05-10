@@ -2,8 +2,8 @@ root_dir:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 
 version?=latest
 registry?=ethzasl/data-driven-dynamics
-model?=simple_quadrotor_model
-log?=${root_dir}/resources/simple_quadrotor_model.ulg
+model?=quadrotor_model
+log?=${root_dir}/resources/quadrotor_model.ulg
 
 install-dependencies:
 	pip3 install -r Tools/parametric_model/requirements.txt

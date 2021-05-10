@@ -86,7 +86,7 @@ python3 Tools/parametric_model/generate_parametric_model.py --model quad_plane_m
 
 Current model choices are:
 
-- simple_quadrotor_model
+- quadrotor_model
 
 - quad_plane_model
 
