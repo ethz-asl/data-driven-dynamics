@@ -36,7 +36,6 @@ class DynamicsModel():
 
         if (rel_data_path[-4:] == ".csv"):
             self.data_df = pd.read_csv(rel_data_path, index_col=0)
-            print(self.data_df.columns)
             for req_topic in self.req_dataframe_topic_list:
                 assert(
                     req_topic in self.data_df), ("missing topic in loaded csv: " + str(req_topic))
@@ -44,8 +43,7 @@ class DynamicsModel():
         elif (rel_data_path[-4:] == ".ulg"):
 
             self.ulog = load_ulog(rel_data_path)
-            assert self.check_ulog_for_req_topics(
-            ), 'not all required topics or topic types are contained in the log file'
+            self.check_ulog_for_req_topics()
 
             self.compute_resampled_dataframe()
 
@@ -67,15 +65,23 @@ class DynamicsModel():
         for topic_type in self.req_topics_dict.keys():
             try:
                 topic_type_data = self.ulog.get_dataset(topic_type)
-                topic_type_data = topic_type_data.data
-                ulog_topic_list = self.req_topics_dict[topic_type]["ulog_name"]
-                for topic_index in range(len(ulog_topic_list)):
-                    topic = ulog_topic_list[topic_index]
-                    topic_data = (topic_type_data[topic])
+
             except:
                 print("Missing topic type: ", topic_type)
-                return False
-        return True
+                exit(1)
+
+            topic_type_data = topic_type_data.data
+            ulog_topic_list = self.req_topics_dict[topic_type]["ulog_name"]
+            for topic_index in range(len(ulog_topic_list)):
+                try:
+                    topic = ulog_topic_list[topic_index]
+                    topic_data = (topic_type_data[topic])
+                except:
+                    print("Missing topic: ", topic_type,
+                          ulog_topic_list[topic_index])
+                    exit(1)
+
+        return
 
     def compute_resampled_dataframe(self):
         print("Starting data resampling of topic types: ",
@@ -182,7 +188,7 @@ class DynamicsModel():
 
         for rotor_group in rotors_config_dict.keys():
             rotor_group_list = rotors_config_dict[rotor_group]
-            self.rotor_dict[rotor_group] = []
+            self.rotor_dict[rotor_group] = {}
             if (self.estimate_forces):
                 X_force_collector = np.zeros((3*v_airspeed_mat.shape[0], 3))
             if (self.estimate_moments):
@@ -192,7 +198,7 @@ class DynamicsModel():
                 u_vec = self.data_df[rotor_input_name]
                 rotor = RotorModel(
                     rotor_config_dict, u_vec, v_airspeed_mat, angular_vel_mat=angular_vel_mat)
-                self.rotor_dict[rotor_group].append(rotor)
+                self.rotor_dict[rotor_group][rotor_input_name] = rotor
 
                 if (self.estimate_forces):
                     X_force_curr, curr_rotor_forces_coef_list = rotor.compute_actuator_force_matrix()
