@@ -5,6 +5,9 @@ registry?=ethzasl/data-driven-dynamics
 model?=quadrotor_model
 log?=${root_dir}/resources/${model}.ulg
 
+submodulesupdate:
+	git submodule update --init --recursive
+
 install-dependencies:
 	pip3 install -r Tools/parametric_model/requirements.txt
 
