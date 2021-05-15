@@ -5,7 +5,7 @@ __license__ = "BSD 3"
 import math
 import numpy as np
 
-from ...tools import cropped_sym_sigmoid
+from src.tools.math_tools import cropped_sym_sigmoid
 from scipy.spatial.transform import Rotation
 from progress.bar import Bar
 

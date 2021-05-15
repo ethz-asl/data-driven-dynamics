@@ -5,7 +5,7 @@ __license__ = "BSD 3"
 import math
 import numpy as np
 
-from ...tools import sym_sigmoid
+from src.tools.math_tools import sym_sigmoid
 from scipy.spatial.transform import Rotation
 
 
@@ -81,7 +81,3 @@ class SimpleDragModel():
         fuselage_coef_list = ["c_d_wing_xy_offset", "c_d_wing_xy_lin", "c_d_wing_xy_quad", "c_d_wing_xy_stall",
                               "c_d_wing_y_offset"]
         return X_aero, fuselage_coef_list
-
-
-if __name__ == "__main__":
-    simpleDragModelModel = SimpleDragModel(35.0)
