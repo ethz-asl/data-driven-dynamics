@@ -16,3 +16,5 @@ from . import quadrotor_model
 from .quadrotor_model import QuadRotorModel
 from . import model_config
 from . model_config import ModelConfig
+from . import tilt_wing_model
+from . tilt_wing_model import TiltWingModel

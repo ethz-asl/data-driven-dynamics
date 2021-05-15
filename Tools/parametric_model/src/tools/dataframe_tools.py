@@ -7,14 +7,27 @@ import pandas as pd
 from src.tools import pandas_from_topic
 from .ulog_utils import slerp
 
-HOVER_PWM = 1500
 
+def compute_flight_time(ulog, min_hover_pwm=1500):
 
-def compute_flight_time(ulog):
-    act_df = pandas_from_topic(ulog, ["actuator_outputs"])
-    act_df_crp = act_df[act_df.iloc[:, 2] > HOVER_PWM]
+    topic_type_list = []
+    for ulog_data_element in ulog._data_list:
+        topic_type_list.append(ulog_data_element.name)
 
-    # set start and end time of flight duration
+    if "actuator_outputs" in topic_type_list:
+        act_df = pandas_from_topic(ulog, ["actuator_outputs"])
+        act_df_crp = act_df[act_df.iloc[:, 2] > min_hover_pwm]
+
+    # special case for aero mini tilt wing for asl
+    elif "actuator_controls_0" in topic_type_list:
+        act_df = pandas_from_topic(ulog, ["actuator_controls_0"])
+        act_df_crp = act_df[act_df.iloc[:, 2] > 0.2]
+
+    else:
+        print("could not select flight time due to missing actuator topic")
+        exit(1)
+
+        # set start and end time of flight duration
     t_start = act_df_crp.iloc[1, 0]
     t_end = act_df_crp.iloc[(act_df_crp.shape[0]-1), 0]
     flight_time = {"t_start": t_start, "t_end": t_end}

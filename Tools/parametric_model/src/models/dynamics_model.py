@@ -13,7 +13,7 @@ import time
 import math
 import pandas as pd
 
-from .rotor_models import RotorModel
+from .rotor_models import RotorModel, BiDirectionalRotorModel, TiltingRotorModel, ChangingAxisRotorModel
 
 from progress.bar import Bar
 
@@ -52,9 +52,7 @@ class DynamicsModel():
             print(rel_data_path)
             exit(1)
 
-        self.quat_columns = self.get_topic_list_from_topic_type(
-            "vehicle_attitude")
-        self.quaternion_df = self.data_df[self.quat_columns]
+        self.quaternion_df = self.data_df[["q0", "q1", "q2", "q3"]]
         self.q_mat = self.quaternion_df.to_numpy()
 
         # used to generate a dict with the resulting coefficients later on.
@@ -148,41 +146,86 @@ class DynamicsModel():
                 angular_vel_mat[i, 1]
         return X_body_rot, X_body_rot_coef_list
 
-    def normalize_actuators(self):
+    def normalize_actuators(self, actuator_topic_types=["actuator_outputs"], control_outputs_used=False):
         # u : normalize actuator output from pwm to be scaled between 0 and 1
         # To be adjusted using parameters:
-        self.min_pwm = 1000
-        self.max_pwm = 2000
-        self.trim_pwm = 1500
-        self.actuator_columns = self.get_topic_list_from_topic_type(
-            "actuator_outputs")
-        self.actuator_type = self.req_topics_dict["actuator_outputs"]["actuator_type"]
-        self.actuator_type.remove("timestamp")
+
+        # This should probably be adapted in the future to allow different values for each actuator specified in the config.
+        if control_outputs_used:
+            self.min_output = -1
+            self.max_output = 1
+            self.trim_output = 0
+        else:
+            self.min_output = 1000
+            self.max_output = 2000
+            self.trim_output = 1500
+
+        self.actuator_columns = []
+        self.actuator_type = []
+
+        for topic_type in actuator_topic_types:
+            self.actuator_columns += self.get_topic_list_from_topic_type(
+                topic_type)
+            self.actuator_type += self.req_topics_dict[topic_type]["actuator_type"]
+            self.actuator_type.remove("timestamp")
+
         for i in range(len(self.actuator_columns)):
             actuator_data = self.data_df[self.actuator_columns[i]].to_numpy()
             if (self.actuator_type[i] == "motor"):
                 for j in range(actuator_data.shape[0]):
-                    if (actuator_data[j] < self.min_pwm):
+                    if (actuator_data[j] < self.min_output):
                         actuator_data[j] = 0
                     else:
                         actuator_data[j] = (
-                            actuator_data[j] - self.min_pwm)/(self.max_pwm - self.min_pwm)
-            elif (self.actuator_type[i] == "control_surcafe"):
+                            actuator_data[j] - self.min_output)/(self.max_output - self.min_output)
+            elif ((self.actuator_type[i] == "control_surcafe" or self.actuator_type[i] == "bi_directional_motor")):
                 for j in range(actuator_data.shape[0]):
-                    if (actuator_data[j] < self.min_pwm):
+                    if (actuator_data[j] < self.min_output):
                         actuator_data[j] = 0
                     else:
                         actuator_data[j] = 2*(
-                            actuator_data[j] - self.trim_pwm)/(self.max_pwm - self.min_pwm)
+                            actuator_data[j] - self.trim_output)/(self.max_output - self.min_output)
             else:
                 print("actuator type unknown:", self.actuator_type[i])
                 print("normalization failed")
                 exit(1)
             self.data_df[self.actuator_columns[i]] = actuator_data
 
+    def initialize_rotor_model(self, rotor_config_dict, rotor_group, angular_vel_mat=None):
+        valid_rotor_models = ["RotorModel", "ChangingAxisRotorModel",
+                              "BiDirectionalRotorModel", "TiltingRotorModel"]
+        rotor_input_name = rotor_config_dict["dataframe_name"]
+        u_vec = self.data_df[rotor_input_name].to_numpy()
+        if "rotor_model" not in rotor_config_dict.keys():
+            # Set default rotor model
+            rotor_model = "RotorModel"
+        else:
+            rotor_model = rotor_config_dict["rotor_model"]
+
+        if rotor_model == "RotorModel":
+            rotor = RotorModel(
+                rotor_config_dict, u_vec, self.v_airspeed_mat, angular_vel_mat=angular_vel_mat)
+        elif rotor_model == "ChangingAxisRotorModel":
+            rotor = ChangingAxisRotorModel(
+                rotor_config_dict, u_vec, self.v_airspeed_mat, angular_vel_mat=angular_vel_mat)
+        elif rotor_model == "BiDirectionalRotorModel":
+            rotor = BiDirectionalRotorModel(
+                rotor_config_dict, u_vec, self.v_airspeed_mat, angular_vel_mat=angular_vel_mat)
+        elif rotor_model == "TiltingRotorModel":
+            tilt_actuator_df_name = rotor_config_dict["tilt_actuator_dataframe_name"]
+            tilt_actuator_vec = self.data_df[tilt_actuator_df_name]
+            rotor = TiltingRotorModel(
+                rotor_config_dict, u_vec, self.v_airspeed_mat, tilt_actuator_vec, angular_vel_mat=angular_vel_mat)
+        else:
+            print(rotor_model, " is not a valid rotor model.")
+            print("Valid rotor models are: ", valid_rotor_models)
+            exit(1)
+
+        return rotor
+
     def compute_rotor_features(self, rotors_config_dict, angular_vel_mat=None):
 
-        v_airspeed_mat = self.data_df[[
+        self.v_airspeed_mat = self.data_df[[
             "V_air_body_x", "V_air_body_y", "V_air_body_z"]].to_numpy()
         self.rotor_dict = {}
 
@@ -190,15 +233,15 @@ class DynamicsModel():
             rotor_group_list = rotors_config_dict[rotor_group]
             self.rotor_dict[rotor_group] = {}
             if (self.estimate_forces):
-                X_force_collector = np.zeros((3*v_airspeed_mat.shape[0], 3))
+                X_force_collector = np.zeros(
+                    (3*self.v_airspeed_mat.shape[0], 3))
             if (self.estimate_moments):
-                X_moment_collector = np.zeros((3*v_airspeed_mat.shape[0], 5))
+                X_moment_collector = np.zeros(
+                    (3*self.v_airspeed_mat.shape[0], 5))
             for rotor_config_dict in rotor_group_list:
-                rotor_input_name = rotor_config_dict["dataframe_name"]
-                u_vec = self.data_df[rotor_input_name]
-                rotor = RotorModel(
-                    rotor_config_dict, u_vec, v_airspeed_mat, angular_vel_mat=angular_vel_mat)
-                self.rotor_dict[rotor_group][rotor_input_name] = rotor
+                rotor = self.initialize_rotor_model(
+                    rotor_config_dict, rotor_group, angular_vel_mat)
+                self.rotor_dict[rotor_group][rotor_config_dict["dataframe_name"]] = rotor
 
                 if (self.estimate_forces):
                     X_force_curr, curr_rotor_forces_coef_list = rotor.compute_actuator_force_matrix()
@@ -270,8 +313,8 @@ class DynamicsModel():
 
     def generate_model_dict(self, coefficient_list, metrics_dict):
         assert (len(self.coef_name_list) == len(coefficient_list)), \
-            ("Length of coefficient list and coefficient name list does not match: Coefficientlist:",
-             len(coefficient_list), "Coefficient name list: ", len(self.coef_name_list))
+            ("Length of coefficient list and coefficient name list does not match: Length of coefficient list:",
+             len(coefficient_list), "length of coefficient name list: ", len(self.coef_name_list))
         coefficient_list = [float(coef) for coef in coefficient_list]
         coef_dict = dict(zip(self.coef_name_list, coefficient_list))
         self.result_dict = {"coefficients": coef_dict,

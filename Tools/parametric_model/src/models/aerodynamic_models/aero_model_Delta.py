@@ -60,9 +60,8 @@ class AeroModelDelta():
             1 - cropped_sym_sigmoid(angle_of_attack, x_offset=self.stall_angle, scale_fac=self.sig_scale_fac))*angle_of_attack*v_xz**2
         F_xz_aero_frame[2, 6] = -(
             1 - cropped_sym_sigmoid(angle_of_attack, x_offset=self.stall_angle, scale_fac=self.sig_scale_fac))*v_xz**2
-        F_xz_aero_frame[2, 7] = -2 * \
-            cropped_sym_sigmoid(angle_of_attack, x_offset=self.stall_angle, scale_fac=self.sig_scale_fac) \
-            * math.sin(angle_of_attack)*math.cos(angle_of_attack)*v_xz**2
+        F_xz_aero_frame[2, 7] = -cropped_sym_sigmoid(angle_of_attack, x_offset=self.stall_angle, scale_fac=self.sig_scale_fac) \
+            * math.sin(2*angle_of_attack)*v_xz**2
 
         # Transorm from stability axis frame to body FRD frame
         R_aero_to_body = Rotation.from_rotvec(
