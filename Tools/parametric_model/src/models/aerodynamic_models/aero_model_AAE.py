@@ -5,7 +5,7 @@ __license__ = "BSD 3"
 import math
 import numpy as np
 
-from ...tools import cropped_sym_sigmoid
+from src.tools.math_tools import cropped_sym_sigmoid
 from scipy.spatial.transform import Rotation
 from progress.bar import Bar
 
@@ -144,7 +144,3 @@ class AeroModelAAE():
                           "c_d_ail_quad", "c_d_ele_lin", "c_d_ele_quad", "c_l_ele_lin"]
         aero_coef_list = wing_coef_list + flap_coef_list
         return X_aero, aero_coef_list
-
-
-if __name__ == "__main__":
-    linearPlateAeroModel = AeroModelAAE(20.0)

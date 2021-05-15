@@ -5,8 +5,9 @@ __license__ = "BSD 3"
 """ The model class contains properties shared between all models and shgall simplyfy automated checks and the later
 export to a sitl gazebo model by providing a unified interface for all models. """
 
-from ..tools import load_ulog, pandas_from_topic, compute_flight_time, resample_dataframe_list
-from ..tools import quaternion_to_rotation_matrix
+from src.tools.ulog_tools import load_ulog, pandas_from_topic
+from src.tools.dataframe_tools import compute_flight_time, resample_dataframe_list
+from src.tools.quat_utils import quaternion_to_rotation_matrix
 import numpy as np
 import yaml
 import time

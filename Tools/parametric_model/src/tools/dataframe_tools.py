@@ -4,8 +4,8 @@ __license__ = "BSD 3"
 
 import numpy as np
 import pandas as pd
-from src.tools import pandas_from_topic
-from .ulog_utils import slerp
+from src.tools.ulog_tools import pandas_from_topic
+from src.tools.quat_utils import slerp
 
 
 def compute_flight_time(ulog, min_hover_pwm=1500):
