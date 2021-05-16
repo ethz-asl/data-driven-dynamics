@@ -71,23 +71,25 @@ source setup.bash
 Generate the parametric model using a log file (ulog or csv):
 
 ```
-python3 Tools/parametric_model/generate_parametric_model model log_file
+python3 Tools/parametric_model/generate_parametric_model --model <model> --data_selection <True/False> log_file
 ```
 
-Or more simply from the root of the repository
+Or more simply using the make command:
 
 ```
-make estimate-model [model=<modeltype>] [log=<log path>]
+make estimate-model [model=<modeltype>] [data_selection=<True/False>] [log=<log path>]
 ```
 
-Hereby the arguments model and log_file can be used to specify the model and the log files respectively. As an example you could use the reference log_files:
+Hereby the arguments model and log_file can be used to specify the model and the log files respectively. The data_selection argument is optional (per default False) and can be used to visually select a subportion of the data before running the model estimation.
+
+As an example you could use the reference log_files:
 
 ```
-python Tools/parametric_model/generate_parametric_model.py --model quad_plane_model resources/simple_quadplane_model.ulg
+make estimate-model model=quad_plane_model log=resources/simple_quadplane_model.ulg
 ```
 
 ```
-python3 Tools/parametric_model/generate_parametric_model.py --model quad_plane_model resources/simple_quadplane_model.csv
+make estimate-model model=quad_plane_model log=resources/simple_quadplane_model.csv
 ```
 
 Current model choices are:
