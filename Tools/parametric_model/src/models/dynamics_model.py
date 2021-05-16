@@ -1,3 +1,10 @@
+from progress.bar import Bar
+from .rotor_models import RotorModel, BiDirectionalRotorModel, TiltingRotorModel, ChangingAxisRotorModel
+import pandas as pd
+import math
+import time
+import yaml
+import numpy as np
 __author__ = "Manuel Galliker"
 __maintainer__ = "Manuel Galliker"
 __license__ = "BSD 3"
@@ -8,15 +15,7 @@ export to a sitl gazebo model by providing a unified interface for all models. "
 from src.tools.ulog_tools import load_ulog, pandas_from_topic
 from src.tools.dataframe_tools import compute_flight_time, resample_dataframe_list
 from src.tools.quat_utils import quaternion_to_rotation_matrix
-import numpy as np
-import yaml
-import time
-import math
-import pandas as pd
-
-from .rotor_models import RotorModel, BiDirectionalRotorModel, TiltingRotorModel, ChangingAxisRotorModel
-
-from progress.bar import Bar
+from visual_dataframe_selector.data_selector import select_visual_data
 
 
 class DynamicsModel():
@@ -128,6 +127,15 @@ class DynamicsModel():
             "V_air_body_x", "V_air_body_y", "V_air_body_z", "AoA"])
         self.data_df = pd.concat(
             [self.data_df, airspeed_body_df], axis=1, join="inner")
+
+    def visually_select_data(self, plot_config_dict=None):
+        if plot_config_dict is None:
+            plot_config_dict = {
+                "x_axis_col": "timestamp",
+                "sub_plt1_data": ["q0", "q1", "q2", "q3"],
+                "sub_plt2_data": ["u0", "u1", "u2", "u3", "u4", "u5", "u6", "u7"]}
+
+        self.data_df = select_visual_data(self.data_df, plot_config_dict)
 
     def compute_body_rotation_features(self, angular_vel_topic_list):
         """Include the moment contribution due to rotation body frame:
