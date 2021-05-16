@@ -29,6 +29,7 @@ source ~/.bashrc
 The use the parametric model structure you need to install python 3.8 and the needed python libraries. It is strongly advised to install the pip packages in a [virtual enviroment](https://docs.python.org/3/tutorial/venv.html) setup for this project.
 
 Update submodules:
+
 ```
 make submodulesupdate
 ```
@@ -94,6 +95,10 @@ Current model choices are:
 - quadrotor_model
 
 - quad_plane_model
+
+- delta_quad_plane_model
+
+- tilt_wing_model
 
 The results of the model estimation will be saved into the Tools/parametric_model/results folder as a yaml file.
 
