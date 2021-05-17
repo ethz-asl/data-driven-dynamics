@@ -32,6 +32,11 @@ class DynamicsModel():
         self.req_dataframe_topic_list = config_dict["data"]["req_dataframe_topic_list"]
         self.rel_data_path = rel_data_path
 
+        self.visual_dataframe_selector_config_dict = {
+            "x_axis_col": "timestamp",
+            "sub_plt1_data": ["q0", "q1", "q2", "q3"],
+            "sub_plt2_data": ["u0", "u1", "u2", "u3", "u4", "u5", "u6", "u7"]}
+
         self.estimate_forces = config_dict["estimate_forces"]
         self.estimate_moments = config_dict["estimate_moments"]
 
@@ -130,13 +135,10 @@ class DynamicsModel():
             [self.data_df, airspeed_body_df], axis=1, join="inner")
 
     def visually_select_data(self, plot_config_dict=None):
-        if plot_config_dict is None:
-            plot_config_dict = {
-                "x_axis_col": "timestamp",
-                "sub_plt1_data": ["q0", "q1", "q2", "q3"],
-                "sub_plt2_data": ["u0", "u1", "u2", "u3", "u4", "u5", "u6", "u7"]}
-
-        self.data_df = select_visual_data(self.data_df, plot_config_dict)
+        print("Number of data samples before cropping: ",
+              self.data_df.shape[0])
+        self.data_df = select_visual_data(
+            self.data_df, self.visual_dataframe_selector_config_dict)
 
     def compute_body_rotation_features(self, angular_vel_topic_list):
         """Include the moment contribution due to rotation body frame:
