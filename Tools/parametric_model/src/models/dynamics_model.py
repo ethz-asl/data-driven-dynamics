@@ -35,7 +35,7 @@ class DynamicsModel():
         self.visual_dataframe_selector_config_dict = {
             "x_axis_col": "timestamp",
             "sub_plt1_data": ["q0", "q1", "q2", "q3"],
-            "sub_plt2_data": ["u0", "u1", "u2", "u3", "u4", "u5", "u6", "u7"]}
+            "sub_plt2_data": ["u0", "u1", "u2", "u3"]}
 
         self.estimate_forces = config_dict["estimate_forces"]
         self.estimate_moments = config_dict["estimate_moments"]
@@ -92,6 +92,7 @@ class DynamicsModel():
               self.req_topics_dict.keys())
         # setup object to crop dataframes for flight data
         fts = compute_flight_time(self.ulog)
+        print(fts)
         df_list = []
         topic_type_bar = Bar('Resampling', max=len(
             self.req_topics_dict.keys()))
@@ -109,7 +110,7 @@ class DynamicsModel():
             topic_type_bar.next()
         topic_type_bar.finish()
         resampled_df = resample_dataframe_list(
-            df_list, fts["t_start"], fts["t_end"], self.resample_freq)
+            df_list, fts, self.resample_freq)
         self.data_df = resampled_df.dropna()
 
     def get_topic_list_from_topic_type(self, topic_type):
