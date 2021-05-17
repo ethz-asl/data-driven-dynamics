@@ -215,7 +215,7 @@ model_config:
 dynamics_model_config:
   estimate_forces: True
   estimate_moments: False
-  resample_freq: 1
+  resample_freq: 10.0
   data:
     required_ulog_topics:
       actuator_controls_0:

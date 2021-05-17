@@ -35,6 +35,12 @@ class TiltWingModel(DynamicsModel):
         self.mass = self.config.model_config["mass"]
         self.u_tilt_vec = self.data_df["u_tilt"].to_numpy()
 
+        self.visual_dataframe_selector_config_dict = {
+            "x_axis_col": "timestamp",
+            "sub_plt1_data": ["q0", "q1", "q2", "q3"],
+            "sub_plt2_data": ["u0", "u1", "u2", "u3", "u4"],
+            "sub_plt3_data": ["u5", "u6", "u7", "u8", "u9", "u_tilt"]}
+
         assert (self.estimate_moments ==
                 False), "Estimation of moments is not yet implemented in TiltWingModel. Disable in config file to estimate forces."
 
