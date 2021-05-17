@@ -20,6 +20,7 @@ class TiltWingSection():
         self.n_timestamps = v_airspeed_mat.shape[0]
         self.cp_position = np.array(
             wing_section_config["cp_position"]).reshape(3, 1)
+        self.wing_surface = wing_section_config["wing_surface"]
         self.description = wing_section_config["description"]
         self.aero_coef_list = ["c_d_wing_xz_offset", "c_d_wing_xz_lin", "c_d_wing_xz_quad", "c_d_wing_xz_stall_min", "c_d_wing_xz_stall_90_deg",
                                "c_l_wing_xz_offset", "c_l_wing_xz_lin", "c_l_wing_xz_stall", "c_d_wing_y_offset"]
@@ -60,12 +61,13 @@ class TiltWingSection():
             for i in range(self.n_timestamps):
                 abs_thrust = np.linalg.norm(rotor_thrust_mat[i, :])
                 v_air_parr = self.rotor.v_air_parallel_abs[i]
-                v_downwash = self.rotor.rotor_axis * (-v_air_parr + math.sqrt(v_air_parr**2 + (
+                v_downwash = self.rotor.rotor_axis_mat[i, :] * (-v_air_parr + math.sqrt(v_air_parr**2 + (
                     2*abs_thrust/(self.rotor.air_density*self.rotor.prop_area))))
                 self.local_airspeed_mat[i, :] = self.static_local_airspeed_mat[i,
                                                                                :] + v_downwash.flatten()
                 self.local_aoa_vec[i] = math.atan2(
-                    self.local_airspeed_mat[i, 2],   self.local_airspeed_mat[i, 0])
+                    self.local_airspeed_mat[i, 2],   self.local_airspeed_mat[i, 0]) - math.atan2(
+                    self.rotor.rotor_axis_mat[i, 2],   self.rotor.rotor_axis_mat[i, 0])
 
     def predict_single_wing_segment_feature_mat(self, v_airspeed, angle_of_attack):
         """
@@ -97,28 +99,29 @@ class TiltWingSection():
 
         v_xz = math.sqrt(v_airspeed[0]**2 + v_airspeed[2]**2)
         X_xz_aero_frame = np.zeros((3, 8))
+        aero_fac = 0.5 * self.air_density*self.wing_surface*v_xz**2
 
         # Compute Drag force coeffiecients:
         X_xz_aero_frame[0, 0] = -(
-            1 - cropped_sym_sigmoid(angle_of_attack, x_offset=self.stall_angle, scale_fac=self.sig_scale_fac))*v_xz**2
+            1 - cropped_sym_sigmoid(angle_of_attack, x_offset=self.stall_angle, scale_fac=self.sig_scale_fac))*aero_fac
         X_xz_aero_frame[0, 1] = -(
-            1 - cropped_sym_sigmoid(angle_of_attack, x_offset=self.stall_angle, scale_fac=self.sig_scale_fac))*angle_of_attack*v_xz**2
+            1 - cropped_sym_sigmoid(angle_of_attack, x_offset=self.stall_angle, scale_fac=self.sig_scale_fac))*angle_of_attack*aero_fac
         X_xz_aero_frame[0, 2] = -(
-            1 - cropped_sym_sigmoid(angle_of_attack, x_offset=self.stall_angle, scale_fac=self.sig_scale_fac))*angle_of_attack**2*v_xz**2
+            1 - cropped_sym_sigmoid(angle_of_attack, x_offset=self.stall_angle, scale_fac=self.sig_scale_fac))*angle_of_attack**2*aero_fac
         X_xz_aero_frame[0, 3] = -(cropped_sym_sigmoid(angle_of_attack,
-                                  x_offset=self.stall_angle, scale_fac=self.sig_scale_fac))*(1 - math.sin(angle_of_attack)**2)*v_xz**2
+                                  x_offset=self.stall_angle, scale_fac=self.sig_scale_fac))*(1 - math.sin(angle_of_attack)**2)*aero_fac
         X_xz_aero_frame[0, 3] = -(cropped_sym_sigmoid(angle_of_attack,
-                                  x_offset=self.stall_angle, scale_fac=self.sig_scale_fac))*(1 - math.sin(angle_of_attack)**2)*v_xz**2
+                                  x_offset=self.stall_angle, scale_fac=self.sig_scale_fac))*(1 - math.sin(angle_of_attack)**2)*aero_fac
         X_xz_aero_frame[0, 4] = -(cropped_sym_sigmoid(angle_of_attack,
-                                  x_offset=self.stall_angle, scale_fac=self.sig_scale_fac))*(math.sin(angle_of_attack)**2)*v_xz**2
+                                  x_offset=self.stall_angle, scale_fac=self.sig_scale_fac))*(math.sin(angle_of_attack)**2)*aero_fac
 
         # Compute Lift force coefficients:
         X_xz_aero_frame[2, 5] = -(
-            1 - cropped_sym_sigmoid(angle_of_attack, x_offset=self.stall_angle, scale_fac=self.sig_scale_fac))*angle_of_attack*v_xz**2
+            1 - cropped_sym_sigmoid(angle_of_attack, x_offset=self.stall_angle, scale_fac=self.sig_scale_fac))*angle_of_attack*aero_fac
         X_xz_aero_frame[2, 6] = -(
-            1 - cropped_sym_sigmoid(angle_of_attack, x_offset=self.stall_angle, scale_fac=self.sig_scale_fac))*v_xz**2
+            1 - cropped_sym_sigmoid(angle_of_attack, x_offset=self.stall_angle, scale_fac=self.sig_scale_fac))*aero_fac
         X_xz_aero_frame[2, 7] = -cropped_sym_sigmoid(angle_of_attack, x_offset=self.stall_angle, scale_fac=self.sig_scale_fac) \
-            * math.sin(2*angle_of_attack)*v_xz**2
+            * math.sin(2*angle_of_attack)*aero_fac
 
         # Transorm from stability axis frame to body FRD frame
         R_aero_to_body = Rotation.from_rotvec(
@@ -129,7 +132,7 @@ class TiltWingSection():
         Compute drag in y direction of body frame using a single coefficient: 
         F_y = 0.5 * density * area * V_air_y^2 * c_d_y"""
         X_y_body_frame = np.array([0, -math.copysign(
-            1, v_airspeed[1]) * v_airspeed[1]**2, 0]).reshape(3, 1)
+            1, v_airspeed[1]) * v_airspeed[1]**2, 0]).reshape(3, 1)*0.5 * self.air_density
         X_wing_segment = np.hstack((X_xz_body_frame, X_y_body_frame))
         return X_wing_segment
 
