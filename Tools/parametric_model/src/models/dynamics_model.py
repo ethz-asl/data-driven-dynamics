@@ -204,34 +204,37 @@ class DynamicsModel():
                 exit(1)
             self.data_df[self.actuator_columns[i]] = actuator_data
 
-    def initialize_rotor_model(self, rotor_config_dict, rotor_group, angular_vel_mat=None):
-        valid_rotor_models = ["RotorModel", "ChangingAxisRotorModel",
-                              "BiDirectionalRotorModel", "TiltingRotorModel"]
+    def initialize_rotor_model(self, rotor_config_dict, angular_vel_mat=None):
+        valid_rotor_types = ["RotorModel", "ChangingAxisRotorModel",
+                             "BiDirectionalRotorModel", "TiltingRotorModel"]
         rotor_input_name = rotor_config_dict["dataframe_name"]
         u_vec = self.data_df[rotor_input_name].to_numpy()
-        if "rotor_model" not in rotor_config_dict.keys():
+        if "rotor_type" not in rotor_config_dict.keys():
             # Set default rotor model
-            rotor_model = "RotorModel"
+            rotor_type = "RotorModel"
+            print("no Rotor model specified for ", rotor_input_name)
+            print("Selecting default: RotorModel")
         else:
-            rotor_model = rotor_config_dict["rotor_model"]
+            rotor_type = rotor_config_dict["rotor_type"]
 
-        if rotor_model == "RotorModel":
+        if rotor_type == "RotorModel":
             rotor = RotorModel(
                 rotor_config_dict, u_vec, self.v_airspeed_mat, angular_vel_mat=angular_vel_mat)
-        elif rotor_model == "ChangingAxisRotorModel":
+        elif rotor_type == "ChangingAxisRotorModel":
             rotor = ChangingAxisRotorModel(
                 rotor_config_dict, u_vec, self.v_airspeed_mat, angular_vel_mat=angular_vel_mat)
-        elif rotor_model == "BiDirectionalRotorModel":
+        elif rotor_type == "BiDirectionalRotorModel":
             rotor = BiDirectionalRotorModel(
                 rotor_config_dict, u_vec, self.v_airspeed_mat, angular_vel_mat=angular_vel_mat)
-        elif rotor_model == "TiltingRotorModel":
+        elif rotor_type == "TiltingRotorModel":
             tilt_actuator_df_name = rotor_config_dict["tilt_actuator_dataframe_name"]
             tilt_actuator_vec = self.data_df[tilt_actuator_df_name]
             rotor = TiltingRotorModel(
                 rotor_config_dict, u_vec, self.v_airspeed_mat, tilt_actuator_vec, angular_vel_mat=angular_vel_mat)
         else:
-            print(rotor_model, " is not a valid rotor model.")
-            print("Valid rotor models are: ", valid_rotor_models)
+            print(rotor_type, " is not a valid rotor model.")
+            print("Valid rotor models are: ", valid_rotor_types)
+            print("Adapt your config file to a valid rotor model!")
             exit(1)
 
         return rotor
@@ -253,7 +256,7 @@ class DynamicsModel():
                     (3*self.v_airspeed_mat.shape[0], 5))
             for rotor_config_dict in rotor_group_list:
                 rotor = self.initialize_rotor_model(
-                    rotor_config_dict, rotor_group, angular_vel_mat)
+                    rotor_config_dict, angular_vel_mat)
                 self.rotor_dict[rotor_group][rotor_config_dict["dataframe_name"]] = rotor
 
                 if (self.estimate_forces):

@@ -14,7 +14,6 @@ from scipy.spatial.transform import Rotation
 class TiltingRotorModel(ChangingAxisRotorModel):
 
     def __init__(self, rotor_config_dict, actuator_input_vec, v_airspeed_mat, tilt_actuator_vec, air_density=1.225, angular_vel_mat=None):
-        print(rotor_config_dict)
         self.tilt_axis = np.array(rotor_config_dict["tilt_axis"]).reshape(3, 1)
         self.max_tilt_angle = rotor_config_dict["max_tilt_angle_deg"]*math.pi/180.0
         self.tilt_actuator_vec = np.array(tilt_actuator_vec)
