@@ -94,7 +94,7 @@ class TiltWingModel(DynamicsModel):
         a_pred = F_pred.flatten() / self.mass
         # pred_error = np.linalg.norm((a_pred - self.y_accel))
         pred_error = np.sqrt(((a_pred - self.y_accel) ** 2).mean())
-        print("Current sum of squared acceleration prediction error: ", pred_error)
+        print("acceleration prediction RMSE: ", pred_error)
         return pred_error
 
     def estimate_model(self):
