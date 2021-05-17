@@ -38,15 +38,17 @@ class TiltWingSection():
             The only component of the airspeed chaning during optimization is the part due to the actuator downwash.
             The other "static" components (airspeed due to groundspeed, wind and angular velocity can be precomputed in this function"""
 
-        self.static_local_airspeed_mat = np.zeros(v_airspeed_mat.shape)
-
         if angular_vel_mat is not None:
+            self.static_local_airspeed_mat = np.zeros(v_airspeed_mat.shape)
             assert (v_airspeed_mat.shape ==
                     angular_vel_mat.shape), "RotorModel: v_airspeed_mat and angular_vel_mat differ in size."
             for i in range(self.n_timestamps):
                 self.static_local_airspeed_mat[i, :] = v_airspeed_mat[i, :] + \
                     np.cross(angular_vel_mat[i, :],
                              self.cp_position.flatten())
+
+        else:
+            self.static_local_airspeed_mat = v_airspeed_mat
 
     def update_local_airspeed_and_aoa(self, rotor_thrust_coef):
 
