@@ -21,6 +21,8 @@ jobs:
       - uses: actions/checkout@v1
       - name: submodule update
         run: git submodule update --init --recursive
+      - name: Install submodule python dependencies
+        run: pip3 install -r Tools/parametric_model/visual_dataframe_selector/requirements.txt
       - name: Install python dependencies
         run: pip3 install -r Tools/parametric_model/requirements.txt
       - name: Run subsystem level tests on parametric model
