@@ -174,6 +174,7 @@ model_config:
     main_wing_sections:
       - wing_right_right:
         rotor: "u0"
+        wing_surface: 0.425
         cp_position:
           - 0
           - 0
@@ -184,6 +185,7 @@ model_config:
 
       - wing_right_left:
         rotor: "u1"
+        wing_surface: 0.425
         cp_position:
           - 0
           - 0
@@ -194,6 +196,7 @@ model_config:
 
       - wing_left_right:
         rotor: "u2"
+        wing_surface: 0.425
         cp_position:
           - 0
           - 0
@@ -204,6 +207,7 @@ model_config:
 
       - wing_left_left:
         rotor: "u3"
+        wing_surface: 0.425
         cp_position:
           - 0
           - 0
