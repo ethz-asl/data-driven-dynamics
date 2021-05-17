@@ -7,8 +7,20 @@ import pandas as pd
 from src.tools.ulog_tools import pandas_from_topic
 from src.tools.quat_utils import slerp
 
+# pre normalization thresholds
+PWM_THRESHOLD = 1500
+ACTUATOR_CONTROLS_THRESHOLD = -0.2
 
-def compute_flight_time(ulog, min_hover_pwm=1500):
+
+def compute_flight_time(ulog, pwm_threshold=None, control_threshold=None):
+    """This function computes the flight time by a simple thresholding of actuator outputs or control values. 
+    This works usually well for logs from the simulator or mission flights. But in some cases the assumption of an actuator output staying higher than the trsehhold for the hole flight might not be valid."""
+
+    if pwm_threshold is None:
+        pwm_threshold = PWM_THRESHOLD
+
+    if control_threshold is None:
+        control_threshold = ACTUATOR_CONTROLS_THRESHOLD
 
     topic_type_list = []
     for ulog_data_element in ulog._data_list:
@@ -16,12 +28,14 @@ def compute_flight_time(ulog, min_hover_pwm=1500):
 
     if "actuator_outputs" in topic_type_list:
         act_df = pandas_from_topic(ulog, ["actuator_outputs"])
-        act_df_crp = act_df[act_df.iloc[:, 2] > min_hover_pwm]
+        # choose first actuator data
+        act_df_crp = act_df[act_df.iloc[:, 2] > pwm_threshold]
 
     # special case for aero mini tilt wing for asl
     elif "actuator_controls_0" in topic_type_list:
         act_df = pandas_from_topic(ulog, ["actuator_controls_0"])
-        act_df_crp = act_df[act_df.iloc[:, 2] > 0.2]
+        # choose first actuator data
+        act_df_crp = act_df[act_df.iloc[:, 2] > control_threshold]
 
     else:
         print("could not select flight time due to missing actuator topic")
@@ -34,7 +48,7 @@ def compute_flight_time(ulog, min_hover_pwm=1500):
     return flight_time
 
 
-def resample_dataframe_list(df_list, t_start, t_end, f_des=100.0, slerp_enabled=False):
+def resample_dataframe_list(df_list, time_window=None, f_des=100.0, slerp_enabled=False):
     """create a single dataframe by resampling all dataframes to f_des [Hz]
 
     Inputs:     df_list : List of ulog topic dataframes to resample
@@ -42,6 +56,17 @@ def resample_dataframe_list(df_list, t_start, t_end, f_des=100.0, slerp_enabled=
                 t_end   : End time in us
                 f_des   : Desired frequency of resampled data   
     """
+
+    if time_window is None:
+        # select full ulog time range
+        df = df_list[0]
+        timestamp_list = df["timestamp"].to_numpy()
+        t_start = timestamp_list[0]
+        t_end = timestamp_list[-1]
+
+    else:
+        t_start = time_window["t_start"]
+        t_end = time_window["t_end"]
 
     # compute desired Period in us to be persistent with ulog timestamps
     assert f_des > 0, 'Desired frequency must be greater than 0'
