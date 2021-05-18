@@ -81,7 +81,6 @@ def resample_dataframe_list(df_list, time_window=None, f_des=100.0, slerp_enable
         # use slerp interpolation for quaternions
         # add a better criteria than the exact naming at a later point.
         if 'q0' in df and slerp_enabled:
-            print(df)
             q_mat = slerp_interpolate_from_df(df, new_t_list[0])
 
             for i in range(1, len(new_t_list)):
