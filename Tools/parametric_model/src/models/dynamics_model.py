@@ -92,7 +92,6 @@ class DynamicsModel():
               self.req_topics_dict.keys())
         # setup object to crop dataframes for flight data
         fts = compute_flight_time(self.ulog)
-        print(fts)
         df_list = []
         topic_type_bar = Bar('Resampling', max=len(
             self.req_topics_dict.keys()))
