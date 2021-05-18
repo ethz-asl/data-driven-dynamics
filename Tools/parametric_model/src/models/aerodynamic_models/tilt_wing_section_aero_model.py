@@ -34,6 +34,14 @@ class TiltWingSection():
             self.rotor = rotor
 
         self.compute_static_local_airspeed(v_airspeed_mat, angular_vel_mat)
+        # angle around which the wing frame is tilted. The wing is always tilted in the same direction as the rotor for this model.
+        self.wing_angle = np.zeros(self.n_timestamps)
+        for i in range(self.n_timestamps):
+            self.wing_angle[i] = math.atan2(
+                self.rotor.rotor_axis_mat[i, 2],   self.rotor.rotor_axis_mat[i, 0])
+        self.local_airspeed_mat = np.zeros(
+            self.static_local_airspeed_mat.shape)
+        self.local_aoa_vec = np.zeros(self.static_local_airspeed_mat.shape[0])
 
     def compute_static_local_airspeed(self, v_airspeed_mat, angular_vel_mat):
         """
@@ -42,6 +50,7 @@ class TiltWingSection():
 
         if angular_vel_mat is not None:
             self.static_local_airspeed_mat = np.zeros(v_airspeed_mat.shape)
+
             assert (v_airspeed_mat.shape ==
                     angular_vel_mat.shape), "RotorModel: v_airspeed_mat and angular_vel_mat differ in size."
             for i in range(self.n_timestamps):
@@ -54,9 +63,6 @@ class TiltWingSection():
 
     def update_local_airspeed_and_aoa(self, rotor_thrust_coef):
 
-        self.local_airspeed_mat = np.zeros(
-            self.static_local_airspeed_mat.shape)
-        self.local_aoa_vec = np.zeros(self.static_local_airspeed_mat.shape[0])
         rotor_thrust_mat = self.rotor.predict_thrust_force(rotor_thrust_coef)
         if self.in_downstream:
             for i in range(self.n_timestamps):
@@ -66,11 +72,11 @@ class TiltWingSection():
                     2*abs_thrust/(self.rotor.air_density*self.rotor.prop_area))))
                 self.local_airspeed_mat[i, :] = self.static_local_airspeed_mat[i,
                                                                                :] + v_downwash.flatten()
-                self.local_aoa_vec[i] = math.atan2(
-                    self.local_airspeed_mat[i, 2],   self.local_airspeed_mat[i, 0]) - math.atan2(
-                    self.rotor.rotor_axis_mat[i, 2],   self.rotor.rotor_axis_mat[i, 0])
+                # Angle of attack: angle around -y axis
+                self.local_aoa_vec[i] = -self.wing_angle[i] + math.atan2(
+                    self.local_airspeed_mat[i, 2],   self.local_airspeed_mat[i, 0])
 
-    def predict_single_wing_segment_feature_mat(self, v_airspeed, control_surface_input, angle_of_attack):
+    def predict_single_wing_segment_feature_mat(self, v_airspeed, control_surface_input, angle_of_attack, wing_angle):
         """
         Model description:
 
@@ -127,7 +133,7 @@ class TiltWingSection():
 
         # Transorm from stability axis frame to body FRD frame
         R_aero_to_body = Rotation.from_rotvec(
-            [0, -angle_of_attack, 0]).as_matrix()
+            [0, (wing_angle-angle_of_attack), 0]).as_matrix()
         X_xz_body_frame = R_aero_to_body @ X_xz_aero_frame
 
         """
@@ -150,10 +156,10 @@ class TiltWingSection():
             (aero_force_coef.shape[0], 1))
         self.update_local_airspeed_and_aoa(rotor_thrust_coef)
         X_aero = self.predict_single_wing_segment_feature_mat(
-            self.local_airspeed_mat[0, :], self.control_surface_output[0], self.local_aoa_vec[0])
+            self.local_airspeed_mat[0, :], self.control_surface_output[0], self.local_aoa_vec[0], self.wing_angle[0])
         for i in range(1, self.n_timestamps):
             X_curr = self.predict_single_wing_segment_feature_mat(
-                self.local_airspeed_mat[i, :], self.control_surface_output[i], self.local_aoa_vec[i])
+                self.local_airspeed_mat[i, :], self.control_surface_output[i], self.local_aoa_vec[i], self.wing_angle[i])
             X_aero = np.vstack((X_aero, X_curr))
         F_aero_force_pred = X_aero @ aero_force_coef
         return F_aero_force_pred
