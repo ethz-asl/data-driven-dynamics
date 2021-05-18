@@ -1,0 +1,143 @@
+---
+# general information
+model_name: "Tilt Wing VTOL"
+model_type: "Tilt Wing"
+model_file:
+  "tilt_wing_model.py"
+
+  # all vectors in FRD body frame if not specified otherwise
+model_config:
+  actuators:
+    rotors:
+      # All rotors in the same group will share the coefficients
+      wing_:
+        - rotor_0:
+          description: "rotor wing right, right"
+          dataframe_name: "u0"
+          rotor_type: "TiltingRotorModel"
+          tilt_actuator_dataframe_name: "u_tilt"
+          # rotor_axis and position corresponds to having 0 wing_tilt, e.g. the wing facing forward
+          rotor_axis:
+            - 1
+            - 0
+            - 0
+          tilt_axis:
+            - 0
+            - 1
+            - 0
+          max_tilt_angle_deg: 90
+          turning_direction: 1
+          position:
+            - 0.35
+            - 0.35
+            - -0.07
+
+    control_surfaces:
+      - aileron_right:
+        description: "aileron right, positive up"
+        dataframe_name: "u1"
+
+    wing_tilt:
+      - wing_tilt:
+        description: "wing tilt, -1 to 1 = cruise (0°) to hover (90°) configuration"
+        dataframe_name: "u_tilt"
+
+  aerodynamics:
+    stall_angle_deg: 20
+    sig_scale_factor: 30
+    main_wing_sections:
+      - wing_right_right:
+        rotor: "u0"
+        control_surface_dataframe_name: "u1"
+        wing_surface: 0.425
+        cp_position:
+          - 0
+          - 0
+          - 0
+        stall_angle_deg: 20
+        sig_scale_factor: 30
+        description: "wing segment right, right"
+
+dynamics_model_config:
+  estimate_forces: True
+  estimate_moments: False
+  resample_freq: 5.0
+  data:
+    required_ulog_topics:
+      actuator_controls_0:
+        ulog_name:
+          - "timestamp"
+          - "control[0]"
+          - "control[1]"
+          - "control[2]"
+          - "control[4]"
+          - "control[5]"
+          - "control[6]"
+          - "control[7]"
+        dataframe_name:
+          - "timestamp"
+          - "u0"
+          - "u1"
+          - "u2"
+          - "u5"
+          - "u6"
+          - "u7"
+          - "u8"
+        actuator_type:
+          - "timestamp"
+          - "motor"
+          - "motor"
+          - "motor"
+          - "control_surcafe"
+          - "control_surcafe"
+          - "control_surcafe"
+          - "control_surcafe"
+      actuator_controls_1:
+        ulog_name:
+          - "timestamp"
+          - "control[0]"
+          - "control[1]"
+          - "control[4]"
+          - "control[5]"
+        dataframe_name:
+          - "timestamp"
+          - "u9"
+          - "u_tilt"
+          - "u4"
+          - "u3"
+        actuator_type:
+          - "timestamp"
+          - "control_surcafe"
+          - "motor" # convert wing_Tilt to 0 to 1
+          - "motor"
+          - "motor"
+      vehicle_local_position:
+        ulog_name:
+          - "timestamp"
+          - "vx"
+          - "vy"
+          - "vz"
+      tw_attitude_id:
+        ulog_name:
+          - "timestamp"
+          - "q[0]"
+          - "q[1]"
+          - "q[2]"
+          - "q[3]"
+        dataframe_name:
+          - "timestamp"
+          - "q0"
+          - "q1"
+          - "q2"
+          - "q3"
+      vehicle_acceleration:
+        ulog_name:
+          - "timestamp"
+          - "xyz[0]"
+          - "xyz[1]"
+          - "xyz[2]"
+        dataframe_name:
+          - "timestamp"
+          - "accel_x"
+          - "accel_y"
+          - "accel_z"
