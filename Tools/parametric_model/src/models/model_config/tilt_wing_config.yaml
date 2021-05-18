@@ -9,35 +9,39 @@ model_file:
 model_config:
   optimzation_parameters:
     initial_coefficients:
-      wing_rot_drag_lin: 1.0
-      wing_rot_thrust_quad: 15.0
+      wing_rot_drag_lin: 0.25
+      wing_rot_thrust_quad: 20.0
       wing_rot_thrust_lin: -0.10
       tail_rot_drag_lin: 1.0
-      tail_rot_thrust_quad: 15.0
+      tail_rot_thrust_quad: 8.0
       tail_rot_thrust_lin: -0.10
       c_d_wing_xz_offset: 0
       c_d_wing_xz_lin: 1.0
       c_d_wing_xz_quad: 1.0
+      c_d_wing_xz_cs: 1.0
       c_d_wing_xz_stall_min: 1.0
       c_d_wing_xz_stall_90_deg: 1.0
       c_l_wing_xz_offset: 0.0
       c_l_wing_xz_lin: 1.0
+      c_l_wing_xz_cs: 1.0
       c_l_wing_xz_stall: 1.0
-      c_d_wing_y_offset: 1.0
+      c_d_wing_y_offset: 2.0
     coefficient_bounds:
-      wing_rot_drag_lin: !!python/tuple [0, 10]
+      wing_rot_drag_lin: !!python/tuple [-10, 10]
       wing_rot_thrust_quad: !!python/tuple [0, 100]
       wing_rot_thrust_lin: !!python/tuple [-10, 0]
-      tail_rot_drag_lin: !!python/tuple [0, 10]
+      tail_rot_drag_lin: !!python/tuple [-10, 10]
       tail_rot_thrust_quad: !!python/tuple [0, 100]
       tail_rot_thrust_lin: !!python/tuple [-10, 0]
       c_d_wing_xz_offset: !!python/tuple [-10, 10]
       c_d_wing_xz_lin: !!python/tuple [0, 10]
       c_d_wing_xz_quad: !!python/tuple [0, 10]
+      c_d_wing_xz_cs: !!python/tuple [0, 10]
       c_d_wing_xz_stall_min: !!python/tuple [0, 10]
       c_d_wing_xz_stall_90_deg: !!python/tuple [0, 10]
       c_l_wing_xz_offset: !!python/tuple [-10, 10]
       c_l_wing_xz_lin: !!python/tuple [0, 10]
+      c_l_wing_xz_cs: !!python/tuple [0, 10]
       c_l_wing_xz_stall: !!python/tuple [0, 10]
       c_d_wing_y_offset: !!python/tuple [0, 10]
   mass: 6.1
@@ -174,6 +178,7 @@ model_config:
     main_wing_sections:
       - wing_right_right:
         rotor: "u0"
+        control_surface_dataframe_name: "u5"
         wing_surface: 0.425
         cp_position:
           - 0
@@ -185,6 +190,7 @@ model_config:
 
       - wing_right_left:
         rotor: "u1"
+        control_surface_dataframe_name: "u6"
         wing_surface: 0.425
         cp_position:
           - 0
@@ -196,6 +202,7 @@ model_config:
 
       - wing_left_right:
         rotor: "u2"
+        control_surface_dataframe_name: "u7"
         wing_surface: 0.425
         cp_position:
           - 0
@@ -207,6 +214,7 @@ model_config:
 
       - wing_left_left:
         rotor: "u3"
+        control_surface_dataframe_name: "u8"
         wing_surface: 0.425
         cp_position:
           - 0
@@ -219,7 +227,7 @@ model_config:
 dynamics_model_config:
   estimate_forces: True
   estimate_moments: False
-  resample_freq: 10.0
+  resample_freq: 1.0
   data:
     required_ulog_topics:
       actuator_controls_0:

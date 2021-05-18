@@ -111,6 +111,7 @@ class DynamicsModel():
         resampled_df = resample_dataframe_list(
             df_list, fts, self.resample_freq)
         self.data_df = resampled_df.dropna()
+        self.n_samples = self.data_df.shape[0]
 
     def get_topic_list_from_topic_type(self, topic_type):
         topic_type_name_dict = self.req_topics_dict[topic_type]
@@ -165,7 +166,7 @@ class DynamicsModel():
         # This should probably be adapted in the future to allow different values for each actuator specified in the config.
         if control_outputs_used:
             self.min_output = -1
-            self.max_output = 1
+            self.max_output = 1.01
             self.trim_output = 0
         else:
             self.min_output = 1000
@@ -333,7 +334,8 @@ class DynamicsModel():
         coefficient_list = [float(coef) for coef in coefficient_list]
         coef_dict = dict(zip(self.coef_name_list, coefficient_list))
         self.result_dict = {"coefficients": coef_dict,
-                            "metrics": metrics_dict, "log_file": self.rel_data_path}
+                            "metrics": metrics_dict, "log_file": self.rel_data_path,
+                            "numper of samples": self.n_samples}
 
     def save_result_dict_to_yaml(self, file_name="model_parameters", result_path="resources/model_results/"):
 
