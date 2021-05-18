@@ -58,6 +58,7 @@ class DynamicsModel():
             print(rel_data_path)
             exit(1)
 
+        self.n_samples = self.data_df.shape[0]
         self.quaternion_df = self.data_df[["q0", "q1", "q2", "q3"]]
         self.q_mat = self.quaternion_df.to_numpy()
 
@@ -111,7 +112,6 @@ class DynamicsModel():
         resampled_df = resample_dataframe_list(
             df_list, fts, self.resample_freq)
         self.data_df = resampled_df.dropna()
-        self.n_samples = self.data_df.shape[0]
 
     def get_topic_list_from_topic_type(self, topic_type):
         topic_type_name_dict = self.req_topics_dict[topic_type]
