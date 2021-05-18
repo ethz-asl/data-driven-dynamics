@@ -104,14 +104,11 @@ class RotorModel():
         X_thrust = rotor_axis @ np.array(
             [[actuator_input**2, (actuator_input*v_air_parallel_abs)]]) * self.air_density * self.prop_diameter**4
         # Drag force computation
-        # print(np.linalg.norm(v_airspeed_perpendicular_to_rotor_axis))
         if (np.linalg.norm(v_airspeed_perpendicular_to_rotor_axis) >= 0.05):
             X_drag = - v_airspeed_perpendicular_to_rotor_axis @ np.array(
                 [[actuator_input]])
         else:
             X_drag = np.zeros((3, 1))
-
-        # print(X_drag)
 
         X_forces = np.hstack((X_drag, X_thrust))
 

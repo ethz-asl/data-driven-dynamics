@@ -63,8 +63,9 @@ class TiltWingModel(DynamicsModel):
             curr_wing_section_config = wing_sections_config_list[i]
             curr_rotor = self.rotor_dict["wing_"][(
                 curr_wing_section_config["rotor"])]
+            curr_control_surface_output = self.data_df[curr_wing_section_config["control_surface_dataframe_name"]]
             curr_wing_section = TiltWingSection(
-                curr_wing_section_config, airspeed_mat, angular_vel_mat=angular_vel_mat, rotor=curr_rotor)
+                curr_wing_section_config, airspeed_mat, curr_control_surface_output, angular_vel_mat=angular_vel_mat, rotor=curr_rotor)
             self.wing_sections.append(curr_wing_section)
             self.aero_coef_list = curr_wing_section.aero_coef_list
 
@@ -75,7 +76,7 @@ class TiltWingModel(DynamicsModel):
         self.y_forces = self.mass * accel_body_mat.flatten()
 
     def predict_forces(self, x):
-        aero_coef = np.array(x[6:15]).reshape(9, 1)
+        aero_coef = np.array(x[6:17]).reshape(11, 1)
         main_wing_rotor_thrust_coef = np.array(x[[1, 2]]).reshape(2, 1)
         rotor_coef = np.array(x[0:6]).reshape(6, 1)
         F_aero_pred = np.zeros((self.y_forces.shape[0], 1))
