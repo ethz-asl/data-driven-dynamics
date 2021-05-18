@@ -43,25 +43,26 @@ class AeroModelDelta():
         v_xz = math.sqrt(v_airspeed[0]**2 + v_airspeed[2]**2)
         F_xz_aero_frame = np.zeros((3, 8))
 
-        # Compute Drag force coeffiecients:
-        F_xz_aero_frame[0, 0] = -(
-            1 - cropped_sym_sigmoid(angle_of_attack, x_offset=self.stall_angle, scale_fac=self.sig_scale_fac))*v_xz**2
-        F_xz_aero_frame[0, 1] = -(
-            1 - cropped_sym_sigmoid(angle_of_attack, x_offset=self.stall_angle, scale_fac=self.sig_scale_fac))*angle_of_attack*v_xz**2
-        F_xz_aero_frame[0, 2] = -(
-            1 - cropped_sym_sigmoid(angle_of_attack, x_offset=self.stall_angle, scale_fac=self.sig_scale_fac))*angle_of_attack**2*v_xz**2
-        F_xz_aero_frame[0, 3] = -(cropped_sym_sigmoid(angle_of_attack,
-                                  x_offset=self.stall_angle, scale_fac=self.sig_scale_fac))*(1 - math.sin(angle_of_attack)**2)*v_xz**2
-        F_xz_aero_frame[0, 4] = -(cropped_sym_sigmoid(angle_of_attack,
-                                  x_offset=self.stall_angle, scale_fac=self.sig_scale_fac))*(math.sin(angle_of_attack)**2)*v_xz**2
+        # region interpolation using a symmetric sigmoid function
+        # 0 in linear/quadratic region, 1 in post-stall region
+        stall_region = cropped_sym_sigmoid(
+            angle_of_attack, x_offset=self.stall_angle, scale_fac=self.sig_scale_fac)
+        # 1 in linear/quadratic region, 0 in post-stall region
+        flow_attached_region = 1 - stall_region
 
+        # Compute Drag force coeffiecients:
+        F_xz_aero_frame[0, 0] = -flow_attached_region*v_xz**2
+        F_xz_aero_frame[0, 1] = -flow_attached_region*angle_of_attack*v_xz**2
+        F_xz_aero_frame[0, 2] = -flow_attached_region * \
+            angle_of_attack**2*v_xz**2
+        F_xz_aero_frame[0, 3] = -stall_region * \
+            (1 - math.sin(angle_of_attack)**2)*v_xz**2
+        F_xz_aero_frame[0, 4] = -stall_region * \
+            (math.sin(angle_of_attack)**2)*v_xz**2
         # Compute Lift force coefficients:
-        F_xz_aero_frame[2, 5] = -(
-            1 - cropped_sym_sigmoid(angle_of_attack, x_offset=self.stall_angle, scale_fac=self.sig_scale_fac))*angle_of_attack*v_xz**2
-        F_xz_aero_frame[2, 6] = -(
-            1 - cropped_sym_sigmoid(angle_of_attack, x_offset=self.stall_angle, scale_fac=self.sig_scale_fac))*v_xz**2
-        F_xz_aero_frame[2, 7] = -cropped_sym_sigmoid(angle_of_attack, x_offset=self.stall_angle, scale_fac=self.sig_scale_fac) \
-            * math.sin(2*angle_of_attack)*v_xz**2
+        F_xz_aero_frame[2, 5] = -flow_attached_region*angle_of_attack*v_xz**2
+        F_xz_aero_frame[2, 6] = -flow_attached_region*v_xz**2
+        F_xz_aero_frame[2, 7] = -stall_region*v_xz**2
 
         # Transorm from stability axis frame to body FRD frame
         R_aero_to_body = Rotation.from_rotvec(
