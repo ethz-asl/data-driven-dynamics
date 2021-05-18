@@ -15,6 +15,7 @@ from scipy.linalg import block_diag
 from .model_plots import model_plots, quad_plane_model_plots
 from .model_config import ModelConfig
 from .aerodynamic_models import AeroModelDelta
+import matplotlib.pyplot as plt
 
 """Currently this model estimates only Forces but no moments."""
 
@@ -96,4 +97,5 @@ class DeltaQuadPlaneModel(DynamicsModel):
             self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "AoA"]], self.data_df["timestamp"])
         model_plots.plot_accel_and_airspeed_in_y_direction(
             self.y_forces, y_forces_pred, self.data_df["V_air_body_y"], self.data_df["timestamp"])
+        plt.show()
         return

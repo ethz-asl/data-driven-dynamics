@@ -41,5 +41,4 @@ def plot_accel_predeictions_with_flap_outputs(stacked_acc_vec, stacked_acc_vec_p
     ax2.set_title('acceleration in y direction of body frame [m/s^2]')
     ax3.set_title('acceleration in z direction of body frame [m/s^2]')
     plt.legend()
-    plt.show()
     return

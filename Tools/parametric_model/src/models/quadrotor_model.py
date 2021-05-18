@@ -37,6 +37,7 @@ from .rotor_models import RotorModel
 from .model_plots import model_plots
 from .aerodynamic_models import SimpleDragModel
 from .model_config import ModelConfig
+import matplotlib.pyplot as plt
 
 
 class QuadRotorModel(DynamicsModel):
@@ -97,6 +98,7 @@ class QuadRotorModel(DynamicsModel):
             self.y, y_pred, self.data_df["timestamp"])
         model_plots.plot_airspeed_and_AoA(
             self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "AoA"]], self.data_df["timestamp"])
+        plt.show()
         return
 
     def plot_motor_model_prediction(self):

@@ -16,6 +16,7 @@ def plot_accel_predeictions(stacked_acc_vec, stacked_acc_vec_pred, timestamp_arr
     stacked_acc_vec_pred: numpy array of shape (3*n,1) containing stacked predicted accelerations [a_x_1, a_y_1, a_z_1, a_x_2, ...]^T in body frame
     timestamp_array: numpy array with n entries of corresponding timestamps.
     """
+
     stacked_acc_vec = np.array(stacked_acc_vec)
     stacked_acc_vec_pred = np.array(stacked_acc_vec_pred)
     timestamp_array = np.array(timestamp_array)
@@ -36,7 +37,6 @@ def plot_accel_predeictions(stacked_acc_vec, stacked_acc_vec_pred, timestamp_arr
     ax2.set_title('acceleration in y direction of body frame [m/s^2]')
     ax3.set_title('acceleration in z direction of body frame [m/s^2]')
     plt.legend()
-    plt.show()
     return
 
 
@@ -47,6 +47,7 @@ def plot_angular_accel_predeictions(stacked_acc_vec, stacked_acc_vec_pred, times
     stacked_acc_vec_pred: numpy array of shape (3*n,1) containing stacked predicted angular accelerations [w_x_1, w_y_1, w_z_1, w_x_2, ...]^T in body frame
     timestamp_array: numpy array with n entries of corresponding timestamps.
     """
+
     stacked_acc_vec = np.array(stacked_acc_vec)
     stacked_acc_vec_pred = np.array(stacked_acc_vec_pred)
     timestamp_array = np.array(timestamp_array)
@@ -70,7 +71,6 @@ def plot_angular_accel_predeictions(stacked_acc_vec, stacked_acc_vec_pred, times
     ax3.set_title(
         'angular acceleration in z direction of body frame [rad/s^2]')
     plt.legend()
-    plt.show()
     return
 
 
@@ -81,6 +81,7 @@ def plot_airspeed_and_AoA(airspeed_mat, timestamp_array):
     the columns [V_a_x, V_a_y, V_a_z, AoA].
     timestamp_array: numpy array with n entries of corresponding timestamps.
     """
+
     airspeed_mat = np.array(airspeed_mat)
     timestamp_array = np.array(timestamp_array)
 
@@ -95,7 +96,6 @@ def plot_airspeed_and_AoA(airspeed_mat, timestamp_array):
     ax3.set_title('airspeed in z direction of body frame [m/s^2]')
     ax4.set_title("Aoa in body frame [radiants]")
     plt.legend()
-    plt.show()
     return
 
 
@@ -130,7 +130,6 @@ def plot_accel_and_airspeed_in_y_direction(stacked_acc_vec, stacked_acc_vec_pred
         'features corresponding to drag in y direction')
     ax3.set_title('acceleration y direction of body frame [m/s^2]')
     plt.legend()
-    plt.show()
     return
 
 
@@ -165,7 +164,6 @@ def plot_accel_and_airspeed_in_z_direction(stacked_acc_vec, stacked_acc_vec_pred
         '- sign(v_a)*v_a^2 in body frame [m/s^2]')
     ax3.set_title('acceleration z direction of body frame [m/s^2]')
     plt.legend()
-    plt.show()
     return
 
 
@@ -190,7 +188,6 @@ def plot_az_and_collective_input(stacked_acc_vec, stacked_acc_vec_pred, u_mat, t
     ax2.set_title(
         'acceleration in z direction of body frame [m/s^2]')
     plt.legend()
-    plt.show()
 
 
 def plot(data, timestamp, plt_title="No title"):
@@ -198,4 +195,3 @@ def plot(data, timestamp, plt_title="No title"):
     print(timestamp)
     plt.plot(timestamp, data)
     plt.title(plt_title)
-    plt.show()
