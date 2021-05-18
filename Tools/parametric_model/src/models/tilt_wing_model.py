@@ -17,6 +17,7 @@ from .model_plots import model_plots, quad_plane_model_plots
 from .model_config import ModelConfig
 from .aerodynamic_models import TiltWingSection
 from sklearn.metrics import r2_score
+import matplotlib.pyplot as plt
 
 
 """This model estimates forces and moments for quad plane as for example the standard vtol in gazebo."""
@@ -158,4 +159,5 @@ class TiltWingModel(DynamicsModel):
             self.y_accel, y_accel_pred, self.data_df["V_air_body_y"], self.data_df["timestamp"])
         # quad_plane_model_plots.plot_accel_predeictions_with_flap_outputs(
         #     self.y_forces, y_forces_pred, self.data_df[["u5", "u6", "u7"]], self.data_df["timestamp"])
+        plt.show()
         return

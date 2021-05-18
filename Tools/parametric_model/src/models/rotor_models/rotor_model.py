@@ -63,6 +63,7 @@ class RotorModel():
 
         # if the rotor axis changes direction and rotor_axis_mat is specified
         if rotor_axis_mat is not None:
+            print("rotor axis mat")
             for i in range(self.n_timestamps):
                 v_local_airspeed = self.local_airspeed_mat[i, :]
                 self.v_airspeed_parallel_to_rotor_axis[i, :] = (np.vdot(
