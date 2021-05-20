@@ -10,10 +10,10 @@ from scipy.spatial.transform import Rotation
 
 
 class SimpleDragModel():
-    def __init__(self, stall_angle=35.0, ):
+    def __init__(self, stall_angle=35.0, sig_scale_fac=30):
         # convert to radians
         self.stall_angle = stall_angle*math.pi/180.0
-        self.sig_scale_fac = 30
+        self.sig_scale_fac = sig_scale_fac
 
     def compute_fuselage_feature(self, v_airspeed, angle_of_attack):
         """
