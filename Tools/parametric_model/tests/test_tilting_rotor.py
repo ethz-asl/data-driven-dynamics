@@ -8,8 +8,40 @@ import numpy as np
 import math
 
 
+def test_local_airspeed_computation():
+    rotor_config_dict = {"description": "test rotor",
+                         "dataframe_name": "u0",
+                         "rotor_type": "TiltingRotorModel",
+                         "tilt_actuator_dataframe_name": "u_tilt",
+                         "rotor_axis": [1, 0, 0],
+                         "tilt_axis": [0, 1, 0],
+                         "max_tilt_angle_deg": 90,
+                         "turning_direction": 1,
+                         "position": [0, 0, 0]}
+
+    actuator_input_vec = np.array([0, 0, 0, 0, 0])
+    tilt_actuator_vec = np.array([0, 0.5, 1, 0.5, 0])
+    v_airspeed_mat = np.array(
+        [[5, 0, 0], [5*math.sqrt(0.5), 0, -5*math.sqrt(0.5)], [0, 0, -5], [0, 0, -5], [0, 0, -5]])
+    rotor = TiltingRotorModel(rotor_config_dict, actuator_input_vec, v_airspeed_mat,
+                              tilt_actuator_vec)
+
+    assert (np.linalg.norm(rotor.v_air_parallel_abs -
+            np.array([5, 5, 5, 5/math.sqrt(2), 0])) < 10e-10)
+    assert (np.linalg.norm(
+        rotor.v_airspeed_perpendicular_to_rotor_axis[0, :] - np.array([0, 0, 0])) < 10e-10)
+    assert (np.linalg.norm(
+        rotor.v_airspeed_perpendicular_to_rotor_axis[1, :] - np.array([0, 0, 0])) < 10e-10)
+    assert (np.linalg.norm(
+        rotor.v_airspeed_perpendicular_to_rotor_axis[2, :] - np.array([0, 0, 0])) < 10e-10)
+    assert (np.linalg.norm(
+        rotor.v_airspeed_perpendicular_to_rotor_axis[3, :] - np.array([-2.5, 0, -2.5])) < 10e-10)
+    assert (np.linalg.norm(
+        rotor.v_airspeed_perpendicular_to_rotor_axis[4, :] - np.array([0, 0, -5])) < 10e-10)
+
+
 def test_tilting_x_axis():
-    rotor_config_dict = {"description": "rotor wing right, right",
+    rotor_config_dict = {"description": "test rotor",
                          "dataframe_name": "u0",
                          "rotor_type": "TiltingRotorModel",
                          "tilt_actuator_dataframe_name": "u_tilt",
@@ -34,7 +66,7 @@ def test_tilting_x_axis():
 
 
 def test_tilting_y_axis():
-    rotor_config_dict = {"description": "rotor wing right, right",
+    rotor_config_dict = {"description": "test rotor",
                          "dataframe_name": "u0",
                          "rotor_type": "TiltingRotorModel",
                          "tilt_actuator_dataframe_name": "u_tilt",
@@ -59,7 +91,7 @@ def test_tilting_y_axis():
 
 
 def test_tilting_z_axis():
-    rotor_config_dict = {"description": "rotor wing right, right",
+    rotor_config_dict = {"description": "test rotor",
                          "dataframe_name": "u0",
                          "rotor_type": "TiltingRotorModel",
                          "tilt_actuator_dataframe_name": "u_tilt",
@@ -83,7 +115,7 @@ def test_tilting_z_axis():
         rotor.rotor_axis_mat[2, :] - np.array([1, 0, 0])) < 10e-10)
 
 
-# Run uas module using 'python3 -m tests/test_dynamics_model' for development and testing of the test.
+# Run uas module using 'python3 -m tests.test_dynamics_model' for development and testing of the test.
 if __name__ == "__main__":
     # set cwd to project directory when run as module
     cwd = os.getcwd()
@@ -91,6 +123,7 @@ if __name__ == "__main__":
     des_cwd = os.path.join(parent, os.pardir)
     os.chdir(des_cwd)
 
+    test_local_airspeed_computation()
     test_tilting_x_axis()
     test_tilting_y_axis()
     test_tilting_z_axis()
