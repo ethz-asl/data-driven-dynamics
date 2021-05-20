@@ -69,7 +69,7 @@ class RotorModel():
                 self.v_airspeed_parallel_to_rotor_axis[i, :] = (np.vdot(
                     rotor_axis_mat[i, :], v_local_airspeed) * rotor_axis_mat[i, :]).flatten()
                 self.v_air_parallel_abs[i] = np.linalg.norm(
-                    self.v_airspeed_parallel_to_rotor_axis)
+                    self.v_airspeed_parallel_to_rotor_axis[i, :])
                 self.v_airspeed_perpendicular_to_rotor_axis[i, :] = v_local_airspeed - \
                     self.v_airspeed_parallel_to_rotor_axis[i, :]
         else:
@@ -78,7 +78,7 @@ class RotorModel():
                 self.v_airspeed_parallel_to_rotor_axis[i, :] = (np.vdot(
                     self.rotor_axis, v_local_airspeed) * self.rotor_axis).flatten()
                 self.v_air_parallel_abs[i] = np.linalg.norm(
-                    self.v_airspeed_parallel_to_rotor_axis)
+                    self.v_airspeed_parallel_to_rotor_axis[i, :])
                 self.v_airspeed_perpendicular_to_rotor_axis[i, :] = v_local_airspeed - \
                     self.v_airspeed_parallel_to_rotor_axis[i, :]
 
