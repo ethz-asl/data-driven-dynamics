@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
 export PYTHONPATH=$(dirname "$0")
-pytest
+pytest --ignore=Tools/parametric_model/visual_dataframe_selector
