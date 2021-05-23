@@ -191,7 +191,5 @@ def plot_az_and_collective_input(stacked_acc_vec, stacked_acc_vec_pred, u_mat, t
 
 
 def plot(data, timestamp, plt_title="No title"):
-    print(data)
-    print(timestamp)
     plt.plot(timestamp, data)
     plt.title(plt_title)
