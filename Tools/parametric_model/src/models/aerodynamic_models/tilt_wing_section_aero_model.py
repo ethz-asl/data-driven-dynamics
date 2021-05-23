@@ -73,7 +73,7 @@ class TiltWingSection():
                 self.local_airspeed_mat[i, :] = self.static_local_airspeed_mat[i,
                                                                                :] + v_downwash.flatten()
                 # Angle of attack: angle around -y axis
-                self.local_aoa_vec[i] = self.wing_angle[i] - math.atan2(
+                self.local_aoa_vec[i] = - self.wing_angle[i] + math.atan2(
                     self.local_airspeed_mat[i, 2],   self.local_airspeed_mat[i, 0])
         else:
             print("Not implemented yet.")
@@ -126,7 +126,6 @@ class TiltWingSection():
         X_xz_aero_frame[0, 4] = -stall_region * \
             (1 - math.sin(angle_of_attack)**2)*qs
         X_xz_aero_frame[0, 5] = -stall_region*(math.sin(angle_of_attack)**2)*qs
-
         # Compute Lift force coefficients:
         X_xz_aero_frame[2, 6] = -flow_attached_region*angle_of_attack*qs
         X_xz_aero_frame[2, 7] = -flow_attached_region*qs
@@ -135,7 +134,7 @@ class TiltWingSection():
 
         # Transorm from stability axis frame to body FRD frame
         R_aero_to_body = Rotation.from_rotvec(
-            [0, (wing_angle-angle_of_attack), 0]).as_matrix()
+            [0, (-wing_angle-angle_of_attack), 0]).as_matrix()
         X_xz_body_frame = R_aero_to_body @ X_xz_aero_frame
 
         """
