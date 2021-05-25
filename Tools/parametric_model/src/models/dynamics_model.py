@@ -138,8 +138,9 @@ class DynamicsModel():
     def visually_select_data(self, plot_config_dict=None):
         print("Number of data samples before cropping: ",
               self.data_df.shape[0])
-        self.data_df = select_visual_data(
+        new_df = select_visual_data(
             self.data_df, self.visual_dataframe_selector_config_dict)
+        self.data_df = new_df
 
     def compute_body_rotation_features(self, angular_vel_topic_list):
         """Include the moment contribution due to rotation body frame:
@@ -323,8 +324,8 @@ class DynamicsModel():
         """
         vec_mat_transformed = np.zeros(vec_mat.shape)
         for i in range(vec_mat.shape[0]):
-            R_world_to_body = quaternion_to_rotation_matrix(self.q_mat[i, :])
-            vec_mat_transformed[i, :] = R_world_to_body @ vec_mat[i, :]
+            R_body_to_world = quaternion_to_rotation_matrix(self.q_mat[i, :])
+            vec_mat_transformed[i, :] = R_body_to_world @ vec_mat[i, :]
         return vec_mat_transformed
 
     def generate_model_dict(self, coefficient_list, metrics_dict):

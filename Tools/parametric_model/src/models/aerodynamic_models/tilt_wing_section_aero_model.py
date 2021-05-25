@@ -24,7 +24,7 @@ class TiltWingSection():
         self.wing_surface = wing_section_config["wing_surface"]
         self.description = wing_section_config["description"]
         self.aero_coef_list = ["c_d_wing_xz_offset", "c_d_wing_xz_lin", "c_d_wing_xz_quad", "c_d_wing_xz_cs", "c_d_wing_xz_stall_min", "c_d_wing_xz_stall_90_deg",
-                               "c_l_wing_xz_offset", "c_l_wing_xz_lin", "c_l_wing_xz_cs", "c_l_wing_xz_stall", "c_d_wing_y_offset"]
+                               "c_l_wing_xz_offset", "c_l_wing_xz_lin", "c_l_wing_xz_cs", "c_l_wing_xz_stall"]
 
         # upstream rotor influencing the downwash over wing section.
         if rotor == None:
@@ -70,8 +70,8 @@ class TiltWingSection():
                 v_air_parr = self.rotor.v_air_parallel_abs[i]
                 v_downwash = self.rotor.rotor_axis_mat[i, :] * 0.5 * (-v_air_parr + math.sqrt(v_air_parr**2 + (
                     2*abs_thrust/(self.rotor.air_density*self.rotor.prop_area))))
-                self.local_airspeed_mat[i, :] = self.static_local_airspeed_mat[i,
-                                                                               :] + v_downwash.flatten()
+                self.local_airspeed_mat[i,
+                                        :] = self.static_local_airspeed_mat[i, :] + v_downwash.flatten()
                 # Angle of attack: angle around -y axis
                 self.local_aoa_vec[i] = - self.wing_angle[i] + math.atan2(
                     self.local_airspeed_mat[i, 2],   self.local_airspeed_mat[i, 0])
@@ -136,14 +136,7 @@ class TiltWingSection():
         R_aero_to_body = Rotation.from_rotvec(
             [0, (-wing_angle-angle_of_attack), 0]).as_matrix()
         X_xz_body_frame = R_aero_to_body @ X_xz_aero_frame
-
-        """
-        Compute drag in y direction of body frame using a single coefficient: 
-        F_y = 0.5 * density * area * V_air_y^2 * c_d_y"""
-        X_y_body_frame = np.array([0, -math.copysign(
-            1, v_airspeed[1]) * v_airspeed[1]**2, 0]).reshape(3, 1)*0.5 * self.air_density
-        X_wing_segment = np.hstack((X_xz_body_frame, X_y_body_frame))
-        return X_wing_segment
+        return X_xz_body_frame
 
     def predict_wing_segment_forces(self, rotor_thrust_coef, aero_force_coef):
         """
