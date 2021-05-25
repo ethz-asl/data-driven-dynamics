@@ -10,13 +10,13 @@ model_config:
   optimzation_parameters:
     initial_coefficients:
       wing_rot_drag_lin: 1
-      wing_rot_thrust_quad: 22.0
-      wing_rot_thrust_lin: -0.10
+      wing_rot_thrust_quad: 30.0
+      wing_rot_thrust_lin: -0.30
       tail_rot_drag_lin: 1
-      tail_rot_thrust_quad: 70.0
-      tail_rot_thrust_lin: -0.10
+      tail_rot_thrust_quad: 15.0
+      tail_rot_thrust_lin: -0.30
       c_d_wing_xz_offset: 0
-      c_d_wing_xz_lin: 1.0
+      c_d_wing_xz_lin: 2.0
       c_d_wing_xz_quad: 1.0
       c_d_wing_xz_cs: 1.0
       c_d_wing_xz_stall_min: 1.0
@@ -25,7 +25,9 @@ model_config:
       c_l_wing_xz_lin: 1.0
       c_l_wing_xz_cs: 1.0
       c_l_wing_xz_stall: 1.0
-      c_d_wing_y_offset: 1
+      c_d_fuselage_x: 1
+      c_d_fuselage_y: 1
+      c_d_fuselage_z: 1
     coefficient_bounds:
       wing_rot_drag_lin: !!python/tuple [0, 10]
       wing_rot_thrust_quad: !!python/tuple [0, 100]
@@ -43,7 +45,9 @@ model_config:
       c_l_wing_xz_lin: !!python/tuple [0, 10]
       c_l_wing_xz_cs: !!python/tuple [0, 10]
       c_l_wing_xz_stall: !!python/tuple [0, 10]
-      c_d_wing_y_offset: !!python/tuple [0, 10]
+      c_d_fuselage_x: !!python/tuple [0, 10]
+      c_d_fuselage_y: !!python/tuple [0, 10]
+      c_d_fuselage_z: !!python/tuple [0, 10]
   mass: 6.1
   actuators:
     rotors:
@@ -227,7 +231,7 @@ model_config:
 dynamics_model_config:
   estimate_forces: True
   estimate_moments: False
-  resample_freq: 5.0
+  resample_freq: 0.1
   data:
     required_ulog_topics:
       actuator_controls_0:
@@ -262,21 +266,26 @@ dynamics_model_config:
         ulog_name:
           - "timestamp"
           - "control[0]"
-          - "control[1]"
           - "control[4]"
           - "control[5]"
         dataframe_name:
           - "timestamp"
           - "u9"
-          - "u_tilt"
           - "u4"
           - "u3"
         actuator_type:
           - "timestamp"
           - "control_surcafe"
-          - "motor" # convert wing_Tilt to 0 to 1
           - "motor"
           - "motor"
+      cl84_log:
+        ulog_name:
+          - "timestamp"
+          - "d_w_is"
+        dataframe_name:
+          - "timestamp"
+          - "u_tilt"
+
       vehicle_local_position:
         ulog_name:
           - "timestamp"
