@@ -7,15 +7,15 @@ https://docs.px4.io/master/en/simulation/gazebo_vehicles.html#standard_vtol """
 
 
 import numpy as np
+import pandas as pd
 import math
 
 from .dynamics_model import DynamicsModel
-from .rotor_models import TiltingRotorModel, BiDirectionalRotorModel
 from scipy.optimize import minimize
 from scipy.linalg import block_diag
 from .model_plots import model_plots, quad_plane_model_plots
 from .model_config import ModelConfig
-from .aerodynamic_models import TiltWingSection
+from .aerodynamic_models import TiltWingSection, FuselageDragModel
 from sklearn.metrics import r2_score
 import matplotlib.pyplot as plt
 
@@ -44,22 +44,28 @@ class TiltWingModel(DynamicsModel):
             "sub_plt2_data": ["u0", "u1", "u2", "u3", "u4"],
             "sub_plt3_data": ["u5", "u6", "u7", "u8", "u9", "u_tilt"]}
 
+        if "V_air_body_x" not in self.data_df:
+            print("computing airspeed")
+            self.normalize_actuators(
+                ["actuator_controls_0", "actuator_controls_1"], control_outputs_used=True)
+            self.compute_airspeed_from_groundspeed(["vx", "vy", "vz"])
+
         assert (self.estimate_moments ==
                 False), "Estimation of moments is not yet implemented in TiltWingModel. Disable in config file to estimate forces."
 
     def prepare_opimization_matrices(self):
 
-        if "V_air_body_x" not in self.data_df:
-            self.normalize_actuators(
-                ["actuator_controls_0", "actuator_controls_1"], control_outputs_used=True)
-            self.compute_airspeed_from_groundspeed(["vx", "vy", "vz"])
-
+        airspeed_mat = self.data_df[["V_air_body_x",
+                                     "V_air_body_y", "V_air_body_z"]].to_numpy()
         # Rotor features as self.X_rotor_forces
         self.compute_rotor_features(self.rotor_config_dict)
 
+        # Initialize fuselage grag model
+        self.fuselage_model = FuselageDragModel()
+        self.X_fuselage, self.fuselage_coef_list = self.fuselage_model.compute_fuselage_features(
+            airspeed_mat)
+
         # Initialize wing sections
-        airspeed_mat = self.data_df[["vx", "vy", "vz"]].to_numpy()
-        angular_vel_mat = self.data_df[["vx", "vy", "vz"]].to_numpy()
         self.wing_sections = []
         wing_sections_config_list = self.config.model_config["aerodynamics"]["main_wing_sections"]
         for i in range(len(wing_sections_config_list)):
@@ -68,7 +74,7 @@ class TiltWingModel(DynamicsModel):
                 curr_wing_section_config["rotor"])]
             curr_control_surface_output = self.data_df[curr_wing_section_config["control_surface_dataframe_name"]]
             curr_wing_section = TiltWingSection(
-                curr_wing_section_config, airspeed_mat, curr_control_surface_output, angular_vel_mat=angular_vel_mat, rotor=curr_rotor)
+                curr_wing_section_config, airspeed_mat, curr_control_surface_output, rotor=curr_rotor)
             self.wing_sections.append(curr_wing_section)
             self.aero_coef_list = curr_wing_section.aero_coef_list
 
@@ -79,17 +85,20 @@ class TiltWingModel(DynamicsModel):
         self.y_forces = self.mass * accel_body_mat.flatten()
 
     def predict_forces(self, x):
-        aero_coef = np.array(x[6:17]).reshape(11, 1)
+        wing_coef = np.array(x[6:16]).reshape(10, 1)
+        fuselage_coef = np.array(x[16:19]).reshape(3, 1)
         main_wing_rotor_thrust_coef = np.array(x[[1, 2]]).reshape(2, 1)
         rotor_coef = np.array(x[0:6]).reshape(6, 1)
         F_aero_pred = np.zeros((self.y_forces.shape[0], 1))
         for wing_section in self.wing_sections:
             F_aero_segment_pred = wing_section.predict_wing_segment_forces(
-                main_wing_rotor_thrust_coef, aero_coef)
+                main_wing_rotor_thrust_coef, wing_coef)
             F_aero_pred = np.add(F_aero_pred, F_aero_segment_pred)
 
         F_rotor_pred = self.X_rotor_forces @ rotor_coef
+        F_fuselage = self.X_fuselage @ fuselage_coef
         F_pred = np.add(F_aero_pred, F_rotor_pred)
+        F_pred = np.add(F_pred, F_fuselage)
         return F_pred
 
     def objective(self, x):
@@ -110,7 +119,8 @@ class TiltWingModel(DynamicsModel):
 
         # optimization_variables:
         optimization_parameters = self.config.model_config["optimzation_parameters"]
-        self.coef_list = self.rotor_forces_coef_list + self.aero_coef_list
+        self.coef_list = self.rotor_forces_coef_list + \
+            self.aero_coef_list + self.fuselage_coef_list
         config_coef_list = (
             optimization_parameters["initial_coefficients"]).keys()
         print("estimating coefficients: ", self.coef_list)
@@ -126,6 +136,8 @@ class TiltWingModel(DynamicsModel):
         coef_bounds = list(
             optimization_parameters["coefficient_bounds"].values())
         print("Coefficients bounds: ", coef_bounds)
+
+        print(self.objective(x0))
 
         solution = minimize(self.objective, x0, method='TNC',
                             bounds=coef_bounds)
@@ -144,22 +156,29 @@ class TiltWingModel(DynamicsModel):
 
     def plot_model_predicitons(self):
 
-        y_accel_pred = self.predict_forces(self.x_opt)/self.mass
-        # y_moments_pred = self.reg.predict(self.X_moments)
+        wing_local_airspeed = self.wing_sections[0].local_airspeed_mat
+        # wing_local_airspeed[:, 1] = np.zeros(wing_local_airspeed.shape[0])
+        wing_V_XZ = np.zeros(wing_local_airspeed.shape[0])
+        for i in range(wing_local_airspeed.shape[0]):
+            wing_V_XZ[i] = np.linalg.norm(wing_local_airspeed[i, :])
 
-        model_plots.plot_accel_predeictions(
-            self.y_accel, y_accel_pred, self.data_df["timestamp"])
-        # model_plots.plot_angular_accel_predeictions(
-        #     self.y_moments, y_moments_pred, self.data_df["timestamp"])
-        # model_plots.plot_az_and_collective_input(
-        #     self.y_forces, y_forces_pred, self.data_df[["u0", "u1", "u2", "u3"]],  self.data_df["timestamp"])
-        model_plots.plot_accel_and_airspeed_in_z_direction(
-            self.y_accel, y_accel_pred, self.data_df["V_air_body_z"], self.data_df["timestamp"])
+        # model_plots.plot(
+        #     wing_V_XZ, self.data_df["timestamp"])
+        model_plots.plot_airspeed_and_AoA(
+            np.hstack((self.wing_sections[0].static_local_airspeed_mat, self.wing_sections[0].local_aoa_vec.reshape(wing_local_airspeed.shape[0], 1))), self.data_df["timestamp"])
+        model_plots.plot_airspeed_and_AoA(
+            np.hstack((self.wing_sections[0].local_airspeed_mat, self.wing_sections[0].local_aoa_vec.reshape(wing_local_airspeed.shape[0], 1))), self.data_df["timestamp"])
         model_plots.plot_airspeed_and_AoA(
             self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "AoA"]], self.data_df["timestamp"])
+
+        y_accel_pred = self.predict_forces(self.x_opt)/self.mass
+        model_plots.plot_accel_predeictions(
+            self.y_accel, y_accel_pred, self.data_df["timestamp"])
+        model_plots.plot_accel_and_airspeed_in_z_direction(
+            self.y_accel, y_accel_pred, self.data_df["V_air_body_z"], self.data_df["timestamp"])
+
         model_plots.plot_accel_and_airspeed_in_y_direction(
             self.y_accel, y_accel_pred, self.data_df["V_air_body_y"], self.data_df["timestamp"])
-        # quad_plane_model_plots.plot_accel_predeictions_with_flap_outputs(
-        #     self.y_forces, y_forces_pred, self.data_df[["u5", "u6", "u7"]], self.data_df["timestamp"])
+
         plt.show()
         return
