@@ -58,6 +58,7 @@ model_config:
           dataframe_name: "u0"
           rotor_type: "TiltingRotorModel"
           tilt_actuator_dataframe_name: "u_tilt"
+          diameter: 0.406
           # rotor_axis and position corresponds to having 0 wing_tilt, e.g. the wing facing forward
           rotor_axis:
             - 1
@@ -79,6 +80,7 @@ model_config:
           dataframe_name: "u1"
           rotor_type: "TiltingRotorModel"
           tilt_actuator_dataframe_name: "u_tilt"
+          diameter: 0.406
           rotor_axis:
             - 1
             - 0
@@ -99,6 +101,7 @@ model_config:
           dataframe_name: "u2"
           rotor_type: "TiltingRotorModel"
           tilt_actuator_dataframe_name: "u_tilt"
+          diameter: 0.406
           rotor_axis:
             - 1
             - 0
@@ -119,6 +122,7 @@ model_config:
           dataframe_name: "u3"
           rotor_type: "TiltingRotorModel"
           tilt_actuator_dataframe_name: "u_tilt"
+          diameter: 0.406
           rotor_axis:
             - 1
             - 0
@@ -139,6 +143,7 @@ model_config:
           description: "rotor tail"
           dataframe_name: "u4"
           rotor_type: "RotorModel"
+          diameter: 0.254
           # For positive thrust
           rotor_axis:
             - 0
@@ -231,7 +236,7 @@ model_config:
 dynamics_model_config:
   estimate_forces: True
   estimate_moments: False
-  resample_freq: 0.1
+  resample_freq: 2
   data:
     required_ulog_topics:
       actuator_controls_0:
