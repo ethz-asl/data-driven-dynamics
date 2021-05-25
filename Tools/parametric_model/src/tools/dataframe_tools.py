@@ -48,7 +48,20 @@ def compute_flight_time(ulog, pwm_threshold=None, control_threshold=None):
     return flight_time
 
 
-def resample_dataframe_list(df_list, time_window=None, f_des=100.0, slerp_enabled=False):
+def moving_average(x, w=7):
+    return np.convolve(x, np.ones(w), 'valid') / w
+
+
+def filter_df(data_df, w=11):
+    data_np = data_df.to_numpy()
+    column_list = data_df.columns
+    new_df = pd.DataFrame()
+    for i in range(data_np.shape[1]):
+        new_df[column_list[i]] = moving_average(data_np[:, i])
+    return new_df
+
+
+def resample_dataframe_list(df_list, time_window=None, f_des=100.0, slerp_enabled=False, filter=True):
     """create a single dataframe by resampling all dataframes to f_des [Hz]
 
     Inputs:     df_list : List of ulog topic dataframes to resample
@@ -76,6 +89,7 @@ def resample_dataframe_list(df_list, time_window=None, f_des=100.0, slerp_enable
     res_df = pd.DataFrame()
     new_t_list = np.arange(t_start, t_end, T_des)
     for df in df_list:
+        df = filter_df(df)
         df = crop_df(df, t_start, t_end)
 
         # use slerp interpolation for quaternions
