@@ -1,7 +1,7 @@
 # general information
-model_name: "template"
-model_type: "template_model"
-model_file: "template"
+model_name: "test_dynamics_model"
+model_type: "test_dynamics_model"
+model_file: "test_dynamics_model"
 
 # all vectors in FRD body frame if not specified otherwise
 
