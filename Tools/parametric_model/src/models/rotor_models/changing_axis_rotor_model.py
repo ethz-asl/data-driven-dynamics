@@ -54,8 +54,8 @@ class ChangingAxisRotorModel(RotorModel):
             X_forces = np.vstack((X_forces, X_force_curr))
             rotor_features_bar.next()
         rotor_features_bar.finish()
-        coef_list_forces = ["rot_drag_lin", "rot_thrust_quad",
-                            "rot_thrust_lin"]
+        coef_list_forces = ["rot_drag_lin", "rot_thrust_lin", "rot_thrust_quad",
+                            ]
         self.X_forces = X_forces
         self.X_thrust = X_forces[:, 1:]
         return X_forces, coef_list_forces

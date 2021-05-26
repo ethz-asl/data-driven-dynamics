@@ -10,3 +10,4 @@ from .aero_model_Delta import AeroModelDelta
 from .simple_drag_model import SimpleDragModel
 from .tilt_wing_section_aero_model import TiltWingSection
 from .fuselage_drag_model import FuselageDragModel
+from .elevator_model import ElevatorModel

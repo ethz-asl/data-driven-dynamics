@@ -9,49 +9,68 @@ model_file:
 model_config:
   optimzation_parameters:
     initial_coefficients:
-      wing_rot_drag_lin: 1.5
-      wing_rot_thrust_quad: 1500.0
-      wing_rot_thrust_lin: -60
-      tail_rot_drag_lin: 0.5
-      tail_rot_thrust_quad: 1300.0
-      tail_rot_thrust_lin: -30
-      c_d_wing_xz_offset: 0
-      c_d_wing_xz_lin: 2.0
-      c_d_wing_xz_quad: 1.0
-      c_d_wing_xz_cs: 1.0
-      c_d_wing_xz_stall_min: 1.0
-      c_d_wing_xz_stall_90_deg: 1.0
-      c_l_wing_xz_offset: 0.0
-      c_l_wing_xz_lin: 1.0
-      c_l_wing_xz_cs: 1.0
-      c_l_wing_xz_stall: 1.0
-      c_d_fuselage_x: 0.2
-      c_d_fuselage_y: 0.2
-      c_d_fuselage_z: 1
+      c_d_fuselage_x: 0.0
+      c_d_fuselage_y: 0.0396967125970944
+      c_d_fuselage_z: 0.610086823140545
+      c_d_wing_xz_cs: 0.0
+      c_d_wing_xz_lin: -0.40132502252871105
+      c_d_wing_xz_offset: 0.060468445542133153
+      c_d_wing_xz_quad: 0.6692607715151242
+      c_d_wing_xz_stall_90_deg: 0.29943184241390064
+      c_d_wing_xz_stall_min: 0.0
+      c_l_wing_xz_cs: 1.152234767681148
+      c_l_wing_xz_lin: 0.20483999507088502
+      c_l_wing_xz_offset: -0.08180978126461196
+      c_l_wing_xz_stall: 0.39932299402214966
+      elevator_c_l: 1
+      tail_rot_drag_lin: 0.0
+      tail_rot_thrust_lin: -26.720846321626823
+      tail_rot_thrust_quad: 1636.258779078053
+      wing_rot_drag_lin: 0.6336202394337533
+      wing_rot_thrust_lin: -56.4583790403903
+      wing_rot_thrust_quad: 1541.7326362901822
     coefficient_bounds:
-      wing_rot_drag_lin: !!python/tuple [0, 1000]
-      wing_rot_thrust_quad: !!python/tuple [0, 10000]
-      wing_rot_thrust_lin: !!python/tuple [-1000, 0]
-      tail_rot_drag_lin: !!python/tuple [0, 1000]
-      tail_rot_thrust_quad: !!python/tuple [0, 10000]
-      tail_rot_thrust_lin: !!python/tuple [-1000, 0]
-      c_d_wing_xz_offset: !!python/tuple [-10, 10]
-      c_d_wing_xz_lin: !!python/tuple [-10, 10]
-      c_d_wing_xz_quad: !!python/tuple [0, 10]
-      c_d_wing_xz_cs: !!python/tuple [0, 10]
-      c_d_wing_xz_stall_min: !!python/tuple [0, 10]
-      c_d_wing_xz_stall_90_deg: !!python/tuple [0, 10]
-      c_l_wing_xz_offset: !!python/tuple [-10, 10]
-      c_l_wing_xz_lin: !!python/tuple [0, 10]
-      c_l_wing_xz_cs: !!python/tuple [0, 10]
-      c_l_wing_xz_stall: !!python/tuple [0, 10]
       c_d_fuselage_x: !!python/tuple [0, 10]
       c_d_fuselage_y: !!python/tuple [0, 10]
       c_d_fuselage_z: !!python/tuple [0, 10]
+      c_d_wing_xz_cs: !!python/tuple [0, 10]
+      c_d_wing_xz_lin: !!python/tuple [-10, 10]
+      c_d_wing_xz_offset: !!python/tuple [0, 10]
+      c_d_wing_xz_quad: !!python/tuple [0, 10]
+      c_d_wing_xz_stall_90_deg: !!python/tuple [0, 10]
+      c_d_wing_xz_stall_min: !!python/tuple [0, 10]
+      c_l_wing_xz_cs: !!python/tuple [0, 10]
+      c_l_wing_xz_lin: !!python/tuple [0, 10]
+      c_l_wing_xz_offset: !!python/tuple [-10, 10]
+      c_l_wing_xz_stall: !!python/tuple [0, 10]
+      elevator_c_l: !!python/tuple [0, 10]
+      tail_rot_drag_lin: !!python/tuple [0, 1000]
+      tail_rot_thrust_lin: !!python/tuple [-1000, 0]
+      tail_rot_thrust_quad: !!python/tuple [0, 10000]
+      wing_rot_drag_lin: !!python/tuple [0, 1000]
+      wing_rot_thrust_lin: !!python/tuple [-1000, 0]
+      wing_rot_thrust_quad: !!python/tuple [0, 10000]
   mass: 6.1
   actuators:
     rotors:
       # All rotors in the same group will share the coefficients
+      tail_:
+        - rotor_4:
+          description: "rotor tail"
+          dataframe_name: "u4"
+          rotor_type: "RotorModel"
+          diameter: 0.254
+          # For positive thrust
+          rotor_axis:
+            - 0
+            - 0
+            - -1
+          turning_direction: -1
+          position:
+            - 0.35
+            - 0.35
+            - -0.07
+
       wing_:
         - rotor_0:
           description: "rotor wing right, right"
@@ -135,23 +154,6 @@ model_config:
           turning_direction: 1
           position:
             - -0.35
-            - 0.35
-            - -0.07
-
-      tail_:
-        - rotor_4:
-          description: "rotor tail"
-          dataframe_name: "u4"
-          rotor_type: "RotorModel"
-          diameter: 0.254
-          # For positive thrust
-          rotor_axis:
-            - 0
-            - 0
-            - -1
-          turning_direction: -1
-          position:
-            - 0.35
             - 0.35
             - -0.07
 
