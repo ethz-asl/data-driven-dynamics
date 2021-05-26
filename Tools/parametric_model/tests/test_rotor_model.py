@@ -54,8 +54,8 @@ def test_rotor_thrust_prediction():
     X_moments, coef_list_moments = rotor.compute_actuator_force_matrix()
     print(rotor.predict_thrust_force(
         thrust_coef_list))
-    assert (np.array_equal(rotor.predict_thrust_force(
-        thrust_coef_list), correct_force_prediction))
+    assert (np.linalg.norm(rotor.predict_thrust_force(
+        thrust_coef_list) - correct_force_prediction) < 10e-10)
 
 
 if __name__ == "__main__":
