@@ -155,13 +155,7 @@ class TiltWingModel(DynamicsModel):
     def plot_model_predicitons(self):
 
         wing_local_airspeed = self.wing_sections[0].local_airspeed_mat
-        # wing_local_airspeed[:, 1] = np.zeros(wing_local_airspeed.shape[0])
-        wing_V_XZ = np.zeros(wing_local_airspeed.shape[0])
-        for i in range(wing_local_airspeed.shape[0]):
-            wing_V_XZ[i] = np.linalg.norm(wing_local_airspeed[i, :])
 
-        # model_plots.plot(
-        #     wing_V_XZ, self.data_df["timestamp"])
         model_plots.plot_airspeed_and_AoA(
             np.hstack((self.wing_sections[0].static_local_airspeed_mat, self.wing_sections[0].local_aoa_vec.reshape(wing_local_airspeed.shape[0], 1))), self.data_df["timestamp"])
         model_plots.plot_airspeed_and_AoA(
