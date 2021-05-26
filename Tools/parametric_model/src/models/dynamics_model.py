@@ -141,6 +141,7 @@ class DynamicsModel():
         new_df = select_visual_data(
             self.data_df, self.visual_dataframe_selector_config_dict)
         self.data_df = new_df
+        self.n_samples = self.data_df.shape[0]
 
     def compute_body_rotation_features(self, angular_vel_topic_list):
         """Include the moment contribution due to rotation body frame:
