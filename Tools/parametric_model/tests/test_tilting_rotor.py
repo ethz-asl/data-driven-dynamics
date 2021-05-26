@@ -26,7 +26,7 @@ def test_rotor_thrust_prediction():
     rotor = TiltingRotorModel(rotor_config_dict, actuator_input_vec, v_airspeed_mat,
                               tilt_actuator_vec)
 
-    thrust_coef_list = [10, -1]
+    thrust_coef_list = [-1, 10]
     correct_force_prediction = np.array([[3.06250000,   0,            0],
                                          [2.16551452,   0,  -2.16551452],
                                          [0,            0,      -3.0625],
