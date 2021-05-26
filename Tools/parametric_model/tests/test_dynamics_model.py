@@ -24,12 +24,16 @@ def test_transformations():
     # Check transform from inertial NED to FRD body frame:
     accel_NED_transformed_to_FRD = model.rot_to_body_frame(
         accel_NED_mat)
+    print(rmse_between_numpy_arrays(
+        accel_FRD_mat, accel_NED_transformed_to_FRD))
     assert (rmse_between_numpy_arrays(
         accel_FRD_mat, accel_NED_transformed_to_FRD) <= 0.1)
 
     # Check transform from FRD body frame to inertial NED frame:
     accel_FRD_transformed_to_NED = model.rot_to_world_frame(
         accel_FRD_mat)
+    print(rmse_between_numpy_arrays(
+        accel_NED_mat, accel_FRD_transformed_to_NED))
     assert (rmse_between_numpy_arrays(
         accel_NED_mat, accel_FRD_transformed_to_NED) <= 0.1)
 
