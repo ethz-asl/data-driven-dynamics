@@ -15,7 +15,7 @@ from scipy.optimize import minimize
 from scipy.linalg import block_diag
 from .model_plots import model_plots, quad_plane_model_plots
 from .model_config import ModelConfig
-from .aerodynamic_models import TiltWingSection, FuselageDragModel
+from .aerodynamic_models import TiltWingSection, FuselageDragModel, ElevatorModel
 from sklearn.metrics import r2_score
 import matplotlib.pyplot as plt
 
@@ -60,11 +60,15 @@ class TiltWingModel(DynamicsModel):
         # Rotor features as self.X_rotor_forces
         self.compute_rotor_features(self.rotor_config_dict)
 
-        # Initialize fuselage grag model
+        # Initialize fuselage drag model
         self.fuselage_model = FuselageDragModel()
         self.X_fuselage, self.fuselage_coef_list = self.fuselage_model.compute_fuselage_features(
             airspeed_mat)
 
+        # Initialize elevator model
+        self.elevator_model = ElevatorModel()
+        self.X_elevator, self.elevator_coef_list = self.elevator_model.compute_elevator_features(
+            airspeed_mat, self.data_df["u9"].to_numpy(), self.data_df["AoA"].to_numpy())
         # Initialize wing sections
         self.wing_sections = []
         wing_sections_config_list = self.config.model_config["aerodynamics"]["main_wing_sections"]
@@ -85,10 +89,12 @@ class TiltWingModel(DynamicsModel):
         self.y_forces = self.mass * accel_body_mat.flatten()
 
     def predict_forces(self, x):
-        wing_coef = np.array(x[6:16]).reshape(10, 1)
-        fuselage_coef = np.array(x[16:19]).reshape(3, 1)
-        main_wing_rotor_thrust_coef = np.array(x[[1, 2]]).reshape(2, 1)
-        rotor_coef = np.array(x[0:6]).reshape(6, 1)
+
+        fuselage_coef = np.array(x[0:3]).reshape(3, 1)
+        wing_coef = np.array(x[3:13]).reshape(10, 1)
+        elevator_coef = np.array(x[13]).reshape(1, 1)
+        main_wing_rotor_thrust_coef = np.array(x[[18, 19]]).reshape(2, 1)
+        rotor_coef = np.array(x[14:20]).reshape(6, 1)
         F_aero_pred = np.zeros((self.y_forces.shape[0], 1))
         for wing_section in self.wing_sections:
             F_aero_segment_pred = wing_section.predict_wing_segment_forces(
@@ -97,8 +103,10 @@ class TiltWingModel(DynamicsModel):
 
         F_rotor_pred = self.X_rotor_forces @ rotor_coef
         F_fuselage = self.X_fuselage @ fuselage_coef
+        F_elevator = self.X_elevator @ elevator_coef
         F_pred = np.add(F_aero_pred, F_rotor_pred)
         F_pred = np.add(F_pred, F_fuselage)
+        F_pred = np.add(F_pred, F_elevator)
         return F_pred
 
     def objective(self, x):
@@ -119,8 +127,8 @@ class TiltWingModel(DynamicsModel):
 
         # optimization_variables:
         optimization_parameters = self.config.model_config["optimzation_parameters"]
-        self.coef_list = self.rotor_forces_coef_list + \
-            self.aero_coef_list + self.fuselage_coef_list
+        self.coef_list = self.fuselage_coef_list + self.aero_coef_list + \
+            self.elevator_coef_list + self.rotor_forces_coef_list
         config_coef_list = (
             optimization_parameters["initial_coefficients"]).keys()
         print("estimating coefficients: ", self.coef_list)

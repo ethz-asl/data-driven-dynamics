@@ -24,8 +24,8 @@ class TiltWingSection():
             wing_section_config["cp_position"]).reshape(3, 1)
         self.wing_surface = wing_section_config["wing_surface"]
         self.description = wing_section_config["description"]
-        self.aero_coef_list = ["c_d_wing_xz_offset", "c_d_wing_xz_lin", "c_d_wing_xz_quad", "c_d_wing_xz_cs", "c_d_wing_xz_stall_min", "c_d_wing_xz_stall_90_deg",
-                               "c_l_wing_xz_offset", "c_l_wing_xz_lin", "c_l_wing_xz_cs", "c_l_wing_xz_stall"]
+        self.aero_coef_list = ['c_d_wing_xz_cs', 'c_d_wing_xz_lin', 'c_d_wing_xz_offset', 'c_d_wing_xz_quad', 'c_d_wing_xz_stall_90_deg',
+                               'c_d_wing_xz_stall_min', 'c_l_wing_xz_cs', 'c_l_wing_xz_lin', 'c_l_wing_xz_offset', 'c_l_wing_xz_stall']
 
         # upstream rotor influencing the downwash over wing section.
         if rotor == None:
@@ -121,18 +121,18 @@ class TiltWingSection():
         flow_attached_region = 1 - stall_region
 
         # Compute Drag force coeffiecients:
-        X_xz_aero_frame[0, 0] = -flow_attached_region*qs
+        X_xz_aero_frame[0, 2] = -flow_attached_region*qs
         X_xz_aero_frame[0, 1] = -flow_attached_region*angle_of_attack*qs
-        X_xz_aero_frame[0, 2] = -flow_attached_region*angle_of_attack**2*qs
-        X_xz_aero_frame[0, 3] = -flow_attached_region * \
+        X_xz_aero_frame[0, 3] = -flow_attached_region*angle_of_attack**2*qs
+        X_xz_aero_frame[0, 0] = -flow_attached_region * \
             abs(control_surface_input)*qs
-        X_xz_aero_frame[0, 4] = -stall_region * \
+        X_xz_aero_frame[0, 5] = -stall_region * \
             (1 - math.sin(angle_of_attack)**2)*qs
-        X_xz_aero_frame[0, 5] = -stall_region*(math.sin(angle_of_attack)**2)*qs
+        X_xz_aero_frame[0, 4] = -stall_region*(math.sin(angle_of_attack)**2)*qs
         # Compute Lift force coefficients:
-        X_xz_aero_frame[2, 6] = -flow_attached_region*angle_of_attack*qs
-        X_xz_aero_frame[2, 7] = -flow_attached_region*qs
-        X_xz_aero_frame[2, 8] = flow_attached_region * control_surface_input*qs
+        X_xz_aero_frame[2, 7] = -flow_attached_region*angle_of_attack*qs
+        X_xz_aero_frame[2, 8] = -flow_attached_region*qs
+        X_xz_aero_frame[2, 6] = flow_attached_region * control_surface_input*qs
         X_xz_aero_frame[2, 9] = -stall_region * math.sin(2*angle_of_attack)*qs
 
         # Transorm from stability axis frame to body FRD frame

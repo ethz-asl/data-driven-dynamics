@@ -104,7 +104,7 @@ class RotorModel():
 
         # Thrust force computation
         X_thrust = rotor_axis @ np.array(
-            [[actuator_input**2, (actuator_input*v_air_parallel_abs)]]) * self.air_density * self.prop_diameter**4
+            [[(actuator_input*v_air_parallel_abs), actuator_input**2]]) * self.air_density * self.prop_diameter**4
         # Drag force computation
         if (np.linalg.norm(v_airspeed_perpendicular_to_rotor_axis) >= 0.05):
             X_drag = - v_airspeed_perpendicular_to_rotor_axis @ np.array(
@@ -157,8 +157,8 @@ class RotorModel():
             X_forces = np.vstack((X_forces, X_force_curr))
             rotor_features_bar.next()
         rotor_features_bar.finish()
-        coef_list_forces = ["rot_drag_lin", "rot_thrust_quad",
-                            "rot_thrust_lin"]
+        coef_list_forces = ["rot_drag_lin", "rot_thrust_lin", "rot_thrust_quad"
+                            ]
         self.X_forces = X_forces
         self.X_thrust = X_forces[:, 1:]
         return X_forces, coef_list_forces
@@ -179,7 +179,7 @@ class RotorModel():
 
     def predict_thrust_force(self, thrust_coef_list):
         """
-        Inputs: thrust_coef_list = ["rot_thrust_quad", "rot_thrust_lin"]
+        Inputs: thrust_coef_list = ["rot_thrust_lin", "rot_thrust_quad"]
         """
         thrust_coef = np.array(thrust_coef_list).reshape(2, 1)
         stacked_force_vec = self.X_thrust @ thrust_coef
