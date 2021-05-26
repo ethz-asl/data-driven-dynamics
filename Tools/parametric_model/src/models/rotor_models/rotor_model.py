@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import math
 from progress.bar import Bar
+import copy
 
 
 class RotorModel():
@@ -36,8 +37,9 @@ class RotorModel():
         # air density in kg/m^3
         self.air_density = air_density
 
+        v_airspeed_mat_copy = copy.deepcopy(v_airspeed_mat)
         self.compute_local_airspeed(
-            v_airspeed_mat, angular_vel_mat, rotor_axis_mat)
+            v_airspeed_mat_copy, angular_vel_mat, rotor_axis_mat)
 
     def compute_local_airspeed(self, v_airspeed_mat, angular_vel_mat, rotor_axis_mat=None):
 

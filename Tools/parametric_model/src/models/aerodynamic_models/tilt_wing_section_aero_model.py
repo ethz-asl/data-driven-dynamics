@@ -8,6 +8,7 @@ import numpy as np
 from src.tools.math_tools import cropped_sym_sigmoid
 from scipy.spatial.transform import Rotation
 from progress.bar import Bar
+import copy
 
 # AAE stands for aileron, aileron, elevator
 
@@ -33,7 +34,9 @@ class TiltWingSection():
             self.in_downstream = True
             self.rotor = rotor
 
-        self.compute_static_local_airspeed(v_airspeed_mat, angular_vel_mat)
+        v_airspeed_mat_copy = copy.deepcopy(v_airspeed_mat)
+        self.compute_static_local_airspeed(
+            v_airspeed_mat_copy, angular_vel_mat)
         # angle around which the wing frame is tilted. The wing is always tilted around the y axis.
         self.wing_angle = np.zeros(self.n_timestamps)
         for i in range(self.n_timestamps):
