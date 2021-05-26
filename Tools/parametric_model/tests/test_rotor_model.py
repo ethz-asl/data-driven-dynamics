@@ -41,7 +41,7 @@ def test_rotor_thrust_prediction():
     actuator_input_vec = np.array([0, 0.5, 1, 0, 0.5, 1])
     v_airspeed_mat = np.array([[0, 0, 0], [0, 0, 0], [0, 0, 0], [
                               0, 0, -5], [0, 0, -5], [0, 0, -5]])
-    thrust_coef_list = [10, -1]
+    thrust_coef_list = [-1, 10]
 
     correct_force_prediction = np.array([[0,       0,       0.],
                                          [0,       0,  -3.0625],
