@@ -69,7 +69,6 @@ def resample_dataframe_list(df_list, time_window=None, f_des=100.0, slerp_enable
                 t_end   : End time in us
                 f_des   : Desired frequency of resampled data   
     """
-
     if time_window is None:
         # select full ulog time range
         df = df_list[0]
@@ -90,8 +89,11 @@ def resample_dataframe_list(df_list, time_window=None, f_des=100.0, slerp_enable
     new_t_list = np.arange(t_start, t_end, T_des)
     for df in df_list:
         df = filter_df(df)
-        df = crop_df(df, t_start, t_end)
+        df_end = df["timestamp"].iloc[[-1]].to_numpy()
+        if df_end < t_end:
+            t_end = int(df_end)
 
+    for df in df_list:
         # use slerp interpolation for quaternions
         # add a better criteria than the exact naming at a later point.
         if 'q0' in df and slerp_enabled:

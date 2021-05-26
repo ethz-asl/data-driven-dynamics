@@ -46,3 +46,4 @@ def test_transformations(config_file="dynamics_model_test_config.yaml"):
         accel_NED_mat, accel_FRD_transformed_to_NED) <= 0.1)
 
     return
+
