@@ -4,7 +4,6 @@ __license__ = "BSD 3"
 
 
 import numpy as np
-import pyproj
 import csv
 import h5py
 import time

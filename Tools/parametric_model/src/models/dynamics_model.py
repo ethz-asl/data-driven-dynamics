@@ -16,7 +16,6 @@ import numpy as np
 from src.tools.ulog_tools import load_ulog, pandas_from_topic
 from src.tools.dataframe_tools import compute_flight_time, resample_dataframe_list
 from src.tools.quat_utils import quaternion_to_rotation_matrix
-from visual_dataframe_selector.data_selector import select_visual_data
 
 
 class DynamicsModel():
@@ -136,6 +135,7 @@ class DynamicsModel():
             [self.data_df, airspeed_body_df], axis=1, join="inner")
 
     def visually_select_data(self, plot_config_dict=None):
+        from visual_dataframe_selector.data_selector import select_visual_data
         print("Number of data samples before cropping: ",
               self.data_df.shape[0])
         self.data_df = select_visual_data(

@@ -16,15 +16,14 @@ jobs:
       matrix:
         container:
           - "px4io/px4-dev-simulation-focal:2020-11-18" # Gazebo 11
+          - 'px4io/px4-dev-simulation-bionic:2020-11-18' # Gazebo 9
     container: ${{ matrix.container }}
     steps:
       - uses: actions/checkout@v1
       - name: submodule update
         run: git submodule update --init --recursive
-      - name: Install submodule python dependencies
-        run: pip3 install -r Tools/parametric_model/visual_dataframe_selector/requirements.txt
       - name: Install python dependencies
-        run: pip3 install -r Tools/parametric_model/requirements.txt
+        run: make install-dependencies
       - name: Run subsystem level tests on parametric model
         run: Tools/parametric_model/test_parametric_model.sh
       - name: Run simple_multirotor_model estimation for system level test using resource ulog
