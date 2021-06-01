@@ -19,7 +19,7 @@ from src.tools.quat_utils import quaternion_to_rotation_matrix
 
 
 class DynamicsModel():
-    def __init__(self, config_dict, rel_data_path):
+    def __init__(self, config_dict):
 
         assert type(
             config_dict) is dict, 'req_topics_dict input must be a dict'
@@ -29,7 +29,6 @@ class DynamicsModel():
         print("Resample frequency: ", self.resample_freq, "Hz")
         self.req_topics_dict = config_dict["data"]["required_ulog_topics"]
         self.req_dataframe_topic_list = config_dict["data"]["req_dataframe_topic_list"]
-        self.rel_data_path = rel_data_path
 
         self.visual_dataframe_selector_config_dict = {
             "x_axis_col": "timestamp",
@@ -38,6 +37,12 @@ class DynamicsModel():
 
         self.estimate_forces = config_dict["estimate_forces"]
         self.estimate_moments = config_dict["estimate_moments"]
+
+        # used to generate a dict with the resulting coefficients later on.
+        self.coef_name_list = []
+        self.result_dict = {}
+    def loadLog(self, rel_data_path):
+        self.rel_data_path = rel_data_path
 
         if (rel_data_path[-4:] == ".csv"):
             self.data_df = pd.read_csv(rel_data_path, index_col=0)
@@ -60,10 +65,6 @@ class DynamicsModel():
         self.n_samples = self.data_df.shape[0]
         self.quaternion_df = self.data_df[["q0", "q1", "q2", "q3"]]
         self.q_mat = self.quaternion_df.to_numpy()
-
-        # used to generate a dict with the resulting coefficients later on.
-        self.coef_name_list = []
-        self.result_dict = {}
 
     def check_ulog_for_req_topics(self):
         for topic_type in self.req_topics_dict.keys():

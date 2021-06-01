@@ -21,10 +21,10 @@ import matplotlib.pyplot as plt
 
 
 class DeltaQuadPlaneModel(DynamicsModel):
-    def __init__(self, rel_data_path, config_file="qpm_delta_vtol_config.yaml"):
+    def __init__(self, config_file="qpm_delta_vtol_config.yaml"):
         self.config = ModelConfig(config_file)
         super(DeltaQuadPlaneModel, self).__init__(
-            config_dict=self.config.dynamics_model_config, rel_data_path=rel_data_path)
+            config_dict=self.config.dynamics_model_config)
 
         self.rotor_config_dict = self.config.model_config["actuators"]["rotors"]
         self.stall_angle = math.pi/180 * \

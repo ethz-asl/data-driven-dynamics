@@ -21,25 +21,25 @@ def str2bool(v):
 
 
 def start_model_estimation(arg_list):
-    rel_ulog_path = arg_list.log_path
     model = arg_list.model
     data_selection_enabled = arg_list.data_selection
     print("Visual Data selection enabled: ", data_selection_enabled)
 
     if (model == "quadrotor_model"):
-        model = QuadRotorModel(rel_ulog_path)
+        model = QuadRotorModel()
 
     elif (model == "quad_plane_model"):
-        model = QuadPlaneModel(rel_ulog_path)
+        model = QuadPlaneModel()
 
     elif (model == "delta_quad_plane_model"):
-        model = DeltaQuadPlaneModel(rel_ulog_path)
+        model = DeltaQuadPlaneModel()
 
     elif (model == "tilt_wing_model"):
-        model = TiltWingModel(rel_ulog_path)
-
+        model = TiltWingModel()
     else:
         print("no valid model selected")
+    
+    model.loadLog(arg_list.log_path)
 
     if data_selection_enabled:
         model.visually_select_data()

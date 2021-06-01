@@ -12,8 +12,9 @@ from src.tools.math_tools import rmse_between_numpy_arrays
 def test_transformations(config_file="dynamics_model_test_config.yaml"):
     # Setup model with reference log
     config = ModelConfig(config_file)
-    model = DynamicsModel(config_dict=config.dynamics_model_config,
-                          rel_data_path="resources/quadrotor_model.ulg")
+    model = DynamicsModel(config_dict=config.dynamics_model_config)
+
+    model.loadLog("resources/quadrotor_model.ulg")
 
     # Add gravity vector to inertial accelerations
     model.data_df["az"] -= 9.81
