@@ -3,5 +3,5 @@ logs*
 .venv/
 .vscode/
 __pycache__/
-resources/model_results/*.yaml
+resources/model_results/*
 *.pyc

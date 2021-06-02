@@ -9,15 +9,17 @@ https://docs.px4.io/master/en/simulation/gazebo_vehicles.html#standard_vtol """
 import numpy as np
 import pandas as pd
 import math
+import copy
 
 from .dynamics_model import DynamicsModel
 from scipy.optimize import minimize
 from scipy.linalg import block_diag
-from .model_plots import model_plots, quad_plane_model_plots
+from .model_plots import model_plots, aerodynamics_plots, rotor_plots
 from .model_config import ModelConfig
 from .aerodynamic_models import TiltWingSection, FuselageDragModel, ElevatorModel
 from sklearn.metrics import r2_score
 import matplotlib.pyplot as plt
+from src.tools.math_tools import cropped_sym_sigmoid
 
 
 """This model estimates forces and moments for quad plane as for example the standard vtol in gazebo."""
@@ -86,6 +88,54 @@ class TiltWingModel(DynamicsModel):
         self.y_accel = accel_body_mat.flatten()
         self.y_forces = self.mass * accel_body_mat.flatten()
 
+    def predict_separated_forces(self, x):
+        fuselage_coef = np.array(x[0:3]).reshape(3, 1)
+        wing_coef = np.array(x[3:13]).reshape(10, 1)
+        elevator_coef = np.array(x[13]).reshape(1, 1)
+        main_wing_rotor_thrust_coef = np.array(x[[18, 19]]).reshape(2, 1)
+        main_wing_rotor_drag_coef = np.array(x[[17]]).reshape(1, 1)
+        tail_rotor_thrust_coef = np.array(x[[15, 16]]).reshape(2, 1)
+        tail_rotor_drag_coef = np.array(x[[14]]).reshape(1, 1)
+        rotor_coef = np.array(x[14:20]).reshape(6, 1)
+        self.F_aero_lift_pred = np.zeros((self.y_forces.shape[0], 1))
+        self.F_aero_drag_pred = np.zeros((self.y_forces.shape[0], 1))
+
+        self.average_wing_qs = np.zeros(self.data_df.shape[0])
+        self.average_wing_aoa = np.zeros(self.data_df.shape[0])
+        for wing_section in self.wing_sections:
+            F_aero_segment_lift_pred = wing_section.predict_wing_segment_lift_forces(
+                wing_coef)
+            self.F_aero_lift_pred = np.add(
+                self.F_aero_lift_pred, F_aero_segment_lift_pred)
+            F_aero_segment_drag_pred = wing_section.predict_wing_segment_lift_forces(
+                wing_coef)
+            self.F_aero_drag_pred = np.add(
+                self.F_aero_drag_pred, F_aero_segment_drag_pred)
+            self.average_wing_qs = self.average_wing_qs + wing_section.qs_vec
+            self.average_wing_aoa = self.average_wing_aoa + wing_section.local_aoa_vec
+            self.tilt_mat = wing_section.rotor.rotor_axis_mat
+        self.average_wing_qs = self.average_wing_qs / 4
+        self.average_wing_aoa = self.average_wing_aoa / 4
+
+        # collective rotor thrust and drag
+        self.F_main_rotor_thrust_pred = np.zeros(self.y_forces.shape[0])
+        self.F_main_rotor_drag_pred = np.zeros(self.y_forces.shape[0])
+        rotor_group_dict = self.rotor_dict["tail_"]
+        for rotor_name in rotor_group_dict.keys():
+            rotor = rotor_group_dict[rotor_name]
+            self.F_tail_rotor_thrust_pred = rotor.predict_thrust_force(
+                tail_rotor_thrust_coef).flatten()
+            self.F_tail_rotor_drag_pred = rotor.predict_drag_force(
+                tail_rotor_drag_coef).flatten()
+        rotor_group_list = self.rotor_dict["wing_"]
+        for rotor_name in rotor_group_dict.keys():
+            rotor = rotor_group_dict[rotor_name]
+            self.F_main_rotor_thrust_pred = np.add(
+                self.F_main_rotor_thrust_pred, rotor.predict_thrust_force(main_wing_rotor_thrust_coef).flatten())
+            self.F_main_rotor_drag_pred = np.add(
+                self.F_main_rotor_drag_pred, rotor.predict_drag_force(main_wing_rotor_drag_coef).flatten())
+        print(self.F_main_rotor_thrust_pred)
+
     def predict_forces(self, x):
 
         fuselage_coef = np.array(x[0:3]).reshape(3, 1)
@@ -93,19 +143,19 @@ class TiltWingModel(DynamicsModel):
         elevator_coef = np.array(x[13]).reshape(1, 1)
         main_wing_rotor_thrust_coef = np.array(x[[18, 19]]).reshape(2, 1)
         rotor_coef = np.array(x[14:20]).reshape(6, 1)
-        F_aero_pred = np.zeros((self.y_forces.shape[0], 1))
+        self.F_aero_pred = np.zeros((self.y_forces.shape[0], 1))
         for wing_section in self.wing_sections:
             F_aero_segment_pred = wing_section.predict_wing_segment_forces(
                 main_wing_rotor_thrust_coef, wing_coef)
-            F_aero_pred = np.add(F_aero_pred, F_aero_segment_pred)
+            self.F_aero_pred = np.add(self.F_aero_pred, F_aero_segment_pred)
 
-        F_rotor_pred = self.X_rotor_forces @ rotor_coef
-        F_fuselage = self.X_fuselage @ fuselage_coef
-        F_elevator = self.X_elevator @ elevator_coef
-        F_pred = np.add(F_aero_pred, F_rotor_pred)
-        F_pred = np.add(F_pred, F_fuselage)
-        F_pred = np.add(F_pred, F_elevator)
-        return F_pred
+        self.F_rotor_pred = self.X_rotor_forces @ rotor_coef
+        self.F_fuselage_pred = self.X_fuselage @ fuselage_coef
+        self.F_elevator_pred = self.X_elevator @ elevator_coef
+        self.F_pred = np.add(self.F_aero_pred, self.F_rotor_pred)
+        self.F_pred = np.add(self.F_pred, self.F_fuselage_pred)
+        self.F_pred = np.add(self.F_pred, self.F_elevator_pred)
+        return self.F_pred
 
     def objective(self, x):
         print("Evaluating objective function.")
@@ -115,6 +165,23 @@ class TiltWingModel(DynamicsModel):
         pred_error = np.sqrt(((a_pred - self.y_accel) ** 2).mean())
         print("acceleration prediction RMSE: ", pred_error)
         return pred_error
+
+    def objective_influence(self):
+        param_change = []
+        cost_opt = self.objective(self.x_opt)
+        for i in range(len(self.x_opt)):
+            x = copy.deepcopy(self.x_opt)
+            x[i] = 1.1*self.x_opt[i]
+            cost_change_up = self.objective(x) - cost_opt
+            x[i] = 0.9*self.x_opt[i]
+            cost_change_down = self.objective(x) - cost_opt
+            cost_change = (cost_change_down, cost_change_up)
+            param_change.append(str(cost_change))
+
+        param_change_dict = dict(zip(self.coef_name_list, param_change))
+        import yaml
+        print(yaml.dump(self.x_opt_dict, default_flow_style=False))
+        print(yaml.dump(param_change_dict, default_flow_style=False))
 
     def estimate_model(self):
         print("Estimating quad plane model using the following data:")
@@ -134,6 +201,7 @@ class TiltWingModel(DynamicsModel):
             "keys on config file differ from coefficient list: ",  self.coef_list, config_coef_list)
 
         # initial guesses
+        x0_dict = optimization_parameters["initial_coefficients"]
         x0 = np.array(
             list(optimization_parameters["initial_coefficients"].values()))
         self.coef_name_list = list(
@@ -144,41 +212,128 @@ class TiltWingModel(DynamicsModel):
         print("Coefficients bounds: ", coef_bounds)
 
         print(self.objective(x0))
+        self.x_opt = x0
+        self.x_opt_dict = x0_dict
 
-        solution = minimize(self.objective, x0, method='TNC',
-                            bounds=coef_bounds)
-        self.x_opt = solution.x
+        # solution = minimize(self.objective, x0, method='Powell',
+        #                     bounds=coef_bounds)
+        # self.x_opt = solution.x
 
-        initial_conditions_dict = dict(zip(self.coef_name_list, x0.tolist()))
+        # initial_conditions_dict = dict(zip(self.coef_name_list, x0.tolist()))
 
-        metrics_dict = {"R2": float(r2_score(self.y_forces, self.predict_forces(self.x_opt))),
-                        "RMSE": float(self.objective(self.x_opt))}
-        model_dict = {"metrics": metrics_dict,
-                      "initial_conditions": initial_conditions_dict}
+        # metrics_dict = {"R2": float(r2_score(self.y_forces, self.predict_forces(self.x_opt))),
+        #                 "RMSE": float(self.objective(self.x_opt))}
+        # model_dict = {"metrics": metrics_dict,
+        #               "initial_conditions": initial_conditions_dict}
 
-        self.generate_model_dict(self.x_opt, model_dict)
-        self.save_result_dict_to_yaml(file_name="tiltwing_model")
+        # self.y_accel_pred = self.predict_forces(self.x_opt)/self.mass
+        # self.y_accel_pred_mat = self.y_accel_pred.reshape((-1, 3))
+        # self.data_df[["ax_pred", "ay_pred", "az_pred"]] = self.y_accel_pred_mat
+        # self.data_df[["V_air_wing_x", "V_air_wing_y", "V_air_wing_z", "AoA_wing"]] = np.hstack(
+        #     (self.wing_sections[0].local_airspeed_mat, self.wing_sections[0].local_aoa_vec.reshape(self.data_df.shape[0], 1)))
+
+        # self.generate_model_dict(self.x_opt, model_dict)
+        # self.save_result_dict_to_yaml(file_name="tiltwing_model")
+
+        # self.objective_influence()
         return
 
     def plot_model_predicitons(self):
 
-        wing_local_airspeed = self.wing_sections[0].local_airspeed_mat
+        self.y_accel_pred = self.predict_forces(self.x_opt)/self.mass
 
-        model_plots.plot_airspeed_and_AoA(
-            np.hstack((self.wing_sections[0].static_local_airspeed_mat, self.wing_sections[0].local_aoa_vec.reshape(wing_local_airspeed.shape[0], 1))), self.data_df["timestamp"])
+        wing_local_airspeed = self.wing_sections[0].local_airspeed_mat
+        self.plot_parameter_analysis_curves()
+
+        # model_plots.plot_airspeed_and_AoA(
+        #     np.hstack((self.wing_sections[0].static_local_airspeed_mat, self.wing_sections[0].local_aoa_vec.reshape(wing_local_airspeed.shape[0], 1))), self.data_df["timestamp"])
         model_plots.plot_airspeed_and_AoA(
             np.hstack((self.wing_sections[0].local_airspeed_mat, self.wing_sections[0].local_aoa_vec.reshape(wing_local_airspeed.shape[0], 1))), self.data_df["timestamp"])
         model_plots.plot_airspeed_and_AoA(
             self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "AoA"]], self.data_df["timestamp"])
+        u_tilt_vec = self.data_df["u_tilt"].to_numpy()*90
+        model_plots.plot_accel_predeictions_and_tilt(
+            self.y_accel, self.y_accel_pred, self.data_df["timestamp"], u_tilt_vec)
+        # model_plots.plot_accel_and_airspeed_in_z_direction(
+        #     self.y_accel, self.y_accel_pred, self.data_df["V_air_body_z"], self.data_df["timestamp"])
 
-        y_accel_pred = self.predict_forces(self.x_opt)/self.mass
-        model_plots.plot_accel_predeictions(
-            self.y_accel, y_accel_pred, self.data_df["timestamp"])
-        model_plots.plot_accel_and_airspeed_in_z_direction(
-            self.y_accel, y_accel_pred, self.data_df["V_air_body_z"], self.data_df["timestamp"])
-
-        model_plots.plot_accel_and_airspeed_in_y_direction(
-            self.y_accel, y_accel_pred, self.data_df["V_air_body_y"], self.data_df["timestamp"])
+        # model_plots.plot_accel_and_airspeed_in_y_direction(
+        #     self.y_accel, self.y_accel_pred, self.data_df["V_air_body_y"], self.data_df["timestamp"])
 
         plt.show()
         return
+
+    def project_data(self, data, axis):
+        projected_data = np.zeros(data.shape[0])
+        if axis.shape == (3,):
+            for i in range(data.shape[0]):
+                projected_data[i] = np.vdot(
+                    data[i, :], axis)
+        elif axis.shape == data.shape:
+            for i in range(data.shape[0]):
+                projected_data[i] = np.vdot(
+                    data[i, :], axis[i, :])
+        else:
+            print("Not implemented yet.")
+            raise NotImplementedError
+
+        return projected_data
+
+    def compute_coefficient_data(self):
+        # lift coefficient data
+        lift_force_data = (self.y_forces.flatten() - self.F_rotor_pred.flatten() -
+                           self.F_fuselage_pred.flatten() - self.F_elevator_pred.flatten() - self.F_aero_drag_pred.flatten()).reshape(
+            int(self.y_forces.shape[0]/3), 3)
+        self.lift_coef_data = np.zeros(lift_force_data.shape[0])
+        for i in range(lift_force_data.shape[0]):
+            e_z_A = np.array([- self.tilt_mat[i, 2], 0, self.tilt_mat[i, 0]])
+            self.lift_coef_data[i] = np.vdot(
+                lift_force_data[i, :], -e_z_A) / (4 * self.average_wing_qs[i])
+
+        # drag coefficient data
+        drag_force_data = (self.y_forces.flatten() - self.F_rotor_pred.flatten() -
+                           self.F_fuselage_pred.flatten() - self.F_elevator_pred.flatten() - self.F_aero_lift_pred.flatten()).reshape(
+            int(self.y_forces.shape[0]/3), 3)
+        self.drag_coef_data = np.zeros(drag_force_data.shape[0])
+        for i in range(drag_force_data.shape[0]):
+            self.drag_coef_data[i] = np.vdot(
+                drag_force_data[i, :], -self.tilt_mat[i, :]) / (self.average_wing_qs[i])
+
+        # Tail Rotor Thrust Data
+        tail_thrust_force_data = (self.y_forces.flatten() - self.F_fuselage_pred.flatten() - self.F_elevator_pred.flatten() -
+                                  self.F_aero_pred.flatten() - self.F_main_rotor_thrust_pred.flatten() - self.F_main_rotor_drag_pred.flatten() -
+                                  self.F_tail_rotor_drag_pred.flatten()).reshape(int(self.y_forces.shape[0]/3), 3)
+        self.tail_thrust_force_data_proj = self.project_data(
+            tail_thrust_force_data, np.array([0, 0, -1])) / 4
+
+    def plot_parameter_analysis_curves(self):
+        self.predict_separated_forces(self.x_opt)
+        self.compute_coefficient_data()
+
+        c_l_pred_dict = {"c_l_offset": self.x_opt_dict["c_l_wing_xz_offset"],
+                         "c_l_lin": self.x_opt_dict["c_l_wing_xz_lin"],
+                         "c_l_stall": self.x_opt_dict["c_l_wing_xz_stall"]}
+
+        c_l_exp_dict = {"c_l_offset": 0,
+                        "c_l_lin": 5.7,
+                        "c_l_stall": 0.6}
+
+        c_d_pred_dict = {"c_d_offset": self.x_opt_dict["c_d_wing_xz_offset"],
+                         "c_d_lin": self.x_opt_dict["c_d_wing_xz_lin"],
+                         "c_d_quad": self.x_opt_dict["c_d_wing_xz_quad"],
+                         "c_d_stall_min": self.x_opt_dict["c_d_wing_xz_stall_min"],
+                         "c_d_stall_max": self.x_opt_dict["c_d_wing_xz_stall_90_deg"]}
+
+        aerodynamics_plots.plot_aoa_hist(self.average_wing_aoa)
+        # aerodynamics_plots.plot_lift_curve2(c_l_pred_dict, c_l_exp_dict)
+        # aerodynamics_plots.plot_lift_prediction_and_underlying_data(
+        #     c_l_pred_dict, self.lift_coef_data, self.average_wing_aoa)
+        # aerodynamics_plots.plot_drag_prediction_and_underlying_data(
+        #     c_d_pred_dict, self.drag_coef_data, self.average_wing_aoa)
+
+        tail_rot_coef_dict = {"rot_thrust_quad": self.x_opt_dict["tail_rot_thrust_quad"],
+                              "rot_thrust_lin": self.x_opt_dict["tail_rot_thrust_lin"],
+                              "rot_drag_lin": self.x_opt_dict["tail_rot_drag_lin"], }
+
+        rotor_plots.plot_thrust_prediction_and_underlying_data(tail_rot_coef_dict, self.rotor_dict["tail_"]["u4"],
+                                                               self.tail_thrust_force_data_proj)

@@ -35,7 +35,7 @@ from sklearn.linear_model import LinearRegression
 from .dynamics_model import DynamicsModel
 from .rotor_models import RotorModel
 from .model_plots import model_plots
-from .aerodynamic_models import SimpleDragModel
+from .aerodynamic_models import FuselageDragModel
 from .model_config import ModelConfig
 import matplotlib.pyplot as plt
 
@@ -67,9 +67,9 @@ class QuadRotorModel(DynamicsModel):
         aoa_mat = self.data_df[["AoA"]].to_numpy()
         airspeed_mat = self.data_df[["V_air_body_x",
                                      "V_air_body_y", "V_air_body_z"]].to_numpy()
-        aero_model = SimpleDragModel(35.0)
-        X_aero, aero_coef_list = aero_model.compute_aero_features(
-            airspeed_mat, aoa_mat)
+        aero_model = FuselageDragModel()
+        X_aero, aero_coef_list = aero_model.compute_fuselage_features(
+            airspeed_mat)
         self.coef_name_list.extend(
             self.rotor_forces_coef_list + aero_coef_list)
         X = np.hstack((self.X_rotor_forces, X_aero))

@@ -10,25 +10,25 @@ model_config:
   optimzation_parameters:
     initial_coefficients:
       c_d_fuselage_x: 0.0
-      c_d_fuselage_y: 0.0396967125970944
-      c_d_fuselage_z: 0.610086823140545
+      c_d_fuselage_y: 0.0
+      c_d_fuselage_z: 0.0
       c_d_wing_xz_cs: 0.0
-      c_d_wing_xz_lin: -0.40132502252871105
-      c_d_wing_xz_offset: 0.060468445542133153
-      c_d_wing_xz_quad: 0.6692607715151242
-      c_d_wing_xz_stall_90_deg: 0.29943184241390064
-      c_d_wing_xz_stall_min: 0.0
+      c_d_wing_xz_lin: -0.5289940695343268
+      c_d_wing_xz_offset: 0.08669501854636597
+      c_d_wing_xz_quad: 0.705046568729462
+      c_d_wing_xz_stall_90_deg: 0.2948746357918104
+      c_d_wing_xz_stall_min: 0.0031835042508481237
       c_l_wing_xz_cs: 1.152234767681148
-      c_l_wing_xz_lin: 0.20483999507088502
-      c_l_wing_xz_offset: -0.08180978126461196
-      c_l_wing_xz_stall: 0.39932299402214966
-      elevator_c_l: 1
-      tail_rot_drag_lin: 0.0
-      tail_rot_thrust_lin: -26.720846321626823
-      tail_rot_thrust_quad: 1636.258779078053
-      wing_rot_drag_lin: 0.6336202394337533
-      wing_rot_thrust_lin: -56.4583790403903
-      wing_rot_thrust_quad: 1541.7326362901822
+      c_l_wing_xz_lin: 0.11998241372644713
+      c_l_wing_xz_offset: 0.19104326145492445
+      c_l_wing_xz_stall: 0.4059865947329797
+      elevator_c_l: 0.0
+      tail_rot_drag_lin: 0.1764936269154873
+      tail_rot_thrust_lin: 0.0
+      tail_rot_thrust_quad: 2822.4483964609017
+      wing_rot_drag_lin: 0.6882983806470406
+      wing_rot_thrust_lin: -54.149001755091035
+      wing_rot_thrust_quad: 1513.730237721691
     coefficient_bounds:
       c_d_fuselage_x: !!python/tuple [0, 10]
       c_d_fuselage_y: !!python/tuple [0, 10]
@@ -40,7 +40,7 @@ model_config:
       c_d_wing_xz_stall_90_deg: !!python/tuple [0, 10]
       c_d_wing_xz_stall_min: !!python/tuple [0, 10]
       c_l_wing_xz_cs: !!python/tuple [0, 10]
-      c_l_wing_xz_lin: !!python/tuple [0, 10]
+      c_l_wing_xz_lin: !!python/tuple [0, 100]
       c_l_wing_xz_offset: !!python/tuple [-10, 10]
       c_l_wing_xz_stall: !!python/tuple [0, 10]
       elevator_c_l: !!python/tuple [0, 10]
@@ -238,7 +238,7 @@ model_config:
 dynamics_model_config:
   estimate_forces: True
   estimate_moments: False
-  resample_freq: 1
+  resample_freq: 5
   data:
     required_ulog_topics:
       actuator_controls_0:

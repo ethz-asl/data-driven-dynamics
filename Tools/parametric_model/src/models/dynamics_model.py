@@ -347,3 +347,6 @@ class DynamicsModel():
         with open(file_path, 'w') as outfile:
             print(yaml.dump(self.result_dict, default_flow_style=False))
             yaml.dump(self.result_dict, outfile, default_flow_style=False)
+
+        file_path = result_path + file_name + "_" + timestr + ".csv"
+        self.data_df.to_csv(file_path, index=True)

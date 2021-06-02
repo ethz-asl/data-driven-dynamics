@@ -160,7 +160,6 @@ class RotorModel():
         coef_list_forces = ["rot_drag_lin", "rot_thrust_lin", "rot_thrust_quad"
                             ]
         self.X_forces = X_forces
-        self.X_thrust = X_forces[:, 1:]
         return X_forces, coef_list_forces
 
     def compute_actuator_moment_matrix(self):
@@ -181,7 +180,14 @@ class RotorModel():
         """
         Inputs: thrust_coef_list = ["rot_thrust_lin", "rot_thrust_quad"]
         """
+        self.X_thrust = self.X_forces[:, 1:]
         thrust_coef = np.array(thrust_coef_list).reshape(2, 1)
         stacked_force_vec = self.X_thrust @ thrust_coef
+        force_mat = stacked_force_vec.reshape((self.n_timestamps, 3))
+        return force_mat
+
+    def predict_drag_force(self, drag_coef):
+        self.X_drag = self.X_forces[:, 0]
+        stacked_force_vec = self.X_drag * drag_coef
         force_mat = stacked_force_vec.reshape((self.n_timestamps, 3))
         return force_mat

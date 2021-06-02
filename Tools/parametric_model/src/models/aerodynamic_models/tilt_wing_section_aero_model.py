@@ -27,6 +27,8 @@ class TiltWingSection():
         self.aero_coef_list = ['c_d_wing_xz_cs', 'c_d_wing_xz_lin', 'c_d_wing_xz_offset', 'c_d_wing_xz_quad', 'c_d_wing_xz_stall_90_deg',
                                'c_d_wing_xz_stall_min', 'c_l_wing_xz_cs', 'c_l_wing_xz_lin', 'c_l_wing_xz_offset', 'c_l_wing_xz_stall']
 
+        self.qs_factor = 0.5 * self.air_density*self.wing_surface
+
         # upstream rotor influencing the downwash over wing section.
         if rotor == None:
             self.in_downstream = False
@@ -82,7 +84,16 @@ class TiltWingSection():
             print("Not implemented yet.")
             raise NotImplementedError
 
-    def predict_single_wing_segment_feature_mat(self, v_airspeed, control_surface_input, angle_of_attack, wing_angle):
+        self.compute_dynamic_pressure()
+
+    def compute_dynamic_pressure(self):
+        self.qs_vec = np.zeros(self.n_timestamps)
+        for i in range(self.n_timestamps):
+            self.qs_vec[i] = self.qs_factor * \
+                (self.local_airspeed_mat[i, 0]**2 +
+                 self.local_airspeed_mat[i, 2]**2)
+
+    def predict_single_wing_segment_feature_mat(self, qs, control_surface_input, angle_of_attack, wing_angle):
         """
         Model description:
 
@@ -109,9 +120,7 @@ class TiltWingSection():
             if abs(AoA) < stall_angle: cropped_sym_sigmoid(AoA) = 0
             if abs(AoA) > stall_angle: cropped_sym_sigmoid(AoA) = 1
         """
-        v_xz = math.sqrt(v_airspeed[0]**2 + v_airspeed[2]**2)
         X_xz_aero_frame = np.zeros((3, 10))
-        qs = 0.5 * self.air_density*self.wing_surface*v_xz**2
 
         # region interpolation using a symmetric sigmoid function
         # 0 in linear/quadratic region, 1 in post-stall region
@@ -132,7 +141,8 @@ class TiltWingSection():
         # Compute Lift force coefficients:
         X_xz_aero_frame[2, 7] = -flow_attached_region*angle_of_attack*qs
         X_xz_aero_frame[2, 8] = -flow_attached_region*qs
-        X_xz_aero_frame[2, 6] = flow_attached_region * control_surface_input*qs
+        X_xz_aero_frame[2, 6] = flow_attached_region * \
+            control_surface_input*qs*0
         X_xz_aero_frame[2, 9] = -stall_region * math.sin(2*angle_of_attack)*qs
 
         # Transorm from stability axis frame to body FRD frame
@@ -152,11 +162,19 @@ class TiltWingSection():
         aero_force_coef = aero_force_coef.reshape(
             (aero_force_coef.shape[0], 1))
         self.update_local_airspeed_and_aoa(rotor_thrust_coef)
-        X_aero = self.predict_single_wing_segment_feature_mat(
-            self.local_airspeed_mat[0, :], self.control_surface_output[0], self.local_aoa_vec[0], self.wing_angle[0])
+        self.X_aero = self.predict_single_wing_segment_feature_mat(
+            self.qs_vec[0], self.control_surface_output[0], self.local_aoa_vec[0], self.wing_angle[0])
         for i in range(1, self.n_timestamps):
             X_curr = self.predict_single_wing_segment_feature_mat(
-                self.local_airspeed_mat[i, :], self.control_surface_output[i], self.local_aoa_vec[i], self.wing_angle[i])
-            X_aero = np.vstack((X_aero, X_curr))
-        F_aero_force_pred = X_aero @ aero_force_coef
+                self.qs_vec[i], self.control_surface_output[i], self.local_aoa_vec[i], self.wing_angle[i])
+            self.X_aero = np.vstack((self.X_aero, X_curr))
+        F_aero_force_pred = self.X_aero @ aero_force_coef
         return F_aero_force_pred
+
+    def predict_wing_segment_drag_forces(self, aero_force_coef):
+        F_drag_force_pred = self.X_aero[:, 0:6] @ aero_force_coef[0:6]
+        return F_drag_force_pred
+
+    def predict_wing_segment_lift_forces(self, aero_force_coef):
+        F_lift_force_pred = self.X_aero[:, 6:10] @ aero_force_coef[6:10]
+        return F_lift_force_pred
