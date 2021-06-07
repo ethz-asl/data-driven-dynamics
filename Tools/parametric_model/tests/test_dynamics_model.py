@@ -6,22 +6,28 @@ from _pytest.python import Class
 import pytest
 from src.models import DynamicsModel
 from src.models import ModelConfig
+from src.tools import DataHandler
 from src.tools.math_tools import rmse_between_numpy_arrays
 
 
 def test_transformations(config_file="dynamics_model_test_config.yaml"):
-    # Setup model with reference log
     config = ModelConfig(config_file)
-    model = DynamicsModel(config_dict=config.dynamics_model_config)
 
-    model.loadLog("resources/quadrotor_model.ulg")
+    data_handler = DataHandler(config_file)
+    data_handler.loadLog("resources/quadrotor_model.ulg")
+
+    data_df = data_handler.get_dataframes()
+
+    # Setup model with reference log
+    model = DynamicsModel(config_dict=config.dynamics_model_config)
+    model.load_dataframes(data_df)
 
     # Add gravity vector to inertial accelerations
-    model.data_df["az"] -= 9.81
+    data_df["az"] -= 9.81
 
     # Transform inertial and body matrices to numpy matrices
-    accel_NED_mat = model.data_df[["ax", "ay", "az"]].to_numpy()
-    accel_FRD_mat = model.data_df[[
+    accel_NED_mat = data_df[["ax", "ay", "az"]].to_numpy()
+    accel_FRD_mat = data_df[[
         "accelerometer_m_s2[0]", "accelerometer_m_s2[1]", "accelerometer_m_s2[2]"]].to_numpy()
 
     # Check transform from inertial NED to FRD body frame:
