@@ -95,25 +95,6 @@ class QuadPlaneModel(DynamicsModel):
 
         return X, y
 
-    def estimate_model(self):
-        print("Estimating quad plane model using the following data:")
-        print(self.data_df.columns)
-        self.data_df_len = self.data_df.shape[0]
-        print("resampled data contains ", self.data_df_len, "timestamps.")
-        X, y = self.prepare_regression_matrices()
-
-        self.reg = LinearRegression(fit_intercept=False)
-        self.reg.fit(X, y)
-
-        print("regression complete")
-        metrics_dict = {"R2": float(self.reg.score(X, y))}
-        self.coef_name_list.extend(["intercept"])
-        coef_list = list(self.reg.coef_) + [self.reg.intercept_]
-        self.generate_model_dict(coef_list, metrics_dict)
-        self.save_result_dict_to_yaml(file_name="quad_plane_model")
-
-        return
-
     def plot_model_predicitons(self):
 
         y_forces_pred = self.reg.predict(self.X_forces)

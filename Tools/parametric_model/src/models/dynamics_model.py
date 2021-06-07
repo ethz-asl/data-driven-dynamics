@@ -6,13 +6,14 @@ __license__ = "BSD 3"
 export to a sitl gazebo model by providing a unified interface for all models. """
 
 from progress.bar import Bar
-from .rotor_models import RotorModel, BiDirectionalRotorModel, TiltingRotorModel, ChangingAxisRotorModel
 import pandas as pd
 import math
 import time
 import yaml
 import numpy as np
+from sklearn.linear_model import LinearRegression
 
+from .rotor_models import RotorModel, BiDirectionalRotorModel, TiltingRotorModel, ChangingAxisRotorModel
 from src.tools.ulog_tools import load_ulog, pandas_from_topic
 from src.tools.dataframe_tools import compute_flight_time, resample_dataframe_list
 from src.tools.quat_utils import quaternion_to_rotation_matrix
@@ -41,77 +42,6 @@ class DynamicsModel():
         # used to generate a dict with the resulting coefficients later on.
         self.coef_name_list = []
         self.result_dict = {}
-    def loadLog(self, rel_data_path):
-        self.rel_data_path = rel_data_path
-
-        if (rel_data_path[-4:] == ".csv"):
-            self.data_df = pd.read_csv(rel_data_path, index_col=0)
-            for req_topic in self.req_dataframe_topic_list:
-                assert(
-                    req_topic in self.data_df), ("missing topic in loaded csv: " + str(req_topic))
-
-        elif (rel_data_path[-4:] == ".ulg"):
-
-            self.ulog = load_ulog(rel_data_path)
-            self.check_ulog_for_req_topics()
-
-            self.compute_resampled_dataframe()
-
-        else:
-            print("ERROR: file extension needs to be either csv or ulg:")
-            print(rel_data_path)
-            exit(1)
-
-        self.n_samples = self.data_df.shape[0]
-        self.quaternion_df = self.data_df[["q0", "q1", "q2", "q3"]]
-        self.q_mat = self.quaternion_df.to_numpy()
-
-    def check_ulog_for_req_topics(self):
-        for topic_type in self.req_topics_dict.keys():
-            try:
-                topic_type_data = self.ulog.get_dataset(topic_type)
-
-            except:
-                print("Missing topic type: ", topic_type)
-                exit(1)
-
-            topic_type_data = topic_type_data.data
-            ulog_topic_list = self.req_topics_dict[topic_type]["ulog_name"]
-            for topic_index in range(len(ulog_topic_list)):
-                try:
-                    topic = ulog_topic_list[topic_index]
-                    topic_data = (topic_type_data[topic])
-                except:
-                    print("Missing topic: ", topic_type,
-                          ulog_topic_list[topic_index])
-                    exit(1)
-
-        return
-
-    def compute_resampled_dataframe(self):
-        print("Starting data resampling of topic types: ",
-              self.req_topics_dict.keys())
-        # setup object to crop dataframes for flight data
-        fts = compute_flight_time(self.ulog)
-        df_list = []
-        topic_type_bar = Bar('Resampling', max=len(
-            self.req_topics_dict.keys()))
-
-        # getting data
-        for topic_type in self.req_topics_dict.keys():
-            topic_dict = self.req_topics_dict[topic_type]
-            curr_df = pandas_from_topic(self.ulog, [topic_type])
-            curr_df = curr_df[topic_dict["ulog_name"]]
-            if "dataframe_name" in topic_dict.keys():
-                assert (len(topic_dict["dataframe_name"]) == len(topic_dict["ulog_name"])), (
-                    'could not rename topics of type', topic_type, "due to rename list not having an entry for every topic.")
-                curr_df.columns = topic_dict["dataframe_name"]
-            df_list.append(curr_df)
-            topic_type_bar.next()
-        topic_type_bar.finish()
-        resampled_df = resample_dataframe_list(
-            df_list, fts, self.resample_freq)
-        self.data_df = resampled_df.dropna()
 
     def get_topic_list_from_topic_type(self, topic_type):
         topic_type_name_dict = self.req_topics_dict[topic_type]
@@ -335,7 +265,7 @@ class DynamicsModel():
         coefficient_list = [float(coef) for coef in coefficient_list]
         coef_dict = dict(zip(self.coef_name_list, coefficient_list))
         self.result_dict = {"coefficients": coef_dict,
-                            "metrics": metrics_dict, "log_file": self.rel_data_path,
+                            "metrics": metrics_dict, 
                             "numper of samples": self.n_samples}
 
     def save_result_dict_to_yaml(self, file_name="model_parameters", result_path="resources/model_results/"):
@@ -346,3 +276,28 @@ class DynamicsModel():
         with open(file_path, 'w') as outfile:
             print(yaml.dump(self.result_dict, default_flow_style=False))
             yaml.dump(self.result_dict, outfile, default_flow_style=False)
+
+    def estimate_model(self, data_frames):
+        self.data_df = data_frames
+
+        self.n_samples = self.data_df.shape[0]
+        self.quaternion_df = self.data_df[["q0", "q1", "q2", "q3"]]
+        self.q_mat = self.quaternion_df.to_numpy()
+
+        print("Estimating quad plane model using the following data:")
+        print(self.data_df.columns)
+        self.data_df_len = self.data_df.shape[0]
+        print("resampled data contains ", self.data_df_len, "timestamps.")
+        X, y = self.prepare_regression_matrices()
+
+        self.reg = LinearRegression(fit_intercept=False)
+        self.reg.fit(X, y)
+
+        print("regression complete")
+        metrics_dict = {"R2": float(self.reg.score(X, y))}
+        self.coef_name_list.extend(["intercept"])
+        coef_list = list(self.reg.coef_) + [self.reg.intercept_]
+        self.generate_model_dict(coef_list, metrics_dict)
+        self.save_result_dict_to_yaml(file_name="quad_plane_model")
+
+        return

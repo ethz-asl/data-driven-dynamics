@@ -50,7 +50,7 @@ class QuadRotorModel(DynamicsModel):
         assert (self.estimate_moments ==
                 False), "Estimation of moments is not yet implemented in DeltaQuadPlaneModel. Disable in config file to estimate forces."
 
-    def prepare_regression_mat(self):
+    def prepare_regression_matrices(self):
 
         if "V_air_body_x" not in self.data_df:
             self.normalize_actuators()
@@ -74,21 +74,10 @@ class QuadRotorModel(DynamicsModel):
             self.rotor_forces_coef_list + aero_coef_list)
         X = np.hstack((self.X_rotor_forces, X_aero))
         print("datapoints for self.regression: ", self.data_df.shape[0])
+        # Hacking the quadrotor model to stay consistent with other models
+        self.X = X
+        self.y = y
         return X, y
-
-    def estimate_model(self):
-        print("Estimating quad plane model using the following data:")
-        print(self.data_df.columns)
-        self.X, self.y = self.prepare_regression_mat()
-        self.reg = LinearRegression(fit_intercept=False)
-        self.reg.fit(self.X, self.y)
-        print("regression complete")
-        metrics_dict = {"R2": float(self.reg.score(self.X, self.y))}
-        self.coef_name_list.extend(["intercept"])
-        coef_list = list(self.reg.coef_) + [self.reg.intercept_]
-        self.generate_model_dict(coef_list, metrics_dict)
-        self.save_result_dict_to_yaml(file_name="quadrotor_model")
-        return
 
     def plot_model_predicitons(self):
 
