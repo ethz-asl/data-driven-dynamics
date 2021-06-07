@@ -6,6 +6,7 @@ import os
 import sys
 import inspect
 from src.models import QuadRotorModel, QuadPlaneModel, DeltaQuadPlaneModel, TiltWingModel
+from src.tools import DataHandler
 import argparse
 
 
@@ -25,6 +26,13 @@ def start_model_estimation(arg_list):
     data_selection_enabled = arg_list.data_selection
     print("Visual Data selection enabled: ", data_selection_enabled)
 
+    data_handler = DataHandler()
+    data_handler.loadLog(arg_list.log_path)
+    if data_selection_enabled:
+        data_handler.visually_select_data()
+
+    data_df = data_handler.get_dataframes()
+
     if (model_name == "quadrotor_model"):
         model = QuadRotorModel()
 
@@ -39,12 +47,7 @@ def start_model_estimation(arg_list):
     else:
         print("no valid model selected")
     
-    model.loadLog(arg_list.log_path)
-
-    if data_selection_enabled:
-        model.visually_select_data()
-
-    model.estimate_model()
+    model.estimate_model(data_df)
     model.plot_model_predicitons()
 
     return
