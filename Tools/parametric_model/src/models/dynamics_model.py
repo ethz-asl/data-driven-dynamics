@@ -277,12 +277,14 @@ class DynamicsModel():
             print(yaml.dump(self.result_dict, default_flow_style=False))
             yaml.dump(self.result_dict, outfile, default_flow_style=False)
 
-    def estimate_model(self, data_frames):
+    def load_dataframes(self, data_frames):
         self.data_df = data_frames
 
         self.n_samples = self.data_df.shape[0]
         self.quaternion_df = self.data_df[["q0", "q1", "q2", "q3"]]
         self.q_mat = self.quaternion_df.to_numpy()
+
+    def estimate_model(self):
 
         print("Estimating quad plane model using the following data:")
         print(self.data_df.columns)

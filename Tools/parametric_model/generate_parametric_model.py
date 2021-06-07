@@ -46,8 +46,8 @@ def start_model_estimation(arg_list):
         model = TiltWingModel()
     else:
         print("no valid model selected")
-    
-    model.estimate_model(data_df)
+    model.load_dataframes(data_df)
+    model.estimate_model()
     model.plot_model_predicitons()
 
     return
