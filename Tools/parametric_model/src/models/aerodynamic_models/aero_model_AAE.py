@@ -77,6 +77,13 @@ class AeroModelAAE():
         X_wing = np.hstack((F_xz_body_frame, F_y_body_frame))
         return X_wing
 
+    def compute_dynamic_pressure(self, v_airspeed_mat):
+        self.n_timestamps = v_airspeed_mat.shape[0]
+        self.qs_vec = np.zeros(self.n_timestamps)
+        for i in range(self.n_timestamps):
+            self.qs_vec[i] = (v_airspeed_mat[i, 0]**2 +
+                              v_airspeed_mat[i, 2]**2)
+
     def compute_control_surface_feature(self, v_airspeed, angle_of_attack, flap_commands):
         """
         Model description:

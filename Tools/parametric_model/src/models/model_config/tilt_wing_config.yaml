@@ -9,32 +9,32 @@ model_file:
 model_config:
   optimzation_parameters:
     initial_coefficients:
-      c_d_fuselage_x: 0.0
-      c_d_fuselage_y: 0.0
-      c_d_fuselage_z: 0.0
-      c_d_wing_xz_cs: 0.0
-      c_d_wing_xz_lin: -0.5289940695343268
-      c_d_wing_xz_offset: 0.08669501854636597
-      c_d_wing_xz_quad: 0.705046568729462
-      c_d_wing_xz_stall_90_deg: 0.2948746357918104
-      c_d_wing_xz_stall_min: 0.0031835042508481237
-      c_l_wing_xz_cs: 1.152234767681148
-      c_l_wing_xz_lin: 0.11998241372644713
-      c_l_wing_xz_offset: 0.19104326145492445
-      c_l_wing_xz_stall: 0.4059865947329797
-      elevator_c_l: 0.0
-      tail_rot_drag_lin: 0.1764936269154873
-      tail_rot_thrust_lin: 0.0
-      tail_rot_thrust_quad: 2822.4483964609017
-      wing_rot_drag_lin: 0.6882983806470406
-      wing_rot_thrust_lin: -54.149001755091035
-      wing_rot_thrust_quad: 1513.730237721691
+      c_d_fuselage_x: 5.960860986549141e-05
+      c_d_fuselage_y: 5.9589891142367027e-05
+      c_d_fuselage_z: 5.96086098654914e-05
+      c_d_wing_xz_cs: 5.960860986549141e-05
+      c_d_wing_xz_lin: 0.0
+      c_d_wing_xz_offset: 5.960860986549141e-05
+      c_d_wing_xz_quad: 5.960860986549141e-05
+      c_d_wing_xz_stall_90_deg: 0.22726478888225798
+      c_d_wing_xz_stall_min: 5.96086098654914e-05
+      c_l_wing_xz_cs: 9.999940391390135
+      c_l_wing_xz_lin: 0.10496666979914424
+      c_l_wing_xz_offset: 0.19516500398326345
+      c_l_wing_xz_stall: 0.4288447276965395
+      elevator_c_l: 5.9608609865491396e-05
+      tail_rot_drag_lin: 0.3751725517192227
+      tail_rot_thrust_lin: -4.9665677688685435e-05
+      tail_rot_thrust_quad: 2646.8027301824836
+      wing_rot_drag_lin: 0.6356520284533661
+      wing_rot_thrust_lin: -23.993477183884284
+      wing_rot_thrust_quad: 1519.2372221651042
     coefficient_bounds:
       c_d_fuselage_x: !!python/tuple [0, 10]
       c_d_fuselage_y: !!python/tuple [0, 10]
       c_d_fuselage_z: !!python/tuple [0, 10]
       c_d_wing_xz_cs: !!python/tuple [0, 10]
-      c_d_wing_xz_lin: !!python/tuple [-10, 10]
+      c_d_wing_xz_lin: !!python/tuple [0, 0]
       c_d_wing_xz_offset: !!python/tuple [0, 10]
       c_d_wing_xz_quad: !!python/tuple [0, 10]
       c_d_wing_xz_stall_90_deg: !!python/tuple [0, 10]
@@ -185,7 +185,7 @@ model_config:
 
   aerodynamics:
     stall_angle_deg: 15
-    sig_scale_factor: 30
+    sig_scale_factor: 50
     main_wing_sections:
       - wing_right_right:
         rotor: "u0"
@@ -196,7 +196,7 @@ model_config:
           - 0
           - 0
         stall_angle_deg: 15
-        sig_scale_factor: 30
+        sig_scale_factor: 50
         description: "wing segment right, right"
 
       - wing_right_left:
@@ -208,7 +208,7 @@ model_config:
           - 0
           - 0
         stall_angle_deg: 15
-        sig_scale_factor: 30
+        sig_scale_factor: 50
         description: "wing segment right, left"
 
       - wing_left_right:
@@ -220,7 +220,7 @@ model_config:
           - 0
           - 0
         stall_angle_deg: 15
-        sig_scale_factor: 30
+        sig_scale_factor: 50
         description: "wing segment left, right"
 
       - wing_left_left:
@@ -232,7 +232,7 @@ model_config:
           - 0
           - 0
         stall_angle_deg: 15
-        sig_scale_factor: 30
+        sig_scale_factor: 50
         description: "wing segment left, left"
 
 dynamics_model_config:

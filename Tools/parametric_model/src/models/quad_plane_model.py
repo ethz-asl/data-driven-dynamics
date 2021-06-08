@@ -13,7 +13,7 @@ from .dynamics_model import DynamicsModel
 from .rotor_models import RotorModel
 from sklearn.linear_model import LinearRegression
 from scipy.linalg import block_diag
-from .model_plots import model_plots, quad_plane_model_plots
+from .model_plots import model_plots, quad_plane_model_plots, aerodynamics_plots
 from .model_config import ModelConfig
 from .aerodynamic_models import AeroModelAAE
 import matplotlib.pyplot as plt
@@ -46,21 +46,23 @@ class QuadPlaneModel(DynamicsModel):
 
         if (self.estimate_forces):
             # Aerodynamics features
-            airspeed_mat = self.data_df[["V_air_body_x",
-                                        "V_air_body_y", "V_air_body_z"]].to_numpy()
+            self.airspeed_mat = self.data_df[["V_air_body_x",
+                                              "V_air_body_y", "V_air_body_z"]].to_numpy()
             flap_commands = self.data_df[["u5", "u6", "u7"]].to_numpy()
-            aoa_mat = self.data_df[["AoA"]].to_numpy()
-            aero_model = AeroModelAAE(
+            self.aoa_mat = self.data_df[["AoA"]].to_numpy()
+            self.aero_model = AeroModelAAE(
                 stall_angle=self.stall_angle, sig_scale_fac=self.sig_scale_fac)
-            X_aero_forces, aero_coef_list = aero_model.compute_aero_features(
-                airspeed_mat, aoa_mat, flap_commands)
-            self.X_forces = np.hstack((self.X_rotor_forces, X_aero_forces))
+            self.aero_model.compute_dynamic_pressure(self.airspeed_mat)
+            self.X_aero_forces, aero_coef_list = self.aero_model.compute_aero_features(
+                self.airspeed_mat, self.aoa_mat, flap_commands)
+            self.X_forces = np.hstack(
+                (self.X_rotor_forces, self.X_aero_forces))
             X = self.X_forces
 
             # Accelerations
-            accel_body_mat = self.data_df[[
+            self.accel_body_mat = self.data_df[[
                 "accelerometer_m_s2[0]", "accelerometer_m_s2[1]", "accelerometer_m_s2[2]"]].to_numpy()
-            self.y_forces = accel_body_mat.flatten()
+            self.y_forces = self.accel_body_mat.flatten()
             y = self.y_forces
 
             # Set coefficients
@@ -100,29 +102,46 @@ class QuadPlaneModel(DynamicsModel):
         print(self.data_df.columns)
         self.data_df_len = self.data_df.shape[0]
         print("resampled data contains ", self.data_df_len, "timestamps.")
-        X, y = self.prepare_regression_matrices()
+        self.X, self.y_accel = self.prepare_regression_matrices()
 
         self.reg = LinearRegression(fit_intercept=False)
-        self.reg.fit(X, y)
+        self.reg.fit(self.X, self.y_accel)
 
         print("regression complete")
-        metrics_dict = {"R2": float(self.reg.score(X, y))}
+        metrics_dict = {"R2": float(self.reg.score(self.X, self.y_accel))}
         self.coef_name_list.extend(["intercept"])
-        coef_list = list(self.reg.coef_) + [self.reg.intercept_]
-        self.generate_model_dict(coef_list, metrics_dict)
+        self.coef_list = list(self.reg.coef_) + [self.reg.intercept_]
+        self.generate_model_dict(self.coef_list, metrics_dict)
         self.save_result_dict_to_yaml(file_name="quad_plane_model")
+        print(self.coef_list)
+        print(self.coef_name_list)
 
         return
 
     def plot_model_predicitons(self):
 
         y_forces_pred = self.reg.predict(self.X_forces)
-        y_moments_pred = self.reg.predict(self.X_moments)
+        # y_moments_pred = self.reg.predict(self.X_moments)
+
+        self.lift_coef_data = (self.y_accel -
+                               self.X_rotor_forces @ self.coef_list[0:6] -
+                               self.X_aero_forces[:, 0:5] @ self.coef_list[6:11] -
+                               self.X_aero_forces[:, 9] - self.coef_list[14]).reshape(int(self.y_accel.shape[0]/3), 3)
+        self.lift_coef_data = self.project_data(
+            self.lift_coef_data, np.array([0, 0, -1]))
+        self.lift_coef_data = self.lift_coef_data / self.aero_model.qs_vec
+
+        c_l_pred_dict = {"c_l_offset": self.result_dict["coefficients"]["c_l_wing_xz_offset"],
+                         "c_l_lin": self.result_dict["coefficients"]["c_l_wing_xz_lin"],
+                         "c_l_stall": self.result_dict["coefficients"]["c_l_wing_xz_stall"]}
+
+        aerodynamics_plots.plot_lift_prediction_and_underlying_data(
+            c_l_pred_dict, self.lift_coef_data, self.aoa_mat)
 
         model_plots.plot_accel_predeictions(
             self.y_forces, y_forces_pred, self.data_df["timestamp"])
-        model_plots.plot_angular_accel_predeictions(
-            self.y_moments, y_moments_pred, self.data_df["timestamp"])
+        # model_plots.plot_angular_accel_predeictions(
+        #     self.y_moments, y_moments_pred, self.data_df["timestamp"])
         model_plots.plot_az_and_collective_input(
             self.y_forces, y_forces_pred, self.data_df[["u0", "u1", "u2", "u3"]],  self.data_df["timestamp"])
         model_plots.plot_accel_and_airspeed_in_z_direction(

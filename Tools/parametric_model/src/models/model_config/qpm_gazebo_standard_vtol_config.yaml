@@ -95,7 +95,7 @@ model_config:
 
 dynamics_model_config:
   estimate_forces: True
-  estimate_moments: True
+  estimate_moments: False
   resample_freq: 100.0
   data:
     required_ulog_topics:

@@ -350,3 +350,20 @@ class DynamicsModel():
 
         file_path = result_path + file_name + "_" + timestr + ".csv"
         self.data_df.to_csv(file_path, index=True)
+
+    # should be moved to a separate function later
+    def project_data(self, data, axis):
+        projected_data = np.zeros(data.shape[0])
+        if axis.shape == (3,):
+            for i in range(data.shape[0]):
+                projected_data[i] = np.vdot(
+                    data[i, :], axis)
+        elif axis.shape == data.shape:
+            for i in range(data.shape[0]):
+                projected_data[i] = np.vdot(
+                    data[i, :], axis[i, :])
+        else:
+            print("Not implemented yet.")
+            raise NotImplementedError
+
+        return projected_data

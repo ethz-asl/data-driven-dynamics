@@ -95,8 +95,8 @@ def plot_lift_prediction_and_underlying_data(c_l_pred_dict, c_l_data, aoa_data, 
             c_l_pred_dict["c_l_lin"] * aoa_rad[i] + \
             stall_region * math.sin(2*aoa_rad[i]) * c_l_pred_dict["c_l_stall"]
 
-    ax.plot(aoa_data_deg, c_l_data, '.',
-            label="underlying data", color='grey')
+    ax.plot(aoa_data_deg, c_l_data, 'o',
+            label="underlying data", color='grey', alpha=0.25)
     ax.plot(aoa_deg, c_l_vec, label="prediction")
 
     ax.set_title("Lift coefficient over angle of attack [deg]")
@@ -122,8 +122,8 @@ def plot_drag_prediction_and_underlying_data(c_d_pred_dict, c_d_data, aoa_data, 
             (1 - math.sin(aoa_rad[i])**2) * c_d_pred_dict["c_d_stall_min"] + stall_region * \
             math.sin(aoa_rad[i])**2 * c_d_pred_dict["c_d_stall_max"]
 
-    ax.plot(aoa_data_deg, c_d_data, '.',
-            label="underlying data", color='grey')
+    ax.plot(aoa_data_deg, c_d_data, 'o',
+            label="underlying data", color='grey', alpha=0.25)
     ax.plot(aoa_deg, c_d_vec, label="prediction")
 
     ax.set_title("Drag coefficient over angle of attack [deg]")

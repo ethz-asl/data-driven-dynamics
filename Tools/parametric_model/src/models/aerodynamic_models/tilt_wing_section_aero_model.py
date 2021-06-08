@@ -93,6 +93,18 @@ class TiltWingSection():
                 (self.local_airspeed_mat[i, 0]**2 +
                  self.local_airspeed_mat[i, 2]**2)
 
+    def compute_aero_frame(self):
+        self.aero_frame_angle = self.wing_angle + self.local_aoa_vec
+        self.aero_frame_x_mat = np.zeros((self.n_timestamps, 3))
+        self.aero_frame_z_mat = np.zeros((self.n_timestamps, 3))
+        print(Rotation.from_rotvec(
+            [0, (-0.2), 0]).as_matrix())
+        for i in range(self.n_timestamps):
+            R_aero_to_body = Rotation.from_rotvec(
+                [0, (-self.aero_frame_angle[i]), 0]).as_matrix()
+            self.aero_frame_x_mat = R_aero_to_body[:, 0].flatten()
+            self.aero_frame_z_mat = R_aero_to_body[:, 2].flatten()
+
     def predict_single_wing_segment_feature_mat(self, qs, control_surface_input, angle_of_attack, wing_angle):
         """
         Model description:

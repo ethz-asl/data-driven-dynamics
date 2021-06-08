@@ -14,7 +14,7 @@ import copy
 from .dynamics_model import DynamicsModel
 from scipy.optimize import minimize
 from scipy.linalg import block_diag
-from .model_plots import model_plots, aerodynamics_plots, rotor_plots
+from .model_plots import model_plots, aerodynamics_plots, rotor_plots, tilt_wing_plots
 from .model_config import ModelConfig
 from .aerodynamic_models import TiltWingSection, FuselageDragModel, ElevatorModel
 from sklearn.metrics import r2_score
@@ -99,6 +99,8 @@ class TiltWingModel(DynamicsModel):
         rotor_coef = np.array(x[14:20]).reshape(6, 1)
         self.F_aero_lift_pred = np.zeros((self.y_forces.shape[0], 1))
         self.F_aero_drag_pred = np.zeros((self.y_forces.shape[0], 1))
+        self.wing_airframe_x_mat = np.zeros((int(self.y_forces.shape[0]/3), 3))
+        self.wing_airframe_z_mat = np.zeros((int(self.y_forces.shape[0]/3), 3))
 
         self.average_wing_qs = np.zeros(self.data_df.shape[0])
         self.average_wing_aoa = np.zeros(self.data_df.shape[0])
@@ -111,11 +113,16 @@ class TiltWingModel(DynamicsModel):
                 wing_coef)
             self.F_aero_drag_pred = np.add(
                 self.F_aero_drag_pred, F_aero_segment_drag_pred)
+            wing_section.compute_aero_frame()
+            self.wing_airframe_x_mat = self.wing_airframe_x_mat + wing_section.aero_frame_x_mat
+            self.wing_airframe_z_mat = self.wing_airframe_z_mat + wing_section.aero_frame_z_mat
             self.average_wing_qs = self.average_wing_qs + wing_section.qs_vec
             self.average_wing_aoa = self.average_wing_aoa + wing_section.local_aoa_vec
             self.tilt_mat = wing_section.rotor.rotor_axis_mat
         self.average_wing_qs = self.average_wing_qs / 4
         self.average_wing_aoa = self.average_wing_aoa / 4
+        self.wing_airframe_x_mat = self.wing_airframe_x_mat / 4
+        self.wing_airframe_z_mat = self.wing_airframe_z_mat / 4
 
         # collective rotor thrust and drag
         self.F_main_rotor_thrust_pred = np.zeros(self.y_forces.shape[0])
@@ -235,7 +242,6 @@ class TiltWingModel(DynamicsModel):
         # self.generate_model_dict(self.x_opt, model_dict)
         # self.save_result_dict_to_yaml(file_name="tiltwing_model")
 
-        # self.objective_influence()
         return
 
     def plot_model_predicitons(self):
@@ -252,7 +258,7 @@ class TiltWingModel(DynamicsModel):
         model_plots.plot_airspeed_and_AoA(
             self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "AoA"]], self.data_df["timestamp"])
         u_tilt_vec = self.data_df["u_tilt"].to_numpy()*90
-        model_plots.plot_accel_predeictions_and_tilt(
+        tilt_wing_plots.plot_accel_predeictions_and_tilt(
             self.y_accel, self.y_accel_pred, self.data_df["timestamp"], u_tilt_vec)
         # model_plots.plot_accel_and_airspeed_in_z_direction(
         #     self.y_accel, self.y_accel_pred, self.data_df["V_air_body_z"], self.data_df["timestamp"])
@@ -263,22 +269,6 @@ class TiltWingModel(DynamicsModel):
         plt.show()
         return
 
-    def project_data(self, data, axis):
-        projected_data = np.zeros(data.shape[0])
-        if axis.shape == (3,):
-            for i in range(data.shape[0]):
-                projected_data[i] = np.vdot(
-                    data[i, :], axis)
-        elif axis.shape == data.shape:
-            for i in range(data.shape[0]):
-                projected_data[i] = np.vdot(
-                    data[i, :], axis[i, :])
-        else:
-            print("Not implemented yet.")
-            raise NotImplementedError
-
-        return projected_data
-
     def compute_coefficient_data(self):
         # lift coefficient data
         lift_force_data = (self.y_forces.flatten() - self.F_rotor_pred.flatten() -
@@ -286,9 +276,8 @@ class TiltWingModel(DynamicsModel):
             int(self.y_forces.shape[0]/3), 3)
         self.lift_coef_data = np.zeros(lift_force_data.shape[0])
         for i in range(lift_force_data.shape[0]):
-            e_z_A = np.array([- self.tilt_mat[i, 2], 0, self.tilt_mat[i, 0]])
             self.lift_coef_data[i] = np.vdot(
-                lift_force_data[i, :], -e_z_A) / (4 * self.average_wing_qs[i])
+                lift_force_data[i, :], -self.wing_airframe_z_mat[i, :]) / (4*self.average_wing_qs[i])
 
         # drag coefficient data
         drag_force_data = (self.y_forces.flatten() - self.F_rotor_pred.flatten() -
@@ -297,14 +286,14 @@ class TiltWingModel(DynamicsModel):
         self.drag_coef_data = np.zeros(drag_force_data.shape[0])
         for i in range(drag_force_data.shape[0]):
             self.drag_coef_data[i] = np.vdot(
-                drag_force_data[i, :], -self.tilt_mat[i, :]) / (self.average_wing_qs[i])
+                drag_force_data[i, :], -self.wing_airframe_x_mat[i, :]) / (4*self.average_wing_qs[i])
 
         # Tail Rotor Thrust Data
         tail_thrust_force_data = (self.y_forces.flatten() - self.F_fuselage_pred.flatten() - self.F_elevator_pred.flatten() -
                                   self.F_aero_pred.flatten() - self.F_main_rotor_thrust_pred.flatten() - self.F_main_rotor_drag_pred.flatten() -
                                   self.F_tail_rotor_drag_pred.flatten()).reshape(int(self.y_forces.shape[0]/3), 3)
         self.tail_thrust_force_data_proj = self.project_data(
-            tail_thrust_force_data, np.array([0, 0, -1])) / 4
+            tail_thrust_force_data, np.array([0, 0, -1]))
 
     def plot_parameter_analysis_curves(self):
         self.predict_separated_forces(self.x_opt)
@@ -324,16 +313,26 @@ class TiltWingModel(DynamicsModel):
                          "c_d_stall_min": self.x_opt_dict["c_d_wing_xz_stall_min"],
                          "c_d_stall_max": self.x_opt_dict["c_d_wing_xz_stall_90_deg"]}
 
-        aerodynamics_plots.plot_aoa_hist(self.average_wing_aoa)
-        # aerodynamics_plots.plot_lift_curve2(c_l_pred_dict, c_l_exp_dict)
-        # aerodynamics_plots.plot_lift_prediction_and_underlying_data(
-        #     c_l_pred_dict, self.lift_coef_data, self.average_wing_aoa)
-        # aerodynamics_plots.plot_drag_prediction_and_underlying_data(
-        #     c_d_pred_dict, self.drag_coef_data, self.average_wing_aoa)
+        # aerodynamics_plots.plot_aoa_hist(self.average_wing_aoa)
+        aerodynamics_plots.plot_lift_curve2(c_l_pred_dict, c_l_exp_dict)
+        aerodynamics_plots.plot_lift_prediction_and_underlying_data(
+            c_l_pred_dict, self.lift_coef_data, self.average_wing_aoa)
+        aerodynamics_plots.plot_drag_prediction_and_underlying_data(
+            c_d_pred_dict, self.drag_coef_data, self.average_wing_aoa)
 
         tail_rot_coef_dict = {"rot_thrust_quad": self.x_opt_dict["tail_rot_thrust_quad"],
                               "rot_thrust_lin": self.x_opt_dict["tail_rot_thrust_lin"],
                               "rot_drag_lin": self.x_opt_dict["tail_rot_drag_lin"], }
 
+        wing_rot_coef_dict = {"rot_thrust_quad": self.x_opt_dict["wing_rot_thrust_quad"],
+                              "rot_thrust_lin": self.x_opt_dict["wing_rot_thrust_lin"],
+                              "rot_drag_lin": self.x_opt_dict["wing_rot_drag_lin"], }
+
         rotor_plots.plot_thrust_prediction_and_underlying_data(tail_rot_coef_dict, self.rotor_dict["tail_"]["u4"],
                                                                self.tail_thrust_force_data_proj)
+
+        rotor_plots.plot_rotor_trust_3d(
+            tail_rot_coef_dict, self.rotor_dict["tail_"]["u4"])
+
+        rotor_plots.plot_rotor_trust_3d(
+            wing_rot_coef_dict, self.rotor_dict["wing_"]["u1"])

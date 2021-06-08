@@ -9,9 +9,9 @@ import matplotlib.pyplot as plt
 
 def cropped_sym_sigmoid(x, x_offset=0, scale_fac=30):
     y = sym_sigmoid(x, x_offset, scale_fac)
-    if y < 0.025:
+    if y < 0.001:
         y = 0
-    elif y > 0.975:
+    elif y > 0.999:
         y = 1
     return y
 
@@ -24,7 +24,7 @@ def sym_sigmoid(x, x_offset=0, scale_fac=30):
     return y
 
 
-def plot_sym_sigmoid(scale_fac, x_offset=0.35, x_range=90):
+def plot_sym_sigmoid(scale_fac, x_offset=0.26, x_range=90):
     N = x_range*2+1
     x = np.linspace(-x_range, x_range, N)
     x_rad = x*math.pi/180.0
@@ -45,4 +45,4 @@ def rmse_between_numpy_arrays(np_array1, np_array2):
 
 if __name__ == "__main__":
     # run this script to find suitable values for the scale_factor of the symmetric sigmoid function
-    plot_sym_sigmoid(30, x_range=180)
+    plot_sym_sigmoid(50, x_range=35)
