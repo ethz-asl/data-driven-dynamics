@@ -249,17 +249,26 @@ class TiltWingModel(DynamicsModel):
         self.y_accel_pred = self.predict_forces(self.x_opt)/self.mass
 
         wing_local_airspeed = self.wing_sections[0].local_airspeed_mat
-        self.plot_parameter_analysis_curves()
+        # self.plot_parameter_analysis_curves()
+
+        fig, ax = plt.subplots()
+        ax.plot(self.data_df["timestamp"].to_numpy(),
+                180/math.pi*self.data_df[["AoA"]].to_numpy(), label="aircraft aoa")
+        ax.plot(self.data_df["timestamp"].to_numpy(),
+                180/math.pi*self.wing_sections[0].static_aoa_vec.reshape(wing_local_airspeed.shape[0], 1), label="wing aoa")
+        ax.plot(self.data_df["timestamp"].to_numpy(),
+                180/math.pi*self.wing_sections[0].local_aoa_vec.reshape(wing_local_airspeed.shape[0], 1), label="wing aoa with propwash")
+        plt.legend()
 
         # model_plots.plot_airspeed_and_AoA(
         #     np.hstack((self.wing_sections[0].static_local_airspeed_mat, self.wing_sections[0].local_aoa_vec.reshape(wing_local_airspeed.shape[0], 1))), self.data_df["timestamp"])
-        model_plots.plot_airspeed_and_AoA(
-            np.hstack((self.wing_sections[0].local_airspeed_mat, self.wing_sections[0].local_aoa_vec.reshape(wing_local_airspeed.shape[0], 1))), self.data_df["timestamp"])
-        model_plots.plot_airspeed_and_AoA(
-            self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "AoA"]], self.data_df["timestamp"])
-        u_tilt_vec = self.data_df["u_tilt"].to_numpy()*90
-        tilt_wing_plots.plot_accel_predeictions_and_tilt(
-            self.y_accel, self.y_accel_pred, self.data_df["timestamp"], u_tilt_vec)
+        # model_plots.plot_airspeed_and_AoA(
+        #     np.hstack((self.wing_sections[0].local_airspeed_mat, self.wing_sections[0].local_aoa_vec.reshape(wing_local_airspeed.shape[0], 1))), self.data_df["timestamp"])
+        # model_plots.plot_airspeed_and_AoA(
+        #     self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "AoA"]], self.data_df["timestamp"])
+        # u_tilt_vec = self.data_df["u_tilt"].to_numpy()*90
+        # tilt_wing_plots.plot_accel_predeictions_and_tilt(
+        #     self.y_accel, self.y_accel_pred, self.data_df["timestamp"], u_tilt_vec)
         # model_plots.plot_accel_and_airspeed_in_z_direction(
         #     self.y_accel, self.y_accel_pred, self.data_df["V_air_body_z"], self.data_df["timestamp"])
 

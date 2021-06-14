@@ -32,6 +32,7 @@ def plot_sym_sigmoid(scale_fac, x_offset=0.26, x_range=90):
     for i in range(N):
         y[i] = sym_sigmoid(x_rad[i], x_offset, scale_fac)
     plt.xlabel('Angle of Attack (deg)')
+    plt.ylabel(r'$\sigma \ (\alpha)$')
     plt.plot(x, y)
     plt.show()
 

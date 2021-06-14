@@ -37,13 +37,14 @@ class TiltWingSection():
             self.rotor = rotor
 
         v_airspeed_mat_copy = copy.deepcopy(v_airspeed_mat)
-        self.compute_static_local_airspeed(
-            v_airspeed_mat_copy, angular_vel_mat)
+
         # angle around which the wing frame is tilted. The wing is always tilted around the y axis.
         self.wing_angle = np.zeros(self.n_timestamps)
         for i in range(self.n_timestamps):
             self.wing_angle[i] = math.atan2(
                 self.rotor.rotor_axis_mat[i, 2],   self.rotor.rotor_axis_mat[i, 0])
+        self.compute_static_local_airspeed(
+            v_airspeed_mat_copy, angular_vel_mat)
         self.local_airspeed_mat = np.zeros(
             self.static_local_airspeed_mat.shape)
         self.local_aoa_vec = np.zeros(self.static_local_airspeed_mat.shape[0])
@@ -55,6 +56,7 @@ class TiltWingSection():
 
         if angular_vel_mat is not None:
             self.static_local_airspeed_mat = np.zeros(v_airspeed_mat.shape)
+            self.static_aoa_vec = np.zeros(v_airspeed_mat.shape[0])
 
             assert (v_airspeed_mat.shape ==
                     angular_vel_mat.shape), "RotorModel: v_airspeed_mat and angular_vel_mat differ in size."
@@ -62,9 +64,15 @@ class TiltWingSection():
                 self.static_local_airspeed_mat[i, :] = v_airspeed_mat[i, :] + \
                     np.cross(angular_vel_mat[i, :],
                              self.cp_position.flatten())
+                self.static_aoa_vec[i] = - self.wing_angle[i] + math.atan2(
+                    self.static_local_airspeed_mat[i, 2],   self.static_local_airspeed_mat[i, 0])
 
         else:
             self.static_local_airspeed_mat = v_airspeed_mat
+            self.static_aoa_vec = np.zeros(v_airspeed_mat.shape[0])
+            for i in range(self.n_timestamps):
+                self.static_aoa_vec[i] = - self.wing_angle[i] + math.atan2(
+                    self.static_local_airspeed_mat[i, 2],   self.static_local_airspeed_mat[i, 0])
 
     def update_local_airspeed_and_aoa(self, rotor_thrust_coef):
 

@@ -38,6 +38,8 @@ from .model_plots import model_plots
 from .aerodynamic_models import FuselageDragModel
 from .model_config import ModelConfig
 import matplotlib.pyplot as plt
+import statsmodels.api as sm
+from scipy import stats
 
 
 class QuadRotorModel(DynamicsModel):
@@ -83,6 +85,13 @@ class QuadRotorModel(DynamicsModel):
         self.reg = LinearRegression(fit_intercept=False)
         self.reg.fit(self.X, self.y)
         print("regression complete")
+
+        X2 = sm.add_constant(self.X)
+        est = sm.OLS(self.y, X2)
+        est2 = est.fit()
+        print(self.coef_name_list)
+        print(est2.summary())
+
         metrics_dict = {"R2": float(self.reg.score(self.X, self.y))}
         self.coef_name_list.extend(["intercept"])
         coef_list = list(self.reg.coef_) + [self.reg.intercept_]
