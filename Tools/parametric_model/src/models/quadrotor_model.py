@@ -40,6 +40,8 @@ from .model_config import ModelConfig
 import matplotlib.pyplot as plt
 import statsmodels.api as sm
 from scipy import stats
+import seaborn as sn
+from sklearn.metrics import mean_squared_error
 
 
 class QuadRotorModel(DynamicsModel):
@@ -92,6 +94,15 @@ class QuadRotorModel(DynamicsModel):
         print(self.coef_name_list)
         print(est2.summary())
 
+        import pandas as pd
+        new_coef_name_list = ["c_D_rotor", "c_T1_rotor",
+                              "c_T0_rotor", "c_D_f_x", "c_D_f_y", "c_D_f_z"]
+        X_frame = pd.DataFrame(self.X, columns=new_coef_name_list)
+        covMatrix = X_frame.corr()
+        print(covMatrix.shape)
+        sn.heatmap(covMatrix, annot=True, fmt='g')
+        X_frame = pd.DataFrame(self.X, columns=self.coef_name_list)
+
         metrics_dict = {"R2": float(self.reg.score(self.X, self.y))}
         self.coef_name_list.extend(["intercept"])
         coef_list = list(self.reg.coef_) + [self.reg.intercept_]
@@ -102,11 +113,14 @@ class QuadRotorModel(DynamicsModel):
     def plot_model_predicitons(self):
 
         y_pred = self.reg.predict(self.X)
+        print("RMSE: ", math.sqrt(mean_squared_error(y_pred, self.y)))
 
         model_plots.plot_accel_predeictions(
             self.y, y_pred, self.data_df["timestamp"])
-        model_plots.plot_airspeed_and_AoA(
-            self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "AoA"]], self.data_df["timestamp"])
+        model_plots.plot_actuator_inputs(
+            self.data_df[["u0", "u1", "u2", "u3"]].to_numpy(), self.data_df["timestamp"])
+        model_plots.plot_airspeed(
+            self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z"]], self.data_df["timestamp"])
         plt.show()
         return
 

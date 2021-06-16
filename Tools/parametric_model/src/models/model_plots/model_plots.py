@@ -79,6 +79,54 @@ def plot_angular_accel_predeictions(stacked_acc_vec, stacked_acc_vec_pred, times
     return
 
 
+def plot_actuator_inputs(actuator_mat, timestamp_array):
+    """
+    Input:
+    airspeed_mat: numpy array Matrix of shape (n,4) containing
+    the columns [V_a_x, V_a_y, V_a_z, AoA].
+    timestamp_array: numpy array with n entries of corresponding timestamps.
+    """
+
+    airspeed_mat = np.array(actuator_mat)
+    timestamp_array = np.array(timestamp_array)/1000000
+
+    fig, (ax1) = plt.subplots(1)
+    fig.suptitle('Normalized Actuator Inputs')
+    ax1.plot(timestamp_array, actuator_mat[:, 0], label='u0')
+    ax1.plot(timestamp_array, actuator_mat[:, 1], label='u1')
+    ax1.plot(timestamp_array, actuator_mat[:, 2], label='u2')
+    ax1.plot(timestamp_array, actuator_mat[:, 3], label='u3')
+
+    ax1.set_ylabel('normalized actuator output')
+    ax1.set_xlabel('time [s]')
+    plt.legend()
+    return
+
+
+def plot_airspeed(airspeed_mat, timestamp_array):
+    """
+    Input:
+    airspeed_mat: numpy array Matrix of shape (n,4) containing
+    the columns [V_a_x, V_a_y, V_a_z, AoA].
+    timestamp_array: numpy array with n entries of corresponding timestamps.
+    """
+
+    airspeed_mat = np.array(airspeed_mat)
+    timestamp_array = np.array(timestamp_array)/1000000
+
+    fig, (ax1, ax2, ax3) = plt.subplots(3)
+    fig.suptitle('Airspeed Estimate')
+    ax1.plot(timestamp_array, airspeed_mat[:, 0], label='estimate')
+    ax2.plot(timestamp_array, airspeed_mat[:, 1], label='estimate')
+    ax3.plot(timestamp_array, airspeed_mat[:, 2], label='estimate')
+    ax1.set_ylabel('x [m/s]')
+    ax2.set_ylabel('y [m/s]')
+    ax3.set_ylabel('z [m/s]')
+    ax3.set_xlabel('time [s]')
+    plt.legend()
+    return
+
+
 def plot_airspeed_and_AoA(airspeed_mat, timestamp_array):
     """
     Input:
