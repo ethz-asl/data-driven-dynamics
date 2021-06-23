@@ -23,7 +23,7 @@ import matplotlib.pyplot as plt
 
 
 class QuadPlaneModel(DynamicsModel):
-    def __init__(self, config_file="qpm_gazebo_standard_vtol_config.yaml"):
+    def __init__(self, config_file):
         self.config = ModelConfig(config_file)
         super(QuadPlaneModel, self).__init__(
             config_dict=self.config.dynamics_model_config)

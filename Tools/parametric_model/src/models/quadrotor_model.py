@@ -41,7 +41,7 @@ import matplotlib.pyplot as plt
 
 
 class QuadRotorModel(DynamicsModel):
-    def __init__(self, config_file="sqrm_gazebo_standart_config.yaml"):
+    def __init__(self, config_file):
         self.config = ModelConfig(config_file)
         super(QuadRotorModel, self).__init__(
             config_dict=self.config.dynamics_model_config)

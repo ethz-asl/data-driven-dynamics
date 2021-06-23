@@ -25,8 +25,9 @@ def start_model_estimation(arg_list):
     model_name = arg_list.model
     data_selection_enabled = arg_list.data_selection
     print("Visual Data selection enabled: ", data_selection_enabled)
+    config_file = arg_list.config
 
-    data_handler = DataHandler()
+    data_handler = DataHandler(config_file)
     data_handler.loadLog(arg_list.log_path)
     if data_selection_enabled:
         data_handler.visually_select_data()
@@ -34,16 +35,16 @@ def start_model_estimation(arg_list):
     data_df = data_handler.get_dataframes()
 
     if (model_name == "quadrotor_model"):
-        model = QuadRotorModel()
+        model = QuadRotorModel(config_file)
 
     elif (model_name == "quad_plane_model"):
-        model = QuadPlaneModel()
+        model = QuadPlaneModel(config_file)
 
     elif (model_name == "delta_quad_plane_model"):
-        model = DeltaQuadPlaneModel()
+        model = DeltaQuadPlaneModel(config_file)
 
     elif (model_name == "tilt_wing_model"):
-        model = TiltWingModel()
+        model = TiltWingModel(config_file)
     else:
         print("no valid model selected")
     model.load_dataframes(data_df)
@@ -63,5 +64,7 @@ if __name__ == "__main__":
                         help='The path of the log to process relative to the project directory.')
     parser.add_argument('--data_selection', metavar='data_selection', type=str2bool, default=False,
                         help='the path of the log to process relative to the project directory.')
+    parser.add_argument('--config', metavar='config', type=str, default='quadrotor',
+                        help='Configuration file path for pipeline configurations')
     arg_list = parser.parse_args()
     start_model_estimation(arg_list)

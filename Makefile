@@ -4,6 +4,7 @@ version?=latest
 registry?=ethzasl/data-driven-dynamics
 model?=quadrotor_model
 log?=${root_dir}/resources/${model}.ulg
+config?=${root_dir}/Tools/parametric_model/configs/${model}.yaml
 data_selection?=False
 
 submodulesupdate:
@@ -28,5 +29,5 @@ docker-run:
 	docker run -it --rm -e DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix ${registry}:${version} /bin/bash
 
 estimate-model:
-	python3 Tools/parametric_model/generate_parametric_model.py --model ${model} ${log} --data_selection ${data_selection}
+	python3 Tools/parametric_model/generate_parametric_model.py --model ${model} --config ${config} --data_selection ${data_selection} ${log} 
 

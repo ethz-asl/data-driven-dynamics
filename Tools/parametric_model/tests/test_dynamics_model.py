@@ -8,12 +8,17 @@ from src.models import DynamicsModel
 from src.models import ModelConfig
 from src.tools import DataHandler
 from src.tools.math_tools import rmse_between_numpy_arrays
+import os
+from pathlib import Path
 
 
 def test_transformations(config_file="dynamics_model_test_config.yaml"):
-    config = ModelConfig(config_file)
+    rel_config_file_path = "Tools/parametric_model/configs/" + config_file
+    proj_path = Path(os.getcwd())
+    config_file_path = os.path.join(proj_path, rel_config_file_path)
+    config = ModelConfig(config_file_path)
 
-    data_handler = DataHandler(config_file)
+    data_handler = DataHandler(config_file_path)
     data_handler.loadLog("resources/quadrotor_model.ulg")
 
     data_df = data_handler.get_dataframes()
