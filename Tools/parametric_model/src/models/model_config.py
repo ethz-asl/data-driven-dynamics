@@ -12,9 +12,7 @@ class ModelConfig():
         """
         Input: config_file as found in Tools/parametric_model/src/models/model_config
         """
-        rel_config_file_path = "Tools/parametric_model/src/models/model_config/" + config_file_name
-        proj_path = Path(os.getcwd())
-        log_file_path = os.path.join(proj_path, rel_config_file_path)
+        log_file_path = config_file_name
 
         try:
             with open(log_file_path) as file:
