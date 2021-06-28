@@ -25,6 +25,7 @@ class DynamicsModel():
         assert type(
             config_dict) is dict, 'req_topics_dict input must be a dict'
         assert bool(config_dict), 'req_topics_dict can not be empty'
+        self.model_name="unknown_model"
         self.config_dict = config_dict
         self.resample_freq = config_dict["resample_freq"]
         print("Resample frequency: ", self.resample_freq, "Hz")
@@ -268,7 +269,7 @@ class DynamicsModel():
                             "metrics": metrics_dict, 
                             "numper of samples": self.n_samples}
 
-    def save_result_dict_to_yaml(self, file_name="model_parameters", result_path="resources/model_results/"):
+    def save_result_dict_to_yaml(self, file_name="model_parameters", result_path="resources/"):
 
         timestr = time.strftime("%Y-%m-%d-%H-%M-%S")
         file_path = result_path + file_name + "_" + timestr + ".yaml"
@@ -300,6 +301,6 @@ class DynamicsModel():
         self.coef_name_list.extend(["intercept"])
         coef_list = list(self.reg.coef_) + [self.reg.intercept_]
         self.generate_model_dict(coef_list, metrics_dict)
-        self.save_result_dict_to_yaml(file_name="quad_plane_model")
+        self.save_result_dict_to_yaml(file_name=self.model_name)
 
         return
