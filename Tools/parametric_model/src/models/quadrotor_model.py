@@ -47,6 +47,8 @@ class QuadRotorModel(DynamicsModel):
             config_dict=self.config.dynamics_model_config)
         self.rotor_config_dict = self.config.model_config["actuators"]["rotors"]
 
+        self.model_name = "quadrotor_model"
+
         assert (self.estimate_moments ==
                 False), "Estimation of moments is not yet implemented in DeltaQuadPlaneModel. Disable in config file to estimate forces."
 

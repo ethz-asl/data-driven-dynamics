@@ -29,6 +29,8 @@ class TiltWingModel(DynamicsModel):
         super(TiltWingModel, self).__init__(
             config_dict=self.config.dynamics_model_config)
 
+        self.model_name = "tilt_wing_model"
+
         self.rotor_config_dict = self.config.model_config["actuators"]["rotors"]
         self.stall_angle = math.pi/180 * \
             self.config.model_config["aerodynamics"]["stall_angle_deg"]
