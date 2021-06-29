@@ -259,13 +259,14 @@ class DynamicsModel():
             vec_mat_transformed[i, :] = R_world_to_body @ vec_mat[i, :]
         return vec_mat_transformed
 
-    def generate_model_dict(self, coefficient_list, metrics_dict):
+    def generate_model_dict(self, coefficient_list, metrics_dict, model_dict):
         assert (len(self.coef_name_list) == len(coefficient_list)), \
             ("Length of coefficient list and coefficient name list does not match: Length of coefficient list:",
              len(coefficient_list), "length of coefficient name list: ", len(self.coef_name_list))
         coefficient_list = [float(coef) for coef in coefficient_list]
         coef_dict = dict(zip(self.coef_name_list, coefficient_list))
-        self.result_dict = {"coefficients": coef_dict,
+        self.result_dict = {"model": model_dict,
+                            "coefficients": coef_dict,
                             "metrics": metrics_dict, 
                             "numper of samples": self.n_samples}
 
@@ -300,7 +301,7 @@ class DynamicsModel():
         metrics_dict = {"R2": float(self.reg.score(X, y))}
         self.coef_name_list.extend(["intercept"])
         coef_list = list(self.reg.coef_) + [self.reg.intercept_]
-        self.generate_model_dict(coef_list, metrics_dict)
+        self.generate_model_dict(coef_list, metrics_dict, self.rotor_config_dict)
         self.save_result_dict_to_yaml(file_name=self.model_name)
 
         return
