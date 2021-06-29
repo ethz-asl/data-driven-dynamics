@@ -77,9 +77,10 @@ python3 Tools/parametric_model/generate_parametric_model --model <model> --data_
 Or more simply using the make command:
 
 ```
-make estimate-model [model=<modeltype>] [data_selection=<True/False>] [log=<log path>]
+make estimate-model [model=<modeltype>] [config=<config_file_path>] [data_selection=<True/False>] log=<log_file_path>
 ```
 
+### Running different Models
 Hereby the arguments model and log_file can be used to specify the model and the log files respectively. The data_selection argument is optional (per default False) and can be used to visually select a subportion of the data before running the model estimation.
 
 As an example you could use the reference log_files:
@@ -103,6 +104,8 @@ Current model choices are:
 - tilt_wing_model
 
 The results of the model estimation will be saved into the Tools/parametric_model/results folder as a yaml file.
+
+The pipeline / models can be configured through a configuration file. The default location is in `Tools/parametric_model/configs`. The path can be passed in the make target through the `config=<config_file_path>` argument.
 
 ## Testing the functionality of Parametric model
 
