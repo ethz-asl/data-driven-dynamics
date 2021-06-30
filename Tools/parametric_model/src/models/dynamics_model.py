@@ -269,7 +269,7 @@ class DynamicsModel():
                             "metrics": metrics_dict, 
                             "numper of samples": self.n_samples}
 
-    def save_result_dict_to_yaml(self, file_name="model_parameters", result_path="resources/"):
+    def save_result_dict_to_yaml(self, file_name="model_parameters", result_path="model_results/"):
 
         timestr = time.strftime("%Y-%m-%d-%H-%M-%S")
         file_path = result_path + file_name + "_" + timestr + ".yaml"
