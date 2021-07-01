@@ -12,8 +12,6 @@ submodulesupdate:
 
 install-dependencies:
 	pip3 install -r Tools/parametric_model/requirements.txt
-
-install-full-depdencies: install-dependencies
 	pip3 install -r Tools/parametric_model/visual_dataframe_selector/requirements.txt
 
 docker-build:
