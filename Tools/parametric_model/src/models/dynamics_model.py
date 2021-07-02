@@ -25,7 +25,7 @@ class DynamicsModel():
         assert type(
             config_dict) is dict, 'req_topics_dict input must be a dict'
         assert bool(config_dict), 'req_topics_dict can not be empty'
-        self.model_name="unknown_model"
+        self.model_name = "unknown_model"
         self.config_dict = config_dict
         self.resample_freq = config_dict["resample_freq"]
         print("Resample frequency: ", self.resample_freq, "Hz")
@@ -70,9 +70,8 @@ class DynamicsModel():
         from visual_dataframe_selector.data_selector import select_visual_data
         print("Number of data samples before cropping: ",
               self.data_df.shape[0])
-        new_df = select_visual_data(
+        self.data_df = select_visual_data(
             self.data_df, self.visual_dataframe_selector_config_dict)
-        self.data_df = new_df
         self.n_samples = self.data_df.shape[0]
 
     def compute_body_rotation_features(self, angular_vel_topic_list):
@@ -269,7 +268,7 @@ class DynamicsModel():
         coef_dict = dict(zip(self.coef_name_list, coefficient_list))
         self.result_dict = {"model": model_dict,
                             "coefficients": coef_dict,
-                            "metrics": metrics_dict, 
+                            "metrics": metrics_dict,
                             "numper of samples": self.n_samples}
 
     def save_result_dict_to_yaml(self, file_name="model_parameters", result_path="model_results/"):
@@ -303,7 +302,8 @@ class DynamicsModel():
         metrics_dict = {"R2": float(self.reg.score(X, y))}
         self.coef_name_list.extend(["intercept"])
         coef_list = list(self.reg.coef_) + [self.reg.intercept_]
-        self.generate_model_dict(coef_list, metrics_dict, self.rotor_config_dict)
+        self.generate_model_dict(
+            coef_list, metrics_dict, self.rotor_config_dict)
         self.save_result_dict_to_yaml(file_name=self.model_name)
 
         return
