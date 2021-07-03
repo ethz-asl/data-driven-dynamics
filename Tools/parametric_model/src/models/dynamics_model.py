@@ -66,14 +66,6 @@ class DynamicsModel():
         self.data_df = pd.concat(
             [self.data_df, airspeed_body_df], axis=1, join="inner")
 
-    def visually_select_data(self, plot_config_dict=None):
-        from visual_dataframe_selector.data_selector import select_visual_data
-        print("Number of data samples before cropping: ",
-              self.data_df.shape[0])
-        self.data_df = select_visual_data(
-            self.data_df, self.visual_dataframe_selector_config_dict)
-        self.n_samples = self.data_df.shape[0]
-
     def compute_body_rotation_features(self, angular_vel_topic_list):
         """Include the moment contribution due to rotation body frame:
         w x Iw = X_body_rot * v
