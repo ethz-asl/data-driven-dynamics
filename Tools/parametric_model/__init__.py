@@ -1,3 +1,7 @@
+import os
 from . import src
 from . import tests
-from . import visual_dataframe_selector
+
+data_selection = os.getenv('data_selection')
+if data_selection == "True":
+    from . import visual_dataframe_selector
