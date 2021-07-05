@@ -5,7 +5,7 @@ __license__ = "BSD 3"
 import os
 import sys
 import inspect
-from src.models import QuadRotorModel, QuadPlaneModel, DeltaQuadPlaneModel, TiltWingModel
+from src.models import MultiRotorModel, QuadPlaneModel, DeltaQuadPlaneModel, TiltWingModel
 from src.tools import DataHandler
 import argparse
 
@@ -37,15 +37,15 @@ def start_model_estimation(arg_list):
     data_df = data_handler.get_dataframes()
 
     if (model_name == "quadrotor_model"):
-        model = QuadRotorModel(config_file)
+        model = MultiRotorModel(config_file, model_name="quadrotor_model")
 
-    elif (model_name == "quad_plane_model"):
+    elif (model_name == "quadplane_model"):
         model = QuadPlaneModel(config_file)
 
-    elif (model_name == "delta_quad_plane_model"):
+    elif (model_name == "delta_quadplane_model"):
         model = DeltaQuadPlaneModel(config_file)
 
-    elif (model_name == "tilt_wing_model"):
+    elif (model_name == "tiltwing_model"):
         model = TiltWingModel(config_file)
     else:
         print("no valid model selected")

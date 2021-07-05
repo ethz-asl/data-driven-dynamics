@@ -2,11 +2,7 @@ __author__ = "Manuel Galliker"
 __maintainer__ = "Manuel Galliker"
 __license__ = "BSD 3"
 
-""" The model in this file estimates a simple force motor model for the iris quadrocopter of PX4 sitl gazebo.
-
-Start the model identification:
-Call "estimate_model(rel_ulog_path)"
-with rel_ulog_path specifying the path of the log file relative to the project directory (e.g. "logs/2021-03-16/21_45_40.ulg")
+""" The model in this file estimates a simple force motor model for a multirotor.
 
 Model Parameters:
 u                    : normalized actuator output scaled between 0 and 1
@@ -23,8 +19,6 @@ F_thrust_tot = - mot_const * \
     (angular_vel_1^2 + angular_vel_2^2 + angular_vel_3^2 + angular_vel_4^2)
 
 Note that the forces are calculated in the NED body frame and are therefore negative.
-
-The script estimates [k_1, c, b]
 """
 
 import numpy as np
@@ -40,14 +34,14 @@ from .model_config import ModelConfig
 import matplotlib.pyplot as plt
 
 
-class QuadRotorModel(DynamicsModel):
-    def __init__(self, config_file):
+class MultiRotorModel(DynamicsModel):
+    def __init__(self, config_file, model_name="multirotor_model"):
         self.config = ModelConfig(config_file)
-        super(QuadRotorModel, self).__init__(
+        super(MultiRotorModel, self).__init__(
             config_dict=self.config.dynamics_model_config)
         self.rotor_config_dict = self.config.model_config["actuators"]["rotors"]
 
-        self.model_name = "quadrotor_model"
+        self.model_name = model_name
 
         assert (self.estimate_moments ==
                 False), "Estimation of moments is not yet implemented in DeltaQuadPlaneModel. Disable in config file to estimate forces."

@@ -8,13 +8,8 @@ from . import aerodynamic_models
 from . import rotor_models
 from . import model_plots
 from .dynamics_model import DynamicsModel
-from . import quad_plane_model
-from .quad_plane_model import QuadPlaneModel
-from . import delta_quad_plane_model
-from .delta_quad_plane_model import DeltaQuadPlaneModel
-from . import quadrotor_model
-from .quadrotor_model import QuadRotorModel
-from . import model_config
+from .quadplane_model import QuadPlaneModel
+from .delta_quadplane_model import DeltaQuadPlaneModel
+from .multirotor_model import MultiRotorModel
 from . model_config import ModelConfig
-from . import tilt_wing_model
-from . tilt_wing_model import TiltWingModel
+from . tiltwing_model import TiltWingModel
