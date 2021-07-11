@@ -12,6 +12,7 @@ model_config:
       vertical_:
         - rotor_0:
           description: "front right rotor"
+          rotor_type: "RotorModel"
           dataframe_name: "u0"
           rotor_axis:
             - 0
@@ -25,6 +26,7 @@ model_config:
 
         - rotor_1:
           description: "back left rotor"
+          rotor_type: "RotorModel"
           dataframe_name: "u1"
           rotor_axis:
             - 0
@@ -38,6 +40,7 @@ model_config:
 
         - rotor_2:
           description: "front left rotor"
+          rotor_type: "RotorModel"
           dataframe_name: "u2"
           rotor_axis:
             - 0
@@ -51,6 +54,7 @@ model_config:
 
         - rotor_3:
           description: "back right rotor"
+          rotor_type: "RotorModel"
           dataframe_name: "u3"
           rotor_axis:
             - 0
@@ -64,7 +68,7 @@ model_config:
 
 dynamics_model_config:
   estimate_forces: True
-  estimate_moments: False
+  estimate_moments: True
   resample_freq: 100.0
   data:
     required_ulog_topics:

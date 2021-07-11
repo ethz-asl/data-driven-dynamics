@@ -43,9 +43,6 @@ class MultiRotorModel(DynamicsModel):
 
         self.model_name = model_name
 
-        assert (self.estimate_moments ==
-                False), "Estimation of moments is not yet implemented in DeltaQuadPlaneModel. Disable in config file to estimate forces."
-
     def prepare_regression_matrices(self):
 
         if "V_air_body_x" not in self.data_df:
