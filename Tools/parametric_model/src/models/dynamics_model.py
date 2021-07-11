@@ -116,7 +116,7 @@ class DynamicsModel():
                     else:
                         actuator_data[j] = (
                             actuator_data[j] - self.min_output)/(self.max_output - self.min_output)
-            elif ((self.actuator_type[i] == "control_surcafe" or self.actuator_type[i] == "bi_directional_motor")):
+            elif ((self.actuator_type[i] == "control_surface" or self.actuator_type[i] == "bi_directional_motor")):
                 for j in range(actuator_data.shape[0]):
                     if (actuator_data[j] < self.min_output):
                         actuator_data[j] = 0

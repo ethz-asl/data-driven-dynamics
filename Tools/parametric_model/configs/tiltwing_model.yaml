@@ -265,10 +265,10 @@ dynamics_model_config:
           - "motor"
           - "motor"
           - "motor"
-          - "control_surcafe"
-          - "control_surcafe"
-          - "control_surcafe"
-          - "control_surcafe"
+          - "control_surface"
+          - "control_surface"
+          - "control_surface"
+          - "control_surface"
       actuator_controls_1:
         ulog_name:
           - "timestamp"
@@ -282,7 +282,7 @@ dynamics_model_config:
           - "u3"
         actuator_type:
           - "timestamp"
-          - "control_surcafe"
+          - "control_surface"
           - "motor"
           - "motor"
       cl84_log:

@@ -120,8 +120,8 @@ dynamics_model_config:
           - "motor"
           - "motor"
           - "motor"
-          - "control_surcafe"
-          - "control_surcafe"
+          - "control_surface"
+          - "control_surface"
           - "motor"
       vehicle_local_position:
         ulog_name:
