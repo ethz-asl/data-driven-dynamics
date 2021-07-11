@@ -53,4 +53,4 @@ dynamics_model_config:
         actuator_type: # only needed for actuators, is requzired for normalization
           - "timestamp"
           - "motor"
-          - "control_surcafe"
+          - "control_surface"
