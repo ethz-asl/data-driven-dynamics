@@ -38,13 +38,13 @@ namespace gazebo {
 typedef const boost::shared_ptr<const physics_msgs::msgs::Wind> WindPtr;
 typedef const boost::shared_ptr<const mav_msgs::msgs::CommandMotorSpeed> CommandMotorSpeedPtr;
 
-class GazeboFwDynamicsPlugin : public ModelPlugin {
+class DataDrivenDynamicsPlugin : public ModelPlugin {
  public:
   /// \brief    Constructor.
-  GazeboFwDynamicsPlugin();
+  DataDrivenDynamicsPlugin();
 
   /// \brief    Destructor.
-  virtual ~GazeboFwDynamicsPlugin();
+  virtual ~DataDrivenDynamicsPlugin();
 
  protected:
   /// \brief    Called when the plugin is first created, and after the world
@@ -72,7 +72,7 @@ class GazeboFwDynamicsPlugin : public ModelPlugin {
   /// \brief    Flag that is set to true once CreatePubsAndSubs() is called,
   ///           used to prevent CreatePubsAndSubs() from be called on every
   ///           OnUpdate().
-  bool pubs_and_subs_created_;
+  bool pubs_and_subs_created_{false};
 
   /// \brief    Transport namespace.
   std::string namespace_;
@@ -105,9 +105,6 @@ class GazeboFwDynamicsPlugin : public ModelPlugin {
   /// \brief    Most current wind speed reading [m/s].
   ignition::math::Vector3d W_wind_speed_W_B_;
 
-  /// \brief    The aerodynamic properties of the aircraft.
-  FWAerodynamicParameters aero_params_;
-
   /// \brief    The physical properties of the aircraft.
   FWVehicleParameters vehicle_params_;
 
@@ -115,17 +112,20 @@ class GazeboFwDynamicsPlugin : public ModelPlugin {
   std::shared_ptr<ParametricDynamicsModel> parametric_model_;
 
   /// \brief    Left aileron deflection [rad].
-  double delta_aileron_left_;
+  double delta_aileron_left_{0.0};
   /// \brief    Right aileron deflection [rad].
-  double delta_aileron_right_;
+  double delta_aileron_right_{0.0};
   /// \brief    Elevator deflection [rad].
-  double delta_elevator_;
+  double delta_elevator_{0.0};
   /// \brief    Flap deflection [rad].
-  double delta_flap_;
+  double delta_flap_{0.0};
   /// \brief    Rudder deflection [rad].
-  double delta_rudder_;
+  double delta_rudder_{0.0};
   /// \brief    Throttle input, in range from 0 to 1.
-  double throttle_;
+  double throttle_{0.0};
+
+  int num_input_channels = 16;
+  Eigen::VectorXd actuator_inputs_;
 
   /// \brief    Processes the actuator commands.
   /// \details  Converts control surface actuator inputs into physical angles

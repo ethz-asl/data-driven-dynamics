@@ -15,27 +15,21 @@
  */
 
 // MODULE HEADER
-#include "gazebo_fw_dynamics_plugin.h"
+#include "data_driven_dynamics_plugin.h"
 
 namespace gazebo {
 
-GazeboFwDynamicsPlugin::GazeboFwDynamicsPlugin()
+DataDrivenDynamicsPlugin::DataDrivenDynamicsPlugin()
     : ModelPlugin(),
       node_handle_(0),
-      W_wind_speed_W_B_(0, 0, 0),
-      delta_aileron_left_(0.0),
-      delta_aileron_right_(0.0),
-      delta_elevator_(0.0),
-      delta_flap_(0.0),
-      delta_rudder_(0.0),
-      throttle_(0.0),
-      pubs_and_subs_created_(false) {
+      W_wind_speed_W_B_(0, 0, 0) {
+        actuator_inputs_ = Eigen::VectorXd::Zero(num_input_channels);
 }
 
-GazeboFwDynamicsPlugin::~GazeboFwDynamicsPlugin() {
+DataDrivenDynamicsPlugin::~DataDrivenDynamicsPlugin() {
 }
 
-void GazeboFwDynamicsPlugin::Load(physics::ModelPtr _model,
+void DataDrivenDynamicsPlugin::Load(physics::ModelPtr _model,
                                   sdf::ElementPtr _sdf) {
 
   // Store the pointer to the model.
@@ -76,7 +70,6 @@ void GazeboFwDynamicsPlugin::Load(physics::ModelPtr _model,
     std::string aero_params_yaml =
         _sdf->GetElement("aeroParamsYAML")->Get<std::string>();
 
-    aero_params_.LoadAeroParamsYAML(aero_params_yaml);
     parametric_model_->LoadAeroParams(aero_params_yaml);
   } else {
     gzwarn << "[gazebo_fw_dynamics_plugin] No aerodynamic paramaters YAML file"
@@ -101,16 +94,16 @@ void GazeboFwDynamicsPlugin::Load(physics::ModelPtr _model,
     actuator_sub_topic_ = _sdf->GetElement("commandSubTopic")->Get<std::string>();
   }
 
-  wind_speed_sub_ = node_handle_->Subscribe("~/world_wind", &GazeboFwDynamicsPlugin::WindVelocityCallback, this);
-  actuators_sub_ = node_handle_->Subscribe("~/" + model_->GetName() + actuator_sub_topic_, &GazeboFwDynamicsPlugin::ActuatorsCallback, this);
+  wind_speed_sub_ = node_handle_->Subscribe("~/world_wind", &DataDrivenDynamicsPlugin::WindVelocityCallback, this);
+  actuators_sub_ = node_handle_->Subscribe("~/" + model_->GetName() + actuator_sub_topic_, &DataDrivenDynamicsPlugin::ActuatorsCallback, this);
 
   // Listen to the update event. This event is broadcast every
   // simulation iteration.
   this->updateConnection_ = event::Events::ConnectWorldUpdateBegin(
-          boost::bind(&GazeboFwDynamicsPlugin::OnUpdate, this, _1));
+          boost::bind(&DataDrivenDynamicsPlugin::OnUpdate, this, _1));
 }
 
-void GazeboFwDynamicsPlugin::OnUpdate(const common::UpdateInfo& _info) {
+void DataDrivenDynamicsPlugin::OnUpdate(const common::UpdateInfo& _info) {
   Eigen::Vector3d forces, moments;
 
   UpdateForcesAndMoments(forces, moments);
@@ -122,7 +115,7 @@ void GazeboFwDynamicsPlugin::OnUpdate(const common::UpdateInfo& _info) {
   link_->AddRelativeTorque(moments_msg);
 }
 
-void GazeboFwDynamicsPlugin::UpdateForcesAndMoments(Eigen::Vector3d &forces, Eigen::Vector3d &moments) {
+void DataDrivenDynamicsPlugin::UpdateForcesAndMoments(Eigen::Vector3d &forces, Eigen::Vector3d &moments) {
   // Express the air speed and angular velocity in the body frame.
   // B denotes body frame and W world frame ... e.g., W_rot_W_B denotes
   // rotation of B wrt. W expressed in W.
@@ -132,7 +125,7 @@ void GazeboFwDynamicsPlugin::UpdateForcesAndMoments(Eigen::Vector3d &forces, Eig
   ignition::math::Vector3d B_angular_velocity_W_B = link_->RelativeAngularVel();
 
   parametric_model_->setState(B_air_speed_W_B, B_angular_velocity_W_B, delta_aileron_left_, 
-    delta_aileron_right_, delta_elevator_, delta_flap_, delta_rudder_);
+    delta_aileron_right_, delta_elevator_, delta_flap_, delta_rudder_, actuator_inputs_);
 
   const Eigen::Vector3d parametric_force = parametric_model_->getForce();
   const Eigen::Vector3d parametric_moment = parametric_model_->getMoment();
@@ -150,13 +143,13 @@ void GazeboFwDynamicsPlugin::UpdateForcesAndMoments(Eigen::Vector3d &forces, Eig
   moments << moments_B[0], -moments_B[1], -moments_B[2];
 }
 
-double GazeboFwDynamicsPlugin::NormalizedInputToAngle(
+double DataDrivenDynamicsPlugin::NormalizedInputToAngle(
     const ControlSurface& surface, double input) {
   return (surface.deflection_max + surface.deflection_min) * 0.5 +
       (surface.deflection_max - surface.deflection_min) * 0.5 * input;
 }
 
-void GazeboFwDynamicsPlugin::ActuatorsCallback(CommandMotorSpeedPtr &actuators_msg) {
+void DataDrivenDynamicsPlugin::ActuatorsCallback(CommandMotorSpeedPtr &actuators_msg) {
 
   //TODO: Get channel information from yml file
   delta_aileron_left_ = -NormalizedInputToAngle(vehicle_params_.aileron_left,
@@ -172,15 +165,19 @@ void GazeboFwDynamicsPlugin::ActuatorsCallback(CommandMotorSpeedPtr &actuators_m
   //TODO: Throttle is set to zero since force is applied outside of this plugin
   // throttle_ = actuators_msg->normalized(vehicle_params_.throttle_channel);
   throttle_ = 0.0;
+
+  for (size_t i = 0; i < actuator_inputs_.size(); i++) {
+    actuator_inputs_(i) = static_cast<double>(actuators_msg->motor_speed(i));
+  }
 }
 
-void GazeboFwDynamicsPlugin::WindVelocityCallback(
+void DataDrivenDynamicsPlugin::WindVelocityCallback(
     WindPtr& msg) {
    ignition::math::Vector3d wind_vel_ = ignition::math::Vector3d(msg->velocity().x(),
              msg->velocity().y(),
              msg->velocity().z());
 }
 
-GZ_REGISTER_MODEL_PLUGIN(GazeboFwDynamicsPlugin);
+GZ_REGISTER_MODEL_PLUGIN(DataDrivenDynamicsPlugin);
 
 }  // namespace gazebo

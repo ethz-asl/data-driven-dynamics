@@ -15,6 +15,7 @@
  */
 
 #include "parametric_dynamics_model.h"
+#include <iostream>
 
 namespace gazebo {
 
@@ -27,7 +28,7 @@ ParametricDynamicsModel::ParametricDynamicsModel() {
 ParametricDynamicsModel::~ParametricDynamicsModel() {}
 
 void ParametricDynamicsModel::setState(const ignition::math::Vector3d &B_air_speed_W_B, const ignition::math::Vector3d &B_angular_velocity_W_B, 
-    double delta_aileron_left, double delta_aileron_right, double delta_elevator, double delta_flap, double delta_rudder) {
+    double delta_aileron_left, double delta_aileron_right, double delta_elevator, double delta_flap, double delta_rudder, const Eigen::VectorXd actuator_inputs) {
   // Traditionally, fixed-wing aerodynamics use NED (North-East-Down) frame,
   // but since our model's body frame is in North-West-Up frame we rotate the
   // linear and angular velocities by 180 degrees around the X axis.
@@ -138,6 +139,10 @@ void ParametricDynamicsModel::setState(const ignition::math::Vector3d &B_air_spe
       0.0,
       sin(vehicle_params_->thrust_inclination));
 
+  Eigen::Vector3d force_rotor_B{Eigen::Vector3d::Zero()};
+  Eigen::Vector3d moment_rotor_B;
+  computeRotorFeatures(ignition2eigen(B_air_speed_W_B), actuator_inputs, force_rotor_B, moment_rotor_B);
+
   // Compute the transform between the body frame and the wind frame.
   double ca = cos(alpha);
   double sa = sin(alpha);
@@ -152,7 +157,70 @@ void ParametricDynamicsModel::setState(const ignition::math::Vector3d &B_air_spe
   const Eigen::Matrix3d R_Wind_B_t = R_Wind_B.transpose();
 
   // Transform all the forces and moments into the body frame
-  force_ = R_Wind_B_t * forces_Wind + force_thrust_B;
+  force_ = 1.5 * force_rotor_B;
   moment_ = R_Wind_B_t * moments_Wind;
+}
+
+void ParametricDynamicsModel::computeRotorFeatures(const Eigen::Vector3d airspeed, const Eigen::VectorXd &actuator_inputs, Eigen::Vector3d &rotor_force, Eigen::Vector3d &rotor_moment) {
+
+     rotor_force = Eigen::Vector3d::Zero();
+     rotor_moment = Eigen::Vector3d::Zero();
+
+     /// TODO: Scale actuator input correctly
+     std::cout << "Number of rotors: " << aero_params_->rotor_parameters_.size() << std::endl;
+     for (size_t i = 0; i < aero_params_->rotor_parameters_.size(); i++) {
+          Eigen::Vector3d single_rotor_force =computeRotorForce(airspeed, actuator_inputs[i], aero_params_->rotor_parameters_[i]);
+          Eigen::Vector3d single_rotor_moment =computeRotorMoment(airspeed, actuator_inputs[i], aero_params_->rotor_parameters_[i], single_rotor_force);
+          std::cout << " - actuator " << i << ": " << actuator_inputs[i] << " force: " << single_rotor_force.transpose() << std::endl;
+          rotor_force+=single_rotor_force;
+          rotor_moment+=single_rotor_moment;
+     }
+}
+
+Eigen::Vector3d ParametricDynamicsModel::computeRotorForce(const Eigen::Vector3d airspeed, const double actuator_input, const RotorParameters &rotor_params) {
+
+     if (!std::isfinite(actuator_input)) return Eigen::Vector3d::Zero();
+     // Thrust force computation
+     const double prop_diameter = rotor_params.diameter;
+     const double thrust_lin = rotor_params.vertical_rot_thrust_lin;
+     const double thrust_quad = rotor_params.vertical_rot_thrust_quad;
+
+     Eigen::Vector3d rotor_axis = (rotor_params.rotor_axis).normalized();
+
+     Eigen::Vector3d v_airspeed_parallel_to_rotor_axis = airspeed.dot(rotor_axis) * rotor_axis;
+     Eigen::Vector3d v_airspeed_vertical_to_rotor_axis = airspeed - v_airspeed_parallel_to_rotor_axis;
+
+     /// TODO: Compensate for angular rates
+     Eigen::Vector3d rotor_thrust = ((thrust_lin * v_airspeed_parallel_to_rotor_axis.norm() * actuator_input
+                               + thrust_quad * std::pow(actuator_input, 2) * prop_diameter) ) * kAirDensity * std::pow(prop_diameter, 3) * rotor_axis;
+     Eigen::Vector3d rotor_drag = Eigen::Vector3d::Zero();
+
+     return rotor_thrust + rotor_drag;
+}
+
+Eigen::Vector3d ParametricDynamicsModel::computeRotorMoment(const Eigen::Vector3d airspeed, const double actuator_input, const RotorParameters &rotor_params, Eigen::Vector3d rotor_force) {
+
+     // Thrust force computation
+     const double prop_diameter = rotor_params.diameter;
+     const double c_m_leaver_quad = rotor_params.c_m_leaver_quad;
+     const double c_m_leaver_lin = rotor_params.c_m_leaver_lin;
+     const double c_m_drag_z_quad = rotor_params.c_m_drag_z_quad;
+     const double c_m_drag_z_lin = rotor_params.c_m_drag_z_lin;
+     const double c_m_rolling = rotor_params.c_m_rolling;
+
+     Eigen::Vector3d rotor_axis = (rotor_params.rotor_axis).normalized();
+     Eigen::Vector3d rotor_position = rotor_params.position;
+
+     Eigen::Vector3d v_airspeed_parallel_to_rotor_axis = airspeed.dot(rotor_axis) * rotor_axis;
+     Eigen::Vector3d v_airspeed_vertical_to_rotor_axis = airspeed - v_airspeed_parallel_to_rotor_axis;
+
+     // Eigen::Vector3d moment_drag = Eigen::Vector3d::Zero();
+     // Eigen::Vector3d moment_rolling = Eigen::Vector3d::Zero();
+     // return moment_drag + moment_rolling;
+
+     /// TODO: Using rotor forces to calculate moment generation as a wip patch
+     Eigen::Vector3d rotor_moment = rotor_position.cross(rotor_force);
+
+     return rotor_moment;
 }
 }
