@@ -492,7 +492,7 @@
       <robotNamespace></robotNamespace>
       <windSubTopic>world_wind</windSubTopic>
     </plugin>
-    <plugin name='aerodynamics' filename='libgazebo_fw_dynamics_plugin.so'>
+    <plugin name='aerodynamics' filename='libdata_driven_dynamics_plugin.so'>
       <robotNamespace></robotNamespace>
       <linkName>base_link</linkName>
     </plugin>

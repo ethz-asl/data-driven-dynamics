@@ -61,12 +61,12 @@ include_directories(
   )
 
 # Build our plugin
-add_library(gazebo_fw_dynamics_plugin
+add_library(data_driven_dynamics_plugin
   SHARED 
-  src/gazebo_fw_dynamics_plugin.cpp
+  src/data_driven_dynamics_plugin.cpp
   src/parametric_dynamics_model.cpp
   )
-target_link_libraries(gazebo_fw_dynamics_plugin 
+target_link_libraries(data_driven_dynamics_plugin 
   ${GAZEBO_LIBRARIES} 
   ${Boost_LIBRARIES}
   ${YAML_CPP_LIBRARIES}
