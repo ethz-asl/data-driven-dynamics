@@ -36,13 +36,20 @@ class TiltWingModel(DynamicsModel):
             self.config.model_config["aerodynamics"]["stall_angle_deg"]
         self.sig_scale_fac = self.config.model_config["aerodynamics"]["sig_scale_factor"]
         self.mass = self.config.model_config["mass"]
-        self.u_tilt_vec = self.data_df["u_tilt"].to_numpy()
 
         self.visual_dataframe_selector_config_dict = {
             "x_axis_col": "timestamp",
             "sub_plt1_data": ["q0", "q1", "q2", "q3"],
             "sub_plt2_data": ["u0", "u1", "u2", "u3", "u4"],
             "sub_plt3_data": ["u5", "u6", "u7", "u8", "u9", "u_tilt"]}
+
+    def load_dataframes(self, data_frames):
+        self.data_df = data_frames
+        self.u_tilt_vec = self.data_df["u_tilt"].to_numpy()
+
+        self.n_samples = self.data_df.shape[0]
+        self.quaternion_df = self.data_df[["q0", "q1", "q2", "q3"]]
+        self.q_mat = self.quaternion_df.to_numpy()
 
         if "V_air_body_x" not in self.data_df:
             print("computing airspeed")
@@ -151,14 +158,12 @@ class TiltWingModel(DynamicsModel):
                             bounds=coef_bounds)
         self.x_opt = solution.x
 
-        initial_conditions_dict = dict(zip(self.coef_name_list, x0.tolist()))
-
         metrics_dict = {"R2": float(r2_score(self.y_forces, self.predict_forces(self.x_opt))),
                         "RMSE": float(self.objective(self.x_opt))}
-        model_dict = {"metrics": metrics_dict,
-                      "initial_conditions": initial_conditions_dict}
+        model_dict = {"config": self.config}
 
-        self.generate_model_dict(self.x_opt, model_dict)
+        self.generate_model_dict(
+            self.x_opt, metrics_dict, model_dict)
         self.save_result_dict_to_yaml(file_name="tiltwing_model")
         return
 

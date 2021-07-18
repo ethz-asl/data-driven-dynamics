@@ -10,25 +10,25 @@ model_config:
   optimzation_parameters:
     initial_coefficients:
       c_d_fuselage_x: 0.0
-      c_d_fuselage_y: 0.0396967125970944
-      c_d_fuselage_z: 0.610086823140545
+      c_d_fuselage_y: 0.0
+      c_d_fuselage_z: 0.0
       c_d_wing_xz_cs: 0.0
-      c_d_wing_xz_lin: -0.40132502252871105
-      c_d_wing_xz_offset: 0.060468445542133153
-      c_d_wing_xz_quad: 0.6692607715151242
-      c_d_wing_xz_stall_90_deg: 0.29943184241390064
-      c_d_wing_xz_stall_min: 0.0
-      c_l_wing_xz_cs: 1.152234767681148
-      c_l_wing_xz_lin: 0.20483999507088502
-      c_l_wing_xz_offset: -0.08180978126461196
-      c_l_wing_xz_stall: 0.39932299402214966
-      elevator_c_l: 1
-      tail_rot_drag_lin: 0.0
-      tail_rot_thrust_lin: -26.720846321626823
-      tail_rot_thrust_quad: 1636.258779078053
-      wing_rot_drag_lin: 0.6336202394337533
-      wing_rot_thrust_lin: -56.4583790403903
-      wing_rot_thrust_quad: 1541.7326362901822
+      c_d_wing_xz_lin: -0.3908667228324042
+      c_d_wing_xz_offset: 0.05457696116853583
+      c_d_wing_xz_quad: 0.6513920135255704
+      c_d_wing_xz_stall_90_deg: 0.26801885452631513
+      c_d_wing_xz_stall_min: 0.004204829038298996
+      c_l_wing_xz_cs: 1.3185080528876658
+      c_l_wing_xz_lin: 0.17366568809485372
+      c_l_wing_xz_offset: 0.18392401561630053
+      c_l_wing_xz_stall: 0.40795648548466446
+      elevator_c_l: 0.0
+      tail_rot_drag_lin: 0.4644595167391117
+      tail_rot_thrust_lin: -23.56492973422354
+      tail_rot_thrust_quad: 1627.8310955818965
+      wing_rot_drag_lin: 0.697751701879497
+      wing_rot_thrust_lin: -24.055415541492494
+      wing_rot_thrust_quad: 1606.4042023576094
     coefficient_bounds:
       c_d_fuselage_x: !!python/tuple [0, 10]
       c_d_fuselage_y: !!python/tuple [0, 10]
