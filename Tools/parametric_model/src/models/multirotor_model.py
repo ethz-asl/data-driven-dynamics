@@ -40,6 +40,7 @@ class MultiRotorModel(DynamicsModel):
         self.config = ModelConfig(config_file)
         super(MultiRotorModel, self).__init__(
             config_dict=self.config.dynamics_model_config)
+        self.mass = self.config.model_config["mass"]
         self.rotor_config_dict = self.config.model_config["actuators"]["rotors"]
 
         self.model_name = model_name
@@ -81,7 +82,7 @@ class MultiRotorModel(DynamicsModel):
 
         accel_mat = self.data_df[[
             "acc_b_x", "acc_b_y", "acc_b_z"]].to_numpy()
-        self.y_forces = (accel_mat).flatten()
+        self.y_forces = (accel_mat).flatten() * self.mass
 
         aoa_mat = self.data_df[["AoA"]].to_numpy()
         airspeed_mat = self.data_df[["V_air_body_x",

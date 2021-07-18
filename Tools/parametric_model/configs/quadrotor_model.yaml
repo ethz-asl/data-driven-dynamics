@@ -7,6 +7,7 @@ model_file:
 
   # all vectors in FRD body frame if not specified otherwise
 model_config:
+  mass: 1.5
   actuators:
     rotors:
       vertical_:
