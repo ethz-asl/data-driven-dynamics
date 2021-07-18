@@ -44,6 +44,9 @@ class DynamicsModel():
         self.coef_name_list = []
         self.result_dict = {}
 
+    def prepare_regression_matrices(self):
+        raise NotImplementedError()
+
     def get_topic_list_from_topic_type(self, topic_type):
         topic_type_name_dict = self.req_topics_dict[topic_type]
         if "dataframe_name" in topic_type_name_dict.keys():

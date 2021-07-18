@@ -53,7 +53,7 @@ class TiltWingModel(DynamicsModel):
         assert (self.estimate_moments ==
                 False), "Estimation of moments is not yet implemented in TiltWingModel. Disable in config file to estimate forces."
 
-    def prepare_opimization_matrices(self):
+    def prepare_regression_matrices(self):
 
         airspeed_mat = self.data_df[["V_air_body_x",
                                      "V_air_body_y", "V_air_body_z"]].to_numpy()
@@ -123,7 +123,7 @@ class TiltWingModel(DynamicsModel):
         print(self.data_df.columns)
         self.data_df_len = self.data_df.shape[0]
         print("resampled data contains ", self.data_df_len, "timestamps.")
-        self.prepare_opimization_matrices()
+        self.prepare_regression_matrices()
 
         # optimization_variables:
         optimization_parameters = self.config.model_config["optimzation_parameters"]
