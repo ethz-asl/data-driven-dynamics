@@ -14,6 +14,7 @@ model_config:
           description: "front right rotor"
           rotor_type: "RotorModel"
           dataframe_name: "u0"
+          diameter: 0.2032
           rotor_axis:
             - 0
             - 0
@@ -28,6 +29,7 @@ model_config:
           description: "back left rotor"
           rotor_type: "RotorModel"
           dataframe_name: "u1"
+          diameter: 0.2032
           rotor_axis:
             - 0
             - 0
@@ -42,6 +44,7 @@ model_config:
           description: "front left rotor"
           rotor_type: "RotorModel"
           dataframe_name: "u2"
+          diameter: 0.2032
           rotor_axis:
             - 0
             - 0
@@ -56,6 +59,7 @@ model_config:
           description: "back right rotor"
           rotor_type: "RotorModel"
           dataframe_name: "u3"
+          diameter: 0.2032
           rotor_axis:
             - 0
             - 0
