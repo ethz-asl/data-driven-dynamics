@@ -140,7 +140,7 @@ void ParametricDynamicsModel::setState(const ignition::math::Vector3d &B_air_spe
       sin(vehicle_params_->thrust_inclination));
 
   Eigen::Vector3d force_rotor_B{Eigen::Vector3d::Zero()};
-  Eigen::Vector3d moment_rotor_B;
+  Eigen::Vector3d moment_rotor_B{Eigen::Vector3d::Zero()};
   computeRotorFeatures(ignition2eigen(B_air_speed_W_B), actuator_inputs, force_rotor_B, moment_rotor_B);
 
   // Compute the transform between the body frame and the wind frame.
@@ -157,8 +157,8 @@ void ParametricDynamicsModel::setState(const ignition::math::Vector3d &B_air_spe
   const Eigen::Matrix3d R_Wind_B_t = R_Wind_B.transpose();
 
   // Transform all the forces and moments into the body frame
-  force_ = 1.5 * force_rotor_B;
-  moment_ = R_Wind_B_t * moments_Wind;
+  force_ = force_rotor_B;
+  moment_ = moment_rotor_B;
 }
 
 void ParametricDynamicsModel::computeRotorFeatures(const Eigen::Vector3d airspeed, const Eigen::VectorXd &actuator_inputs, Eigen::Vector3d &rotor_force, Eigen::Vector3d &rotor_moment) {
@@ -166,12 +166,9 @@ void ParametricDynamicsModel::computeRotorFeatures(const Eigen::Vector3d airspee
      rotor_force = Eigen::Vector3d::Zero();
      rotor_moment = Eigen::Vector3d::Zero();
 
-     /// TODO: Scale actuator input correctly
-     std::cout << "Number of rotors: " << aero_params_->rotor_parameters_.size() << std::endl;
      for (size_t i = 0; i < aero_params_->rotor_parameters_.size(); i++) {
           Eigen::Vector3d single_rotor_force =computeRotorForce(airspeed, actuator_inputs[i], aero_params_->rotor_parameters_[i]);
           Eigen::Vector3d single_rotor_moment =computeRotorMoment(airspeed, actuator_inputs[i], aero_params_->rotor_parameters_[i], single_rotor_force);
-          std::cout << " - actuator " << i << ": " << actuator_inputs[i] << " force: " << single_rotor_force.transpose() << std::endl;
           rotor_force+=single_rotor_force;
           rotor_moment+=single_rotor_moment;
      }
