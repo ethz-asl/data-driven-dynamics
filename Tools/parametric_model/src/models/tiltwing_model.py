@@ -91,7 +91,7 @@ class TiltWingModel(DynamicsModel):
 
         # Accelerations
         accel_body_mat = self.data_df[[
-            "accel_x", "accel_y", "accel_z"]].to_numpy()
+            "acc_b_x", "acc_b_y", "acc_b_z"]].to_numpy()
         self.y_accel = accel_body_mat.flatten()
         self.y_forces = self.mass * accel_body_mat.flatten()
 
