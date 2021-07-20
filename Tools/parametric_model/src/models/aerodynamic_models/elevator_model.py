@@ -7,6 +7,10 @@ import math
 from src.tools.math_tools import cropped_sym_sigmoid
 from scipy.spatial.transform import Rotation
 
+"""
+This elevator model currently only estimates elevator lift.
+"""
+
 
 class ElevatorModel():
     def __init__(self, air_density=1.225):
@@ -31,7 +35,7 @@ class ElevatorModel():
         # 1 in linear/quadratic region, 0 in post-stall region
         flow_attached_region = 1 - stall_region
 
-        # elevator liftgit add sr    mod mo
+        # elevator lift
         X_elevator_aero[2, 0] = flow_attached_region * elevator_angle*qs
 
         # Transorm from stability axis frame to body FRD frame
