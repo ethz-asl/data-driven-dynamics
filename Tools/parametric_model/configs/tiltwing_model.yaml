@@ -320,6 +320,6 @@ dynamics_model_config:
           - "xyz[2]"
         dataframe_name:
           - "timestamp"
-          - "accel_x"
-          - "accel_y"
-          - "accel_z"
+          - "acc_b_x"
+          - "acc_b_y"
+          - "acc_b_z"
