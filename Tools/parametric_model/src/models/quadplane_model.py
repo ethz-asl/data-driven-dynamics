@@ -61,7 +61,7 @@ class QuadPlaneModel(DynamicsModel):
 
             # Accelerations
             accel_body_mat = self.data_df[[
-                "accelerometer_m_s2[0]", "accelerometer_m_s2[1]", "accelerometer_m_s2[2]"]].to_numpy()
+                "acc_b_x", "acc_b_y", "acc_b_z"]].to_numpy()
             self.y_forces = accel_body_mat.flatten()
             y = self.y_forces
 
@@ -79,7 +79,7 @@ class QuadPlaneModel(DynamicsModel):
 
             # Angular acceleration
             angular_accel_body_mat = self.data_df[[
-                "ang_acc_x", "ang_acc_y", "ang_acc_z"]].to_numpy()
+                "ang_acc_b_x", "ang_acc_b_y", "ang_acc_b_z"]].to_numpy()
             self.y_moments = angular_accel_body_mat.flatten()
             y = self.y_moments
 
