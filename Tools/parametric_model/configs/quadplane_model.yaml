@@ -1,4 +1,3 @@
----
 # general information
 model_name: "Gazebo Standart VTOL"
 model_type: "Standard VTOL"
@@ -166,6 +165,11 @@ dynamics_model_config:
           - "accelerometer_m_s2[0]"
           - "accelerometer_m_s2[1]"
           - "accelerometer_m_s2[2]"
+        dataframe_name:
+          - "timestamp"
+          - "acc_b_x"
+          - "acc_b_y"
+          - "acc_b_z"
       vehicle_angular_acceleration:
         ulog_name:
           - "timestamp"
@@ -174,6 +178,6 @@ dynamics_model_config:
           - "xyz[2]"
         dataframe_name:
           - "timestamp"
-          - "ang_acc_x"
-          - "ang_acc_y"
-          - "ang_acc_z"
+          - "ang_acc_b_x"
+          - "ang_acc_b_y"
+          - "ang_acc_b_z"
