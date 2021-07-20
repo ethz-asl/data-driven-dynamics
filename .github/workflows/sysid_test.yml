@@ -34,3 +34,5 @@ jobs:
         run: make estimate-model model=quadplane_model
       - name: Run quadplane_model estimation for system level test using resource csv
         run: make estimate-model model=quadplane_model log=resources/quadplane_model.csv
+      - name: Run tiltwing_model estimation for system level test using small dataset resource csv
+        run: make estimate-model model=tiltwing_model log=resources/tiltwing_model_small_dataset.csv
