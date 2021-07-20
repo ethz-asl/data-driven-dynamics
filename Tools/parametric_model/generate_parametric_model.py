@@ -33,6 +33,7 @@ def start_model_estimation(arg_list):
     data_handler.loadLog(arg_list.log_path)
     if data_selection_enabled:
         data_handler.visually_select_data()
+    data_handler.visualize_data()
 
     data_df = data_handler.get_dataframes()
 

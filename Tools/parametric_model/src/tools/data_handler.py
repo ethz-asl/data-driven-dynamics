@@ -11,8 +11,9 @@ import math
 import time
 import yaml
 import numpy as np
-from src.models.model_config import ModelConfig
+import matplotlib.pyplot as plt
 
+from src.models.model_config import ModelConfig
 from src.tools.ulog_tools import load_ulog, pandas_from_topic
 from src.tools.dataframe_tools import compute_flight_time, resample_dataframe_list
 from src.tools.quat_utils import quaternion_to_rotation_matrix
@@ -121,3 +122,22 @@ class DataHandler():
 
     def get_dataframes(self):
         return self.data_df
+
+    def visualize_data(self):
+        def plot_scatter(ax, title, dataframe_x, dataframe_y, dataframe_z, color='blue'):
+            ax.scatter(self.data_df[dataframe_x], self.data_df[dataframe_y], self.data_df[dataframe_z], s=10, facecolor=color, lw=0, alpha=0.1)
+            ax.set_title(title)
+            ax.set_xlabel(dataframe_x)
+            ax.set_ylabel(dataframe_y)
+            ax.set_zlabel(dataframe_z)
+        
+        num_plots = 2
+        fig = plt.figure("Data Visualization")
+        ax1 = fig.add_subplot(num_plots, 1, 1, projection='3d')
+        plot_scatter(ax1, 'Local Velocity', 'vx', 'vy', 'vz')
+
+        ax2 = fig.add_subplot(num_plots, 1, 2, projection='3d')
+        plot_scatter(ax2, 'Body Acceleration', 'acc_b_x', 'acc_b_y', 'acc_b_z', 'red')
+        plt.show(block=False)
+
+
