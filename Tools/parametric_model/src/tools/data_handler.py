@@ -145,11 +145,15 @@ class DataHandler(object):
         
         num_plots = 2
         fig = plt.figure("Data Visualization")
-        ax1 = fig.add_subplot(num_plots, 1, 1, projection='3d')
+        ax1 = fig.add_subplot(num_plots, 2, 1, projection='3d')
         plot_scatter(ax1, 'Local Velocity', 'vx', 'vy', 'vz')
 
-        ax2 = fig.add_subplot(num_plots, 1, 2, projection='3d')
+        ax2 = fig.add_subplot(num_plots, 2, 2, projection='3d')
         plot_scatter(ax2, 'Body Acceleration', 'acc_b_x', 'acc_b_y', 'acc_b_z', 'red')
+
+        ax3 = fig.add_subplot(num_plots, 2, 3, projection='3d')
+        plot_scatter(ax3, 'Body Angular Velocity', 'ang_vel_x', 'ang_vel_y', 'ang_vel_z', 'red')
+
+        ax4 = fig.add_subplot(num_plots, 2, 4, projection='3d')
+        plot_scatter(ax4, 'Body Angular Acceleration', 'ang_acc_b_x', 'ang_acc_b_y', 'ang_acc_b_z', 'red')
         plt.show(block=False)
-
-
