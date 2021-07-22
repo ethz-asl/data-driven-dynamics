@@ -8,6 +8,10 @@ model_file:
   # all vectors in FRD body frame if not specified otherwise
 model_config:
   mass: 1.5
+  moment_of_inertia:
+    Ixx: 0.029125
+    Iyy: 0.029125
+    Izz: 0.055225
   actuators:
     rotors:
       vertical_:

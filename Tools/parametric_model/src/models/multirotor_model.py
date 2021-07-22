@@ -41,6 +41,8 @@ class MultiRotorModel(DynamicsModel):
         super(MultiRotorModel, self).__init__(
             config_dict=self.config.dynamics_model_config)
         self.mass = self.config.model_config["mass"]
+        self.moment_of_inertia = np.diag([self.config.model_config["moment_of_inertia"]["Ixx"], self.config.model_config["moment_of_inertia"]["Iyy"], self.config.model_config["moment_of_inertia"]["Izz"]])
+        
         self.rotor_config_dict = self.config.model_config["actuators"]["rotors"]
 
         self.model_name = model_name
@@ -96,9 +98,9 @@ class MultiRotorModel(DynamicsModel):
         print("datapoints for self.regression: ", self.data_df.shape[0])
 
     def prepare_moment_regression_matrices(self):
-        ang_accel_mat = self.data_df[[
-            "ang_acc_b_x", "ang_acc_b_y", "ang_acc_b_z"]].to_numpy()
-        self.y_moments = (ang_accel_mat).flatten()
+        moment_mat = np.matmul(self.data_df[[
+            "ang_acc_b_x", "ang_acc_b_y", "ang_acc_b_z"]].to_numpy(), self.moment_of_inertia)
+        self.y_moments = moment_mat.flatten()
         self.X_moments = self.X_rotor_moments
         self.coef_name_list.extend(self.rotor_moments_coef_list)
 
