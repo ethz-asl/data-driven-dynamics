@@ -21,10 +21,10 @@
 
 #include <gazebo/common/Plugin.hh>
 #include <gazebo/gazebo.hh>
-#include <gazebo/util/system.hh>
-#include <gazebo/transport/transport.hh>
 #include <gazebo/msgs/msgs.hh>
 #include <gazebo/physics/physics.hh>
+#include <gazebo/transport/transport.hh>
+#include <gazebo/util/system.hh>
 #include <ignition/math.hh>
 
 #include "CommandMotorSpeed.pb.h"
@@ -56,12 +56,11 @@ class DataDrivenDynamicsPlugin : public ModelPlugin {
 
   /// \brief	Calculates the forces and moments to be applied to the
   ///           fixed-wing body.
-  void UpdateForcesAndMoments(Eigen::Vector3d &forces, Eigen::Vector3d &moments);
+  void UpdateForcesAndMoments(Eigen::Vector3d& forces, Eigen::Vector3d& moments);
 
   double NormalizedInputToAngle(const ControlSurface& surface, double input);
 
  private:
-
   /// \brief    Flag to indicate that gazebo_mavlink_interface plugin handles
   ///           routing of actuation data (instead of gazebo_ros_interface_plugin)
   bool use_gazebo_mavlink_interface_;
@@ -141,4 +140,4 @@ class DataDrivenDynamicsPlugin : public ModelPlugin {
 
 }  // namespace gazebo
 
-#endif // ROTORS_GAZEBO_PLUGINS_FW_DYNAMICS_PLUGIN_H
+#endif  // ROTORS_GAZEBO_PLUGINS_FW_DYNAMICS_PLUGIN_H
