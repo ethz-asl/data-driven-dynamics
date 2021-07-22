@@ -6,23 +6,17 @@
  * public API of the class and therefore not declared in the header
  * of the plugin. */
 namespace detail {
-ignition::math::Vector3d ThreeAxisRot(
-  double r11, double r12, double r21, double r31, double r32);
+ignition::math::Vector3d ThreeAxisRot(double r11, double r12, double r21, double r31, double r32);
 
 double NormalizeAbout(double _angle, double reference);
 
 double ShortestAngularDistance(double _from, double _to);
 
-ignition::math::Vector3d QtoZXY(
-  const ignition::math::Quaterniond &_q);
-}
-
+ignition::math::Vector3d QtoZXY(const ignition::math::Quaterniond &_q);
+}  // namespace detail
 
 ////////////////////////////////////////////
 /// ThreeAxisRot ///////////////////////////
 ////////////////////////////////////////////
 
-TEST(Sample, Test1) {
-    ASSERT_EQ(true, true);
-}
-
+TEST(Sample, Test1) { ASSERT_EQ(true, true); }

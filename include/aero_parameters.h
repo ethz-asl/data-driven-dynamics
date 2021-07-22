@@ -17,8 +17,8 @@
 #ifndef ROTORS_GAZEBO_PLUGINS_FW_PARAMETERS_H_
 #define ROTORS_GAZEBO_PLUGINS_FW_PARAMETERS_H_
 
-#include <Eigen/Dense>
 #include <yaml-cpp/yaml.h>
+#include <Eigen/Dense>
 #include <exception>
 #include <gazebo/gazebo.hh>
 
@@ -37,58 +37,36 @@ static constexpr double kDefaultThrustInclination = 0.0;
 static constexpr double kDefaultAlphaMax = 0.27;
 static constexpr double kDefaultAlphaMin = -0.27;
 
-static const Eigen::Vector3d kDefaultCDragAlpha =
-    Eigen::Vector3d(0.1360, -0.6737, 5.4546);
-static const Eigen::Vector3d kDefaultCDragBeta =
-    Eigen::Vector3d(0.0195, 0.0, -0.3842);
-static const Eigen::Vector3d kDefaultCDragDeltaAil =
-    Eigen::Vector3d(0.0195, 1.4205e-4, 7.5037e-6);
-static const Eigen::Vector3d kDefaultCDragDeltaFlp =
-    Eigen::Vector3d(0.0195, 2.7395e-4, 1.23e-5);
+static const Eigen::Vector3d kDefaultCDragAlpha = Eigen::Vector3d(0.1360, -0.6737, 5.4546);
+static const Eigen::Vector3d kDefaultCDragBeta = Eigen::Vector3d(0.0195, 0.0, -0.3842);
+static const Eigen::Vector3d kDefaultCDragDeltaAil = Eigen::Vector3d(0.0195, 1.4205e-4, 7.5037e-6);
+static const Eigen::Vector3d kDefaultCDragDeltaFlp = Eigen::Vector3d(0.0195, 2.7395e-4, 1.23e-5);
 
-static const Eigen::Vector2d kDefaultCSideForceBeta =
-    Eigen::Vector2d(0.0, -0.3073);
+static const Eigen::Vector2d kDefaultCSideForceBeta = Eigen::Vector2d(0.0, -0.3073);
 
-static const Eigen::Vector4d kDefaultCLiftAlpha =
-    Eigen::Vector4d(0.2127, 10.8060, -46.8324, 60.6017);
-static const Eigen::Vector2d kDefaultCLiftDeltaAil =
-    Eigen::Vector2d(0.3304, 0.0048);
-static const Eigen::Vector2d kDefaultCLiftDeltaFlp =
-    Eigen::Vector2d(0.3304, 0.0073);
+static const Eigen::Vector4d kDefaultCLiftAlpha = Eigen::Vector4d(0.2127, 10.8060, -46.8324, 60.6017);
+static const Eigen::Vector2d kDefaultCLiftDeltaAil = Eigen::Vector2d(0.3304, 0.0048);
+static const Eigen::Vector2d kDefaultCLiftDeltaFlp = Eigen::Vector2d(0.3304, 0.0073);
 
-static const Eigen::Vector2d kDefaultCRollMomentBeta =
-    Eigen::Vector2d(0.0, -0.0154);
-static const Eigen::Vector2d kDefaultCRollMomentP =
-    Eigen::Vector2d(0.0, -0.1647);
-static const Eigen::Vector2d kDefaultCRollMomentR =
-    Eigen::Vector2d(0.0, 0.0117);
-static const Eigen::Vector2d kDefaultCRollMomentDeltaAil =
-    Eigen::Vector2d(0.0, 0.0570);
-static const Eigen::Vector2d kDefaultCRollMomentDeltaFlp =
-    Eigen::Vector2d(0.0, 0.001);
+static const Eigen::Vector2d kDefaultCRollMomentBeta = Eigen::Vector2d(0.0, -0.0154);
+static const Eigen::Vector2d kDefaultCRollMomentP = Eigen::Vector2d(0.0, -0.1647);
+static const Eigen::Vector2d kDefaultCRollMomentR = Eigen::Vector2d(0.0, 0.0117);
+static const Eigen::Vector2d kDefaultCRollMomentDeltaAil = Eigen::Vector2d(0.0, 0.0570);
+static const Eigen::Vector2d kDefaultCRollMomentDeltaFlp = Eigen::Vector2d(0.0, 0.001);
 
-static const Eigen::Vector2d kDefaultCPitchMomentAlpha =
-    Eigen::Vector2d(0.0435, -2.9690);
-static const Eigen::Vector2d kDefaultCPitchMomentQ =
-    Eigen::Vector2d(-0.1173, -106.1541);
-static const Eigen::Vector2d kDefaultCPitchMomentDeltaElv =
-    Eigen::Vector2d(-0.1173, -6.1308);
+static const Eigen::Vector2d kDefaultCPitchMomentAlpha = Eigen::Vector2d(0.0435, -2.9690);
+static const Eigen::Vector2d kDefaultCPitchMomentQ = Eigen::Vector2d(-0.1173, -106.1541);
+static const Eigen::Vector2d kDefaultCPitchMomentDeltaElv = Eigen::Vector2d(-0.1173, -6.1308);
 
-static const Eigen::Vector2d kDefaultCYawMomentBeta =
-    Eigen::Vector2d(0.0, 0.0430);
-static const Eigen::Vector2d kDefaultCYawMomentR =
-    Eigen::Vector2d(0.0, -0.0827);
-static const Eigen::Vector2d kDefaultCYawMomentDeltaRud =
-    Eigen::Vector2d(0.0, 0.06);
+static const Eigen::Vector2d kDefaultCYawMomentBeta = Eigen::Vector2d(0.0, 0.0430);
+static const Eigen::Vector2d kDefaultCYawMomentR = Eigen::Vector2d(0.0, -0.0827);
+static const Eigen::Vector2d kDefaultCYawMomentDeltaRud = Eigen::Vector2d(0.0, 0.06);
 
-static const Eigen::Vector3d kDefaultCThrust =
-    Eigen::Vector3d(0.0, 14.7217, 0.0);
+static const Eigen::Vector3d kDefaultCThrust = Eigen::Vector3d(0.0, 14.7217, 0.0);
 
 // Default values for fixed-wing controls (Techpod model)
-static constexpr double kDefaultControlSurfaceDeflectionMin =
-    -20.0 * M_PI / 180.0;
-static constexpr double kDefaultControlSurfaceDeflectionMax =
-    20.0 * M_PI / 180.0;
+static constexpr double kDefaultControlSurfaceDeflectionMin = -20.0 * M_PI / 180.0;
+static constexpr double kDefaultControlSurfaceDeflectionMax = 20.0 * M_PI / 180.0;
 
 static constexpr int kDefaultAileronLeftChannel = 0;
 static constexpr int kDefaultAileronRightChannel = 0;
@@ -99,36 +77,29 @@ static constexpr int kDefaultThrottleChannel = 3;
 
 /// \brief  Wrapper function for extracting control surface parameters from a
 ///         YAML node.
-inline void YAMLReadControlSurface(const YAML::Node& node,
-                                   const std::string& name,
-                                   ControlSurface& surface);
+inline void YAMLReadControlSurface(const YAML::Node& node, const std::string& name, ControlSurface& surface);
 
 /// \brief  This function reads a vector from a YAML node and converts it into
 ///         a vector of type Eigen.
 template <typename Derived>
-inline void YAMLReadEigenVector(const YAML::Node& node,
-                                const std::string& name,
-                                Eigen::MatrixBase<Derived>& value);
+inline void YAMLReadEigenVector(const YAML::Node& node, const std::string& name, Eigen::MatrixBase<Derived>& value);
 
 /// \brief  This function reads a parameter from a YAML node.
 template <typename T>
-inline void YAMLReadParam(const YAML::Node& node,
-                          const std::string& name,
-                          T& value);
+inline void YAMLReadParam(const YAML::Node& node, const std::string& name, T& value);
 
 /// \brief  Macros to reduce copies of names.
-#define READ_CONTROL_SURFACE(node, item) \
-    YAMLReadControlSurface(node, #item, item);
+#define READ_CONTROL_SURFACE(node, item) YAMLReadControlSurface(node, #item, item);
 #define READ_EIGEN_VECTOR(node, item) YAMLReadEigenVector(node, #item, item);
 #define READ_PARAM(node, item) YAMLReadParam(node, #item, item);
 
 struct RotorParameters {
-    Eigen::Vector3d position{Eigen::Vector3d::Zero()};
-    Eigen::Vector3d rotor_axis{Eigen::Vector3d(0.0, 0.0, 1.0)};
-    double diameter{1.0};
-    double vertical_rot_drag_lin{0.07444735702448266};
-    double vertical_rot_thrust_lin{-0.0017229667485354344};
-    double vertical_rot_thrust_quad{4.0095427586089745};
+  Eigen::Vector3d position{Eigen::Vector3d::Zero()};
+  Eigen::Vector3d rotor_axis{Eigen::Vector3d(0.0, 0.0, 1.0)};
+  double diameter{1.0};
+  double vertical_rot_drag_lin{0.07444735702448266};
+  double vertical_rot_thrust_lin{-0.0017229667485354344};
+  double vertical_rot_thrust_quad{4.0095427586089745};
 };
 struct FWAerodynamicParameters {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -193,26 +164,25 @@ struct FWAerodynamicParameters {
   Eigen::Vector3d c_thrust;
 
   void LoadAeroParamsYAML(const std::string& yaml_path) {
-
     const YAML::Node node = YAML::LoadFile(yaml_path);
 
-    gzdbg << yaml_path <<std::endl;
-    gzdbg<<"IsDefined"<<node.IsDefined()<<std::endl;
-    gzdbg<<"IsMap"<<node.IsMap()<<std::endl;
-    gzdbg<<"IsNull"<<node.IsNull()<<std::endl;
-    gzdbg<<"IsScalar"<<node.IsScalar()<<std::endl;
-    gzdbg<<"IsSequence"<<node.IsSequence()<<std::endl;
+    gzdbg << yaml_path << std::endl;
+    gzdbg << "IsDefined" << node.IsDefined() << std::endl;
+    gzdbg << "IsMap" << node.IsMap() << std::endl;
+    gzdbg << "IsNull" << node.IsNull() << std::endl;
+    gzdbg << "IsScalar" << node.IsScalar() << std::endl;
+    gzdbg << "IsSequence" << node.IsSequence() << std::endl;
 
-    try{
-    const YAML::Node coefficients = node["coefficients"];
-    READ_PARAM(coefficients, vertical_rot_drag_lin);
-    READ_PARAM(coefficients, vertical_rot_thrust_lin);
-    READ_PARAM(coefficients, vertical_rot_thrust_quad);
+    try {
+      const YAML::Node coefficients = node["coefficients"];
+      READ_PARAM(coefficients, vertical_rot_drag_lin);
+      READ_PARAM(coefficients, vertical_rot_thrust_lin);
+      READ_PARAM(coefficients, vertical_rot_thrust_quad);
 
-    const YAML::Node configs = node["model"];
-    /// TODO: iterate through yaml files and append rotor elements to model
-    const YAML::Node rotors = configs["vertical_"];
-    for (auto rotor : rotors) {
+      const YAML::Node configs = node["model"];
+      /// TODO: iterate through yaml files and append rotor elements to model
+      const YAML::Node rotors = configs["vertical_"];
+      for (auto rotor : rotors) {
         gzdbg << rotor["description"] << std::endl;
         RotorParameters rotor_parameter;
         Eigen::Vector3d position, rotor_axis;
@@ -228,55 +198,52 @@ struct FWAerodynamicParameters {
         rotor_parameter.vertical_rot_drag_lin = vertical_rot_drag_lin;
         // rotor_parameter.diameter = diameter;
         rotor_parameters_.push_back(rotor_parameter);
-    }
+      }
 
-    READ_PARAM(node, alpha_max);
-    READ_PARAM(node, alpha_min);
+      READ_PARAM(node, alpha_max);
+      READ_PARAM(node, alpha_min);
 
-    READ_EIGEN_VECTOR(node, c_drag_alpha);
-    READ_EIGEN_VECTOR(node, c_drag_beta);
-    READ_EIGEN_VECTOR(node, c_drag_delta_ail);
-    READ_EIGEN_VECTOR(node, c_drag_delta_flp);
+      READ_EIGEN_VECTOR(node, c_drag_alpha);
+      READ_EIGEN_VECTOR(node, c_drag_beta);
+      READ_EIGEN_VECTOR(node, c_drag_delta_ail);
+      READ_EIGEN_VECTOR(node, c_drag_delta_flp);
 
-    READ_EIGEN_VECTOR(node, c_side_force_beta);
+      READ_EIGEN_VECTOR(node, c_side_force_beta);
 
-    READ_EIGEN_VECTOR(node, c_lift_alpha);
-    READ_EIGEN_VECTOR(node, c_lift_delta_ail);
-    READ_EIGEN_VECTOR(node, c_lift_delta_flp);
+      READ_EIGEN_VECTOR(node, c_lift_alpha);
+      READ_EIGEN_VECTOR(node, c_lift_delta_ail);
+      READ_EIGEN_VECTOR(node, c_lift_delta_flp);
 
-    READ_EIGEN_VECTOR(node, c_roll_moment_beta);
-    READ_EIGEN_VECTOR(node, c_roll_moment_p);
-    READ_EIGEN_VECTOR(node, c_roll_moment_r);
-    READ_EIGEN_VECTOR(node, c_roll_moment_delta_ail);
-    READ_EIGEN_VECTOR(node, c_roll_moment_delta_flp);
+      READ_EIGEN_VECTOR(node, c_roll_moment_beta);
+      READ_EIGEN_VECTOR(node, c_roll_moment_p);
+      READ_EIGEN_VECTOR(node, c_roll_moment_r);
+      READ_EIGEN_VECTOR(node, c_roll_moment_delta_ail);
+      READ_EIGEN_VECTOR(node, c_roll_moment_delta_flp);
 
-    READ_EIGEN_VECTOR(node, c_pitch_moment_alpha);
-    READ_EIGEN_VECTOR(node, c_pitch_moment_q);
-    READ_EIGEN_VECTOR(node, c_pitch_moment_delta_elv);
+      READ_EIGEN_VECTOR(node, c_pitch_moment_alpha);
+      READ_EIGEN_VECTOR(node, c_pitch_moment_q);
+      READ_EIGEN_VECTOR(node, c_pitch_moment_delta_elv);
 
-    READ_EIGEN_VECTOR(node, c_yaw_moment_beta);
-    READ_EIGEN_VECTOR(node, c_yaw_moment_r);
-    READ_EIGEN_VECTOR(node, c_yaw_moment_delta_rud);
+      READ_EIGEN_VECTOR(node, c_yaw_moment_beta);
+      READ_EIGEN_VECTOR(node, c_yaw_moment_r);
+      READ_EIGEN_VECTOR(node, c_yaw_moment_delta_rud);
 
-    READ_EIGEN_VECTOR(node, c_thrust);
+      READ_EIGEN_VECTOR(node, c_thrust);
 
     } catch (const std::exception& ex) {
-        gzerr<<ex.what()<<std::endl;
+      gzerr << ex.what() << std::endl;
     } catch (const std::string& ex) {
-        gzerr<<ex<<std::endl;
+      gzerr << ex << std::endl;
     } catch (...) {
-        gzerr<<"meeep"<<std::endl;
+      gzerr << "meeep" << std::endl;
     }
   }
 };
 
 struct ControlSurface {
-  ControlSurface(int cs_channel,
-                 double defl_min = kDefaultControlSurfaceDeflectionMin,
+  ControlSurface(int cs_channel, double defl_min = kDefaultControlSurfaceDeflectionMin,
                  double defl_max = kDefaultControlSurfaceDeflectionMax)
-      : channel(cs_channel),
-        deflection_min(defl_min),
-        deflection_max(defl_max) {}
+      : channel(cs_channel), deflection_min(defl_min), deflection_max(defl_max) {}
 
   int channel;
 
@@ -319,61 +286,54 @@ struct FWVehicleParameters {
   void LoadVehicleParamsYAML(const std::string& yaml_path) {
     const YAML::Node node = YAML::LoadFile(yaml_path);
 
-    gzdbg << yaml_path <<std::endl;
-    gzdbg<<"IsDefined"<<node.IsDefined()<<std::endl;
-    gzdbg<<"IsMap"<<node.IsMap()<<std::endl;
-    gzdbg<<"IsNull"<<node.IsNull()<<std::endl;
-    gzdbg<<"IsScalar"<<node.IsScalar()<<std::endl;
-    gzdbg<<"IsSequence"<<node.IsSequence()<<std::endl;
+    gzdbg << yaml_path << std::endl;
+    gzdbg << "IsDefined" << node.IsDefined() << std::endl;
+    gzdbg << "IsMap" << node.IsMap() << std::endl;
+    gzdbg << "IsNull" << node.IsNull() << std::endl;
+    gzdbg << "IsScalar" << node.IsScalar() << std::endl;
+    gzdbg << "IsSequence" << node.IsSequence() << std::endl;
 
-    try{
-    READ_PARAM(node, wing_span);
-    READ_PARAM(node, wing_surface);
-    READ_PARAM(node, chord_length);
-    READ_PARAM(node, thrust_inclination);
+    try {
+      READ_PARAM(node, wing_span);
+      READ_PARAM(node, wing_surface);
+      READ_PARAM(node, chord_length);
+      READ_PARAM(node, thrust_inclination);
 
-    READ_PARAM(node, throttle_channel);
+      READ_PARAM(node, throttle_channel);
 
-    READ_CONTROL_SURFACE(node, aileron_left);
-    READ_CONTROL_SURFACE(node, aileron_right);
-    READ_CONTROL_SURFACE(node, elevator);
-    READ_CONTROL_SURFACE(node, flap);
-    READ_CONTROL_SURFACE(node, rudder);
+      READ_CONTROL_SURFACE(node, aileron_left);
+      READ_CONTROL_SURFACE(node, aileron_right);
+      READ_CONTROL_SURFACE(node, elevator);
+      READ_CONTROL_SURFACE(node, flap);
+      READ_CONTROL_SURFACE(node, rudder);
 
     } catch (const std::exception& ex) {
-        gzerr<<ex.what()<<std::endl;
+      gzerr << ex.what() << std::endl;
     } catch (const std::string& ex) {
-        gzerr<<ex<<std::endl;
+      gzerr << ex << std::endl;
     } catch (...) {
-        gzerr<<"meeep"<<std::endl;
+      gzerr << "meeep" << std::endl;
     }
   }
 };
 
-inline void YAMLReadControlSurface(const YAML::Node& node,
-                                   const std::string& name,
-                                   ControlSurface& surface) {
+inline void YAMLReadControlSurface(const YAML::Node& node, const std::string& name, ControlSurface& surface) {
   const YAML::Node surface_node = node[name];
   surface.LoadControlSurfaceNode(surface_node);
 }
 
 template <typename Derived>
-inline void YAMLReadEigenVector(const YAML::Node& node,
-                                const std::string& name,
-                                Eigen::MatrixBase<Derived>& value) {
-  std::vector<typename Derived::RealScalar> vec =
-      node[name].as<std::vector<typename Derived::RealScalar>>();
+inline void YAMLReadEigenVector(const YAML::Node& node, const std::string& name, Eigen::MatrixBase<Derived>& value) {
+  std::vector<typename Derived::RealScalar> vec = node[name].as<std::vector<typename Derived::RealScalar>>();
   assert(vec.size() == Derived::SizeAtCompileTime);
   value = Eigen::Map<Derived>(&vec[0], vec.size());
 }
 
 template <typename T>
-inline void YAMLReadParam(const YAML::Node& node,
-                          const std::string& name,
-                          T& value) {
+inline void YAMLReadParam(const YAML::Node& node, const std::string& name, T& value) {
   value = node[name].as<T>();
 }
 
-}
+}  // namespace gazebo
 
 #endif /* ROTORS_GAZEBO_PLUGINS_FW_PARAMETERS_H_ */
