@@ -129,11 +129,6 @@ struct RotorParameters {
     double vertical_rot_drag_lin{0.07444735702448266};
     double vertical_rot_thrust_lin{-0.0017229667485354344};
     double vertical_rot_thrust_quad{4.0095427586089745};
-    double c_m_leaver_quad{0.0};
-    double c_m_leaver_lin{0.0};
-    double c_m_drag_z_quad{0.0};
-    double c_m_drag_z_lin{0.0};
-    double c_m_rolling{0.0};
 };
 struct FWAerodynamicParameters {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -166,11 +161,6 @@ struct FWAerodynamicParameters {
   double vertical_rot_drag_lin{0.07444735702448266};
   double vertical_rot_thrust_lin{-0.0017229667485354344};
   double vertical_rot_thrust_quad{4.0095427586089745};
-  double vertical_c_m_drag_z_lin{-10.324851252250626};
-  double vertical_c_m_drag_z_quad{6.0213939854338685};
-  double vertical_c_m_leaver_lin{-8.33722923229799};
-  double vertical_c_m_leaver_quad{32.623014913712176};
-  double vertical_c_m_rolling{-1.467193735480539};
 
   double alpha_max;
   double alpha_min;
@@ -218,12 +208,6 @@ struct FWAerodynamicParameters {
     READ_PARAM(coefficients, vertical_rot_drag_lin);
     READ_PARAM(coefficients, vertical_rot_thrust_lin);
     READ_PARAM(coefficients, vertical_rot_thrust_quad);
-    READ_PARAM(coefficients, vertical_c_m_leaver_lin);
-    READ_PARAM(coefficients, vertical_c_m_drag_z_lin);
-    READ_PARAM(coefficients, vertical_c_m_drag_z_quad);
-    READ_PARAM(coefficients, vertical_c_m_leaver_lin);
-    READ_PARAM(coefficients, vertical_c_m_leaver_quad);
-    READ_PARAM(coefficients, vertical_c_m_rolling);
 
     const YAML::Node configs = node["model"];
     /// TODO: iterate through yaml files and append rotor elements to model
