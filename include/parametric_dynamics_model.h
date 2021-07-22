@@ -50,7 +50,7 @@ class ParametricDynamicsModel {
     };
 
   private:
-    void computeRotorFeatures(const Eigen::Vector3d airspeed, const Eigen::VectorXd &actuator_inputs, Eigen::Vector3d &rotor_force, Eigen::Vector3d &rotor_moment);    Eigen::Vector3d computeRotorForce(const Eigen::Vector3d airspeed, const double actuator_input, const RotorParameters &rotor_params);
+    void computeTotalRotorWrench(const Eigen::Vector3d airspeed, const Eigen::VectorXd &actuator_inputs, Eigen::Vector3d &rotor_force, Eigen::Vector3d &rotor_moment);    Eigen::Vector3d computeRotorForce(const Eigen::Vector3d airspeed, const double actuator_input, const RotorParameters &rotor_params);
     Eigen::Vector3d computeRotorMoment(const Eigen::Vector3d airspeed, const double actuator_input, const RotorParameters &rotor_params, Eigen::Vector3d rotor_force);
     Eigen::Vector3d force_{Eigen::Vector3d::Zero()};
     Eigen::Vector3d moment_{Eigen::Vector3d::Zero()};
