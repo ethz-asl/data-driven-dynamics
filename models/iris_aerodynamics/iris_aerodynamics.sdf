@@ -353,7 +353,7 @@
     <plugin name='aerodynamics' filename='libdata_driven_dynamics_plugin.so'>
       <robotNamespace></robotNamespace>
       <linkName>base_link</linkName>
-      <aeroParamsYAML>/home/jaeyoung/dev/data-driven-dynamics/model_results/quadrotor_model.yaml</aeroParamsYAML>
+      <aeroParamsYAML>model_results/quadrotor_model.yaml</aeroParamsYAML>
     </plugin>
     <model name='gps0'>
       <link name='link'>
