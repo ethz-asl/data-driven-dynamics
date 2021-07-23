@@ -61,7 +61,13 @@ void DataDrivenDynamicsPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _s
   // provided, default Techpod parameters are used.
   if (_sdf->HasElement("aeroParamsYAML")) {
     std::string aero_params_yaml = _sdf->GetElement("aeroParamsYAML")->Get<std::string>();
-
+    if (aero_params_yaml.at(0) != '/') {
+      const char* root_dir = std::getenv("DATA_DRIVEN_DYNAMICS_ROOT");
+      aero_params_yaml = std::string(root_dir) + "/" + aero_params_yaml;
+      gzmsg << "Using relative path for model config: " << aero_params_yaml << std::endl;
+    } else {
+      gzmsg << "Using absolute path for model config: " << aero_params_yaml << std::endl;
+    }
     parametric_model_->LoadAeroParams(aero_params_yaml);
   } else {
     gzwarn << "[gazebo_fw_dynamics_plugin] No aerodynamic paramaters YAML file"
