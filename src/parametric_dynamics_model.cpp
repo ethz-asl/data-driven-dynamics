@@ -73,7 +73,7 @@ Eigen::Vector3d ParametricDynamicsModel::computeRotorForce(const Eigen::Vector3d
   const double prop_diameter = rotor_params.diameter;
   const double thrust_lin = rotor_params.vertical_rot_thrust_lin;
   const double thrust_quad = rotor_params.vertical_rot_thrust_quad;
-
+  const double drag_lin = rotor_params.vertical_rot_drag_lin;
   Eigen::Vector3d rotor_axis = (rotor_params.rotor_axis).normalized();
 
   Eigen::Vector3d v_airspeed_parallel_to_rotor_axis = airspeed.dot(rotor_axis) * rotor_axis;
@@ -84,6 +84,9 @@ Eigen::Vector3d ParametricDynamicsModel::computeRotorForce(const Eigen::Vector3d
                                    thrust_quad * std::pow(actuator_input, 2) * prop_diameter)) *
                                  kAirDensity * std::pow(prop_diameter, 3) * rotor_axis;
   Eigen::Vector3d rotor_drag = Eigen::Vector3d::Zero();
+  if (v_airspeed_vertical_to_rotor_axis.norm() >= 0.05) {
+    rotor_drag = v_airspeed_vertical_to_rotor_axis * (-1.0) * drag_lin * actuator_input;
+  }
 
   return rotor_thrust + rotor_drag;
 }
@@ -91,27 +94,36 @@ Eigen::Vector3d ParametricDynamicsModel::computeRotorForce(const Eigen::Vector3d
 Eigen::Vector3d ParametricDynamicsModel::computeRotorMoment(const Eigen::Vector3d airspeed, const double actuator_input,
                                                             const RotorParameters &rotor_params,
                                                             Eigen::Vector3d rotor_force) {
+  if (!std::isfinite(actuator_input)) return Eigen::Vector3d::Zero();
   // Thrust force computation
-  // const double prop_diameter = rotor_params.diameter;
-  // const double c_m_leaver_quad = rotor_params.c_m_leaver_quad;
-  // const double c_m_leaver_lin = rotor_params.c_m_leaver_lin;
-  // const double c_m_drag_z_quad = rotor_params.c_m_drag_z_quad;
-  // const double c_m_drag_z_lin = rotor_params.c_m_drag_z_lin;
-  // const double c_m_rolling = rotor_params.c_m_rolling;
+  const double prop_diameter = rotor_params.diameter;
+  const double c_m_leaver_quad = rotor_params.vertical_c_m_leaver_quad;
+  const double c_m_leaver_lin = rotor_params.vertical_c_m_leaver_lin;
+  const double c_m_drag_z_quad = rotor_params.vertical_c_m_drag_z_quad;
+  const double c_m_drag_z_lin = rotor_params.vertical_c_m_drag_z_lin;
+  const double c_m_rolling = rotor_params.vertical_c_m_rolling;
+  const double turning_direction = rotor_params.turning_direction;
+  const Eigen::Vector3d rotor_axis = (rotor_params.rotor_axis).normalized();
+  const Eigen::Vector3d rotor_position = rotor_params.position;
 
-  Eigen::Vector3d rotor_axis = (rotor_params.rotor_axis).normalized();
-  Eigen::Vector3d rotor_position = rotor_params.position;
+  const Eigen::Vector3d v_airspeed_parallel_to_rotor_axis = airspeed.dot(rotor_axis) * rotor_axis;
+  const Eigen::Vector3d v_airspeed_vertical_to_rotor_axis = airspeed - v_airspeed_parallel_to_rotor_axis;
 
-  Eigen::Vector3d v_airspeed_parallel_to_rotor_axis = airspeed.dot(rotor_axis) * rotor_axis;
-  Eigen::Vector3d v_airspeed_vertical_to_rotor_axis = airspeed - v_airspeed_parallel_to_rotor_axis;
+  const Eigen::Vector3d leaver_moment_vec = rotor_position.cross(rotor_axis);
 
-  // Eigen::Vector3d moment_drag = Eigen::Vector3d::Zero();
-  // Eigen::Vector3d moment_rolling = Eigen::Vector3d::Zero();
-  // return moment_drag + moment_rolling;
+  Eigen::Vector3d moment_leaver{Eigen::Vector3d::Zero()};
+  moment_leaver = (c_m_leaver_quad * std::pow(actuator_input, 2) +
+                   c_m_leaver_lin * actuator_input * v_airspeed_vertical_to_rotor_axis.norm()) *
+                  leaver_moment_vec * kAirDensity * std::pow(prop_diameter, 4);
 
-  /// TODO: Using rotor forces to calculate moment generation as a wip patch
-  Eigen::Vector3d rotor_moment = rotor_position.cross(rotor_force);
+  Eigen::Vector3d moment_drag{Eigen::Vector3d::Zero()};
+  moment_drag = ((c_m_drag_z_quad * turning_direction) * std::pow(actuator_input, 2) +
+                 c_m_drag_z_lin * turning_direction * v_airspeed_parallel_to_rotor_axis.norm() * actuator_input) *
+                kAirDensity * std::pow(prop_diameter, 5) * rotor_axis;
 
-  return rotor_moment;
+  Eigen::Vector3d moment_rolling{Eigen::Vector3d::Zero()};
+  moment_rolling = c_m_rolling * (-1.0) * actuator_input * v_airspeed_vertical_to_rotor_axis;
+
+  return moment_leaver + moment_drag + moment_rolling;
 }
 }  // namespace gazebo
