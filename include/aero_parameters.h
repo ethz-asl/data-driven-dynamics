@@ -97,9 +97,15 @@ struct RotorParameters {
   Eigen::Vector3d position{Eigen::Vector3d::Zero()};
   Eigen::Vector3d rotor_axis{Eigen::Vector3d(0.0, 0.0, 1.0)};
   double diameter{1.0};
+  double turning_direction{1.0};
   double vertical_rot_drag_lin{0.07444735702448266};
   double vertical_rot_thrust_lin{-0.0017229667485354344};
   double vertical_rot_thrust_quad{4.0095427586089745};
+  double vertical_c_m_leaver_quad{0.0};
+  double vertical_c_m_leaver_lin{0.0};
+  double vertical_c_m_drag_z_quad{0.0};
+  double vertical_c_m_drag_z_lin{0.0};
+  double vertical_c_m_rolling{0.0};
 };
 struct FWAerodynamicParameters {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -132,6 +138,11 @@ struct FWAerodynamicParameters {
   double vertical_rot_drag_lin{0.07444735702448266};
   double vertical_rot_thrust_lin{-0.0017229667485354344};
   double vertical_rot_thrust_quad{4.0095427586089745};
+  double vertical_c_m_drag_z_lin{-10.324851252250626};
+  double vertical_c_m_drag_z_quad{6.0213939854338685};
+  double vertical_c_m_leaver_lin{-8.33722923229799};
+  double vertical_c_m_leaver_quad{32.623014913712176};
+  double vertical_c_m_rolling{-1.467193735480539};
 
   double alpha_max;
   double alpha_min;
@@ -178,6 +189,12 @@ struct FWAerodynamicParameters {
       READ_PARAM(coefficients, vertical_rot_drag_lin);
       READ_PARAM(coefficients, vertical_rot_thrust_lin);
       READ_PARAM(coefficients, vertical_rot_thrust_quad);
+      READ_PARAM(coefficients, vertical_c_m_leaver_lin);
+      READ_PARAM(coefficients, vertical_c_m_drag_z_lin);
+      READ_PARAM(coefficients, vertical_c_m_drag_z_quad);
+      READ_PARAM(coefficients, vertical_c_m_leaver_lin);
+      READ_PARAM(coefficients, vertical_c_m_leaver_quad);
+      READ_PARAM(coefficients, vertical_c_m_rolling);
 
       const YAML::Node configs = node["model"];
       /// TODO: iterate through yaml files and append rotor elements to model
@@ -186,16 +203,24 @@ struct FWAerodynamicParameters {
         gzdbg << rotor["description"] << std::endl;
         RotorParameters rotor_parameter;
         Eigen::Vector3d position, rotor_axis;
-        double diameter;
+        double diameter, turning_direction;
         READ_EIGEN_VECTOR(rotor, position);
         READ_EIGEN_VECTOR(rotor, rotor_axis);
+        READ_PARAM(rotor, turning_direction);
         // READ_PARAM(rotor, diameter);
         std::cout << "Reading yaml file: " << std::endl;
         rotor_parameter.position = position;
         rotor_parameter.rotor_axis = rotor_axis;
+        rotor_parameter.turning_direction = turning_direction;
         rotor_parameter.vertical_rot_thrust_lin = vertical_rot_thrust_lin;
         rotor_parameter.vertical_rot_thrust_quad = vertical_rot_thrust_quad;
         rotor_parameter.vertical_rot_drag_lin = vertical_rot_drag_lin;
+        rotor_parameter.vertical_c_m_leaver_lin = vertical_c_m_leaver_lin;
+        rotor_parameter.vertical_c_m_leaver_quad = vertical_c_m_leaver_quad;
+        rotor_parameter.vertical_c_m_drag_z_lin = vertical_c_m_drag_z_lin;
+        rotor_parameter.vertical_c_m_drag_z_quad = vertical_c_m_drag_z_quad;
+        rotor_parameter.vertical_c_m_leaver_lin = vertical_c_m_leaver_lin;
+        rotor_parameter.vertical_c_m_rolling = vertical_c_m_rolling;
         // rotor_parameter.diameter = diameter;
         rotor_parameters_.push_back(rotor_parameter);
       }
