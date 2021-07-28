@@ -19,7 +19,6 @@ from src.tools.ulog_tools import load_ulog, pandas_from_topic
 from src.tools.dataframe_tools import compute_flight_time, resample_dataframe_list
 from src.tools.quat_utils import quaternion_to_rotation_matrix
 
-
 class DynamicsModel():
     def __init__(self, config_dict):
 
@@ -343,3 +342,27 @@ class DynamicsModel():
         self.save_result_dict_to_yaml(file_name=self.model_name)
 
         return
+
+    def compute_residuals(self):
+        
+        y_pred = self.reg.predict(self.X)
+
+        y_forces_pred = y_pred[0:self.y_forces.shape[0]]
+        y_moments_pred = y_pred[self.y_forces.shape[0]:]
+
+        error_y_forces = y_forces_pred - self.y_forces
+        error_y_moments = y_moments_pred - self.y_moments
+
+        stacked_error_y_forces = np.array(error_y_forces)
+        acc_mat = stacked_error_y_forces.reshape((-1, 3))
+        residual_force_df = pd.DataFrame(acc_mat, columns=[
+            "residual_force_x", "residual_force_y", "residual_force_z"])
+        self.data_df = pd.concat(
+            [self.data_df, residual_force_df], axis=1, join="inner")
+        
+        stacked_error_y_moments = np.array(error_y_moments)
+        mom_mat = stacked_error_y_moments.reshape((-1, 3))
+        residual_moment_df = pd.DataFrame(mom_mat, columns=[
+            "residual_moment_x", "residual_moment_y", "residual_moment_z"])
+        self.data_df = pd.concat(
+            [self.data_df, residual_moment_df], axis=1, join="inner")
