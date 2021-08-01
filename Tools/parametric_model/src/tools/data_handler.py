@@ -12,6 +12,7 @@ import time
 import yaml
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 
 from src.models.model_config import ModelConfig
 from src.tools.ulog_tools import load_ulog, pandas_from_topic
@@ -47,29 +48,46 @@ class DataHandler():
     
     def loadLog(self, rel_data_path):
         self.rel_data_path = rel_data_path
+        if (os.path.isdir(rel_data_path)):
+            self.data_df = pd.DataFrame()
+            for filename in os.listdir(rel_data_path):
+                if filename.endswith(".ulg"):
+                    print(os.path.join(rel_data_path, filename))
+                    ulog = load_ulog(os.path.join(rel_data_path, filename))
+                    self.check_ulog_for_req_topics(ulog)
+                    self.data_df = self.data_df.append(self.compute_resampled_dataframe(ulog))
+                    self.data_df.reset_index(drop=True, inplace=True)
 
-        if (rel_data_path[-4:] == ".csv"):
-            self.data_df = pd.read_csv(rel_data_path, index_col=0)
-            for req_topic in self.req_dataframe_topic_list:
-                assert(
-                    req_topic in self.data_df), ("missing topic in loaded csv: " + str(req_topic))
-
-        elif (rel_data_path[-4:] == ".ulg"):
-
-            self.ulog = load_ulog(rel_data_path)
-            self.check_ulog_for_req_topics()
-
-            self.compute_resampled_dataframe()
+                elif filename.endswith(".csv"):
+                    raise Exception("Parsing CSV files from a directory is not supported")
+                    
+                else:
+                    continue
 
         else:
-            print("ERROR: file extension needs to be either csv or ulg:")
-            print(rel_data_path)
-            exit(1)
+            if (rel_data_path[-4:] == ".csv"):
+                self.data_df = pd.read_csv(rel_data_path, index_col=0)
+                for req_topic in self.req_dataframe_topic_list:
+                    assert(
+                        req_topic in self.data_df), ("missing topic in loaded csv: " + str(req_topic))
 
-    def check_ulog_for_req_topics(self):
+            elif (rel_data_path[-4:] == ".ulg"):
+
+                ulog = load_ulog(rel_data_path)
+                self.check_ulog_for_req_topics(ulog)
+
+                self.data_df = self.compute_resampled_dataframe(ulog)
+
+            else:
+                print("ERROR: file extension needs to be either csv or ulg:")
+                print(rel_data_path)
+                exit(1)
+
+
+    def check_ulog_for_req_topics(self, ulog):
         for topic_type in self.req_topics_dict.keys():
             try:
-                topic_type_data = self.ulog.get_dataset(topic_type)
+                topic_type_data = ulog.get_dataset(topic_type)
 
             except:
                 print("Missing topic type: ", topic_type)
@@ -88,11 +106,11 @@ class DataHandler():
 
         return
 
-    def compute_resampled_dataframe(self):
+    def compute_resampled_dataframe(self, ulog):
         print("Starting data resampling of topic types: ",
               self.req_topics_dict.keys())
         # setup object to crop dataframes for flight data
-        fts = compute_flight_time(self.ulog)
+        fts = compute_flight_time(ulog)
         df_list = []
         topic_type_bar = Bar('Resampling', max=len(
             self.req_topics_dict.keys()))
@@ -100,7 +118,7 @@ class DataHandler():
         # getting data
         for topic_type in self.req_topics_dict.keys():
             topic_dict = self.req_topics_dict[topic_type]
-            curr_df = pandas_from_topic(self.ulog, [topic_type])
+            curr_df = pandas_from_topic(ulog, [topic_type])
             curr_df = curr_df[topic_dict["ulog_name"]]
             if "dataframe_name" in topic_dict.keys():
                 assert (len(topic_dict["dataframe_name"]) == len(topic_dict["ulog_name"])), (
@@ -111,7 +129,7 @@ class DataHandler():
         topic_type_bar.finish()
         resampled_df = resample_dataframe_list(
             df_list, fts, self.resample_freq)
-        self.data_df = resampled_df.dropna()
+        return resampled_df.dropna()
 
     def visually_select_data(self, plot_config_dict=None):
         from visual_dataframe_selector.data_selector import select_visual_data
