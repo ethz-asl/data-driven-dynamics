@@ -35,18 +35,7 @@ class QuadPlaneModel(DynamicsModel):
             self.config.model_config["aerodynamics"]["stall_angle_deg"]
         self.sig_scale_fac = self.config.model_config["aerodynamics"]["sig_scale_factor"]
 
-    def prepare_regression_matrices(self):
-
-        if "V_air_body_x" not in self.data_df:
-            self.normalize_actuators()
-            self.compute_airspeed_from_groundspeed(["vx", "vy", "vz"])
-
-        # Rotor features
-        angular_vel_mat = self.data_df[[
-            "ang_vel_x", "ang_vel_y", "ang_vel_z"]].to_numpy()
-        self.compute_rotor_features(self.rotor_config_dict, angular_vel_mat)
-
-        if (self.estimate_forces):
+    def prepare_force_regression_matrices(self):
             # Aerodynamics features
             airspeed_mat = self.data_df[["V_air_body_x",
                                         "V_air_body_y", "V_air_body_z"]].to_numpy()
@@ -69,7 +58,7 @@ class QuadPlaneModel(DynamicsModel):
             self.coef_name_list.extend(
                 self.rotor_forces_coef_list + aero_coef_list)
 
-        if (self.estimate_moments):
+    def prepare_moment_regression_matrices(self):
             # features due to rotation of body frame
             X_body_rot_moment, X_body_rot_moment_coef_list = self.compute_body_rotation_features(
                 ["ang_vel_x", "ang_vel_y", "ang_vel_z"])
@@ -86,16 +75,6 @@ class QuadPlaneModel(DynamicsModel):
             # Set coefficients
             self.coef_name_list.extend(
                 self.rotor_moments_coef_list + X_body_rot_moment_coef_list)
-
-        if (self.estimate_forces and self.estimate_moments):
-            X = block_diag(self.X_forces, self.X_moments)
-            y = np.hstack((self.y_forces, self.y_moments))
-
-            # define separate features for plotting and predicitons
-            self.X_forces = X[0:self.X_forces.shape[0], :]
-            self.X_moments = X[self.X_forces.shape[0]:X.shape[0], :]
-
-        return X, y
 
     def plot_model_predicitons(self):
 

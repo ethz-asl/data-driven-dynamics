@@ -12,6 +12,7 @@ import time
 import yaml
 import numpy as np
 from sklearn.linear_model import LinearRegression
+from scipy.linalg import block_diag
 
 from .rotor_models import RotorModel, BiDirectionalRotorModel, TiltingRotorModel, ChangingAxisRotorModel
 from src.tools.ulog_tools import load_ulog, pandas_from_topic
@@ -45,6 +46,44 @@ class DynamicsModel():
         self.result_dict = {}
 
     def prepare_regression_matrices(self):
+        if "V_air_body_x" not in self.data_df:
+            self.normalize_actuators()
+            self.compute_airspeed_from_groundspeed(["vx", "vy", "vz"])
+
+        # Rotor features
+        angular_vel_mat = self.data_df[[
+            "ang_vel_x", "ang_vel_y", "ang_vel_z"]].to_numpy()
+        self.compute_rotor_features(self.rotor_config_dict, angular_vel_mat)
+
+        if (self.estimate_forces and self.estimate_moments):
+            self.prepare_force_regression_matrices()
+            self.prepare_moment_regression_matrices()
+
+            self.X = block_diag(self.X_forces, self.X_moments)
+            self.y = np.hstack((self.y_forces, self.y_moments))
+
+        elif (self.estimate_forces):
+            self.prepare_force_regression_matrices()
+
+            self.X = self.X_forces
+            self.y = self.y_forces
+
+        elif (self.estimate_moments):
+            self.prepare_moment_regression_matrices()
+
+            self.X = self.X_moments
+            self.y = self.y_moments
+
+        else:
+            print("ERROR: Neither Forces nor Moments estimation activated")
+            exit(1)
+        
+        return self.X, self.y
+
+    def prepare_force_regression_matrices(self):
+        raise NotImplementedError()
+
+    def prepare_moment_regression_matrices(self):
         raise NotImplementedError()
 
     def get_topic_list_from_topic_type(self, topic_type):
