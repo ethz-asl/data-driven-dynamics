@@ -6,6 +6,11 @@ model_class:
 
   # all vectors in FRD body frame if not specified otherwise
 model_config:
+  mass: 1.5
+  moment_of_inertia:
+    Ixx: 0.197563
+    Iyy: 0.1458929
+    Izz: 0.1477
   actuators:
     rotors:
       # All rotors in the same group will share the coefficients
