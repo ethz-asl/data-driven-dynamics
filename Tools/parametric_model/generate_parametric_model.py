@@ -5,7 +5,7 @@ __license__ = "BSD 3"
 import os
 import sys
 import inspect
-from src.models import MultiRotorModel, StandardPlaneModel, DeltaQuadPlaneModel, TiltWingModel
+from src.models import MultiRotorModel, StandardPlaneModel, QuadPlaneModel, DeltaQuadPlaneModel, TiltWingModel
 from src.tools import DataHandler
 import argparse
 
@@ -41,7 +41,7 @@ def start_model_estimation(arg_list):
         model = MultiRotorModel(config_file, model_name="quadrotor_model")
 
     elif (model_name == "quadplane_model"):
-        model = StandardPlaneModel(config_file, model_name="quadplane_model")
+        model = QuadPlaneModel(config_file, model_name="quadplane_model")
 
     elif (model_name == "delta_quadplane_model"):
         model = DeltaQuadPlaneModel(config_file)

@@ -23,12 +23,12 @@ import matplotlib.pyplot as plt
 
 
 class QuadPlaneModel(DynamicsModel):
-    def __init__(self, config_file):
+    def __init__(self, config_file, model_name="quadplane_model"):
         self.config = ModelConfig(config_file)
         super(QuadPlaneModel, self).__init__(
             config_dict=self.config.dynamics_model_config)
 
-        self.model_name = "quad_plane_model"
+        self.model_name = "quadplane_model"
 
         self.rotor_config_dict = self.config.model_config["actuators"]["rotors"]
         self.stall_angle = math.pi/180 * \
@@ -78,22 +78,32 @@ class QuadPlaneModel(DynamicsModel):
 
     def plot_model_predicitons(self):
 
-        y_forces_pred = self.reg.predict(self.X_forces)
-        y_moments_pred = self.reg.predict(self.X_moments)
+        y_pred = self.reg.predict(self.X)
 
-        model_plots.plot_accel_predeictions(
-            self.y_forces, y_forces_pred, self.data_df["timestamp"])
-        model_plots.plot_angular_accel_predeictions(
-            self.y_moments, y_moments_pred, self.data_df["timestamp"])
-        model_plots.plot_az_and_collective_input(
-            self.y_forces, y_forces_pred, self.data_df[["u0", "u1", "u2", "u3"]],  self.data_df["timestamp"])
-        model_plots.plot_accel_and_airspeed_in_z_direction(
-            self.y_forces, y_forces_pred, self.data_df["V_air_body_z"], self.data_df["timestamp"])
-        model_plots.plot_airspeed_and_AoA(
-            self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "AoA"]], self.data_df["timestamp"])
-        model_plots.plot_accel_and_airspeed_in_y_direction(
-            self.y_forces, y_forces_pred, self.data_df["V_air_body_y"], self.data_df["timestamp"])
-        quad_plane_model_plots.plot_accel_predeictions_with_flap_outputs(
-            self.y_forces, y_forces_pred, self.data_df[["u5", "u6", "u7"]], self.data_df["timestamp"])
+        if (self.estimate_forces and self.estimate_moments):
+            y_forces_pred = y_pred[0:self.y_forces.shape[0]]
+            y_moments_pred = y_pred[self.y_forces.shape[0]:]
+            model_plots.plot_accel_predeictions(
+                self.y_forces, y_forces_pred, self.data_df["timestamp"])
+            model_plots.plot_angular_accel_predeictions(
+                self.y_moments, y_moments_pred, self.data_df["timestamp"])
+            model_plots.plot_airspeed_and_AoA(
+                self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "AoA"]], self.data_df["timestamp"])
+
+        elif (self.estimate_forces):
+            y_forces_pred = y_pred
+            model_plots.plot_accel_predeictions(
+                self.y_forces, y_forces_pred, self.data_df["timestamp"])
+            model_plots.plot_airspeed_and_AoA(
+                self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "AoA"]], self.data_df["timestamp"])
+
+        elif (self.estimate_moments):
+            y_moments_pred = y_pred
+            model_plots.plot_angular_accel_predeictions(
+                self.y_moments, y_moments_pred, self.data_df["timestamp"])
+            model_plots.plot_airspeed_and_AoA(
+                self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "AoA"]], self.data_df["timestamp"])
+
         plt.show()
+
         return
