@@ -107,7 +107,7 @@ class StandardPlaneModel(DynamicsModel):
         model_plots.plot_angular_accel_predeictions(
             self.y_moments, y_moments_pred, self.data_df["timestamp"])
         model_plots.plot_az_and_collective_input(
-            self.y_forces, y_forces_pred, self.data_df[["u0", "u1", "u2", "u3"]],  self.data_df["timestamp"])
+            self.y_forces, y_forces_pred, self.data_df[["u2", "u3", "u4", "u5"]],  self.data_df["timestamp"])
         model_plots.plot_accel_and_airspeed_in_z_direction(
             self.y_forces, y_forces_pred, self.data_df["V_air_body_z"], self.data_df["timestamp"])
         model_plots.plot_airspeed_and_AoA(

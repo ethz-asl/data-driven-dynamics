@@ -29,13 +29,13 @@ def compute_flight_time(ulog, pwm_threshold=None, control_threshold=None):
     if "actuator_outputs" in topic_type_list:
         act_df = pandas_from_topic(ulog, ["actuator_outputs"])
         # choose first actuator data
-        act_df_crp = act_df[act_df.iloc[:, 2] > pwm_threshold]
+        act_df_crp = act_df[act_df.iloc[:, 4] > pwm_threshold]
 
     # special case for aero mini tilt wing for asl
     elif "actuator_controls_0" in topic_type_list:
         act_df = pandas_from_topic(ulog, ["actuator_controls_0"])
         # choose first actuator data
-        act_df_crp = act_df[act_df.iloc[:, 2] > control_threshold]
+        act_df_crp = act_df[act_df.iloc[:, 4] > control_threshold]
 
     else:
         print("could not select flight time due to missing actuator topic")

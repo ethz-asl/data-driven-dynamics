@@ -46,6 +46,9 @@ def start_model_estimation(arg_list):
     elif (model_name == "delta_quadplane_model"):
         model = DeltaQuadPlaneModel(config_file)
 
+    elif (model_name == "standardplane_model"):
+        model = StandardPlaneModel(config_file, model_name="standardplane_model")
+
     elif (model_name == "tiltwing_model"):
         model = TiltWingModel(config_file)
     else:
