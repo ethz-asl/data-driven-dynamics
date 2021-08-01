@@ -26,6 +26,8 @@ class StandardPlaneModel(DynamicsModel):
         self.config = ModelConfig(config_file)
         super(StandardPlaneModel, self).__init__(
             config_dict=self.config.dynamics_model_config)
+        self.mass = self.config.model_config["mass"]
+        self.moment_of_inertia = np.diag([self.config.model_config["moment_of_inertia"]["Ixx"], self.config.model_config["moment_of_inertia"]["Iyy"], self.config.model_config["moment_of_inertia"]["Izz"]])
 
         self.model_name = model_name
 
@@ -52,7 +54,7 @@ class StandardPlaneModel(DynamicsModel):
             # Accelerations
             accel_body_mat = self.data_df[[
                 "acc_b_x", "acc_b_y", "acc_b_z"]].to_numpy()
-            self.y_forces = accel_body_mat.flatten()
+            self.y_forces = accel_body_mat.flatten() * self.mass
             y = self.y_forces
 
             # Set coefficients
@@ -60,19 +62,15 @@ class StandardPlaneModel(DynamicsModel):
                 self.rotor_forces_coef_list + aero_coef_list)
 
     def prepare_moment_regression_matrices(self):
+            # Angular acceleration
+            moment_mat = np.matmul(self.data_df[[
+                "ang_acc_b_x", "ang_acc_b_y", "ang_acc_b_z"]].to_numpy(), self.moment_of_inertia)
+            self.y_moments = moment_mat.flatten()
             # features due to rotation of body frame
             X_body_rot_moment, X_body_rot_moment_coef_list = self.compute_body_rotation_features(
                 ["ang_vel_x", "ang_vel_y", "ang_vel_z"])
             self.X_moments = np.hstack(
                 (self.X_rotor_moments, X_body_rot_moment))
-            X = self.X_moments
-
-            # Angular acceleration
-            angular_accel_body_mat = self.data_df[[
-                "ang_acc_b_x", "ang_acc_b_y", "ang_acc_b_z"]].to_numpy()
-            self.y_moments = angular_accel_body_mat.flatten()
-            y = self.y_moments
-
             # Set coefficients
             self.coef_name_list.extend(
                 self.rotor_moments_coef_list + X_body_rot_moment_coef_list)
