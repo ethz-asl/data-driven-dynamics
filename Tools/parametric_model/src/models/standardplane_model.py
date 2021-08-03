@@ -12,7 +12,6 @@ import math
 from .dynamics_model import DynamicsModel
 from .rotor_models import RotorModel
 from sklearn.linear_model import LinearRegression
-from scipy.linalg import block_diag
 from .model_plots import model_plots, quad_plane_model_plots
 from .model_config import ModelConfig
 from .aerodynamic_models import StandardWingModel
@@ -37,18 +36,7 @@ class StandardPlaneModel(DynamicsModel):
             self.config.model_config["aerodynamics"]["stall_angle_deg"]
         self.sig_scale_fac = self.config.model_config["aerodynamics"]["sig_scale_factor"]
 
-    def prepare_regression_matrices(self):
-
-        if "V_air_body_x" not in self.data_df:
-            self.normalize_actuators()
-            self.compute_airspeed_from_groundspeed(["vx", "vy", "vz"])
-
-        # Rotor features
-        angular_vel_mat = self.data_df[[
-            "ang_vel_x", "ang_vel_y", "ang_vel_z"]].to_numpy()
-        self.compute_rotor_features(self.rotor_config_dict, angular_vel_mat)
-
-        if (self.estimate_forces):
+    def prepare_force_regression_matrices(self):
             # Aerodynamics features
             airspeed_mat = self.data_df[["V_air_body_x",
                                         "V_air_body_y", "V_air_body_z"]].to_numpy()
@@ -71,7 +59,7 @@ class StandardPlaneModel(DynamicsModel):
             self.coef_name_list.extend(
                 self.rotor_forces_coef_list + aero_coef_list)
 
-        if (self.estimate_moments):
+    def prepare_moment_regression_matrices(self):
             # features due to rotation of body frame
             X_body_rot_moment, X_body_rot_moment_coef_list = self.compute_body_rotation_features(
                 ["ang_vel_x", "ang_vel_y", "ang_vel_z"])
@@ -89,34 +77,34 @@ class StandardPlaneModel(DynamicsModel):
             self.coef_name_list.extend(
                 self.rotor_moments_coef_list + X_body_rot_moment_coef_list)
 
-        if (self.estimate_forces and self.estimate_moments):
-            X = block_diag(self.X_forces, self.X_moments)
-            y = np.hstack((self.y_forces, self.y_moments))
-
-            # define separate features for plotting and predicitons
-            self.X_forces = X[0:self.X_forces.shape[0], :]
-            self.X_moments = X[self.X_forces.shape[0]:X.shape[0], :]
-
-        return X, y
-
     def plot_model_predicitons(self):
 
-        y_forces_pred = self.reg.predict(self.X_forces)
-        y_moments_pred = self.reg.predict(self.X_moments)
+        y_pred = self.reg.predict(self.X)
 
-        model_plots.plot_accel_predeictions(
-            self.y_forces, y_forces_pred, self.data_df["timestamp"])
-        model_plots.plot_angular_accel_predeictions(
-            self.y_moments, y_moments_pred, self.data_df["timestamp"])
-        model_plots.plot_az_and_collective_input(
-            self.y_forces, y_forces_pred, self.data_df[["u2", "u3", "u4", "u5"]],  self.data_df["timestamp"])
-        model_plots.plot_accel_and_airspeed_in_z_direction(
-            self.y_forces, y_forces_pred, self.data_df["V_air_body_z"], self.data_df["timestamp"])
-        model_plots.plot_airspeed_and_AoA(
-            self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "AoA"]], self.data_df["timestamp"])
-        model_plots.plot_accel_and_airspeed_in_y_direction(
-            self.y_forces, y_forces_pred, self.data_df["V_air_body_y"], self.data_df["timestamp"])
-        quad_plane_model_plots.plot_accel_predeictions_with_flap_outputs(
-            self.y_forces, y_forces_pred, self.data_df[["u5", "u6", "u7"]], self.data_df["timestamp"])
+        if (self.estimate_forces and self.estimate_moments):
+            y_forces_pred = y_pred[0:self.y_forces.shape[0]]
+            y_moments_pred = y_pred[self.y_forces.shape[0]:]
+            model_plots.plot_accel_predeictions(
+                self.y_forces, y_forces_pred, self.data_df["timestamp"])
+            model_plots.plot_angular_accel_predeictions(
+                self.y_moments, y_moments_pred, self.data_df["timestamp"])
+            model_plots.plot_airspeed_and_AoA(
+                self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "AoA"]], self.data_df["timestamp"])
+
+        elif (self.estimate_forces):
+            y_forces_pred = y_pred
+            model_plots.plot_accel_predeictions(
+                self.y_forces, y_forces_pred, self.data_df["timestamp"])
+            model_plots.plot_airspeed_and_AoA(
+                self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "AoA"]], self.data_df["timestamp"])
+
+        elif (self.estimate_moments):
+            y_moments_pred = y_pred
+            model_plots.plot_angular_accel_predeictions(
+                self.y_moments, y_moments_pred, self.data_df["timestamp"])
+            model_plots.plot_airspeed_and_AoA(
+                self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "AoA"]], self.data_df["timestamp"])
+
         plt.show()
+
         return

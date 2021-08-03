@@ -24,7 +24,6 @@ Note that the forces are calculated in the NED body frame and are therefore nega
 import numpy as np
 import matplotlib.pyplot as plt
 import math
-from scipy.linalg import block_diag
 
 from sklearn.linear_model import LinearRegression
 from .dynamics_model import DynamicsModel
@@ -46,39 +45,6 @@ class MultiRotorModel(DynamicsModel):
         self.rotor_config_dict = self.config.model_config["actuators"]["rotors"]
 
         self.model_name = model_name
-
-    def prepare_regression_matrices(self):
-
-        if "V_air_body_x" not in self.data_df:
-            self.normalize_actuators()
-            self.compute_airspeed_from_groundspeed(["vx", "vy", "vz"])
-
-            self.compute_rotor_features(self.rotor_config_dict)
-
-        if (self.estimate_forces and self.estimate_moments):
-            self.prepare_force_regression_matrices()
-            self.prepare_moment_regression_matrices()
-
-            self.X = block_diag(self.X_forces, self.X_moments)
-            self.y = np.hstack((self.y_forces, self.y_moments))
-
-        elif (self.estimate_forces):
-            self.prepare_force_regression_matrices()
-
-            self.X = self.X_forces
-            self.y = self.y_forces
-
-        elif (self.estimate_moments):
-            self.prepare_moment_regression_matrices()
-
-            self.X = self.X_moments
-            self.y = self.y_moments
-
-        else:
-            print("ERROR: Neither Forces nor Moments estimation activated")
-            exit(1)
-
-        return self.X, self.y
 
     def prepare_force_regression_matrices(self):
 
