@@ -65,23 +65,20 @@ class DataHandler():
                     continue
 
         else:
-            if (rel_data_path[-4:] == ".csv"):
+            if (rel_data_path.endswith(".csv")):
                 self.data_df = pd.read_csv(rel_data_path, index_col=0)
                 for req_topic in self.req_dataframe_topic_list:
                     assert(
                         req_topic in self.data_df), ("missing topic in loaded csv: " + str(req_topic))
 
-            elif (rel_data_path[-4:] == ".ulg"):
-
+            elif (rel_data_path.endswith(".ulg")):
                 ulog = load_ulog(rel_data_path)
                 self.check_ulog_for_req_topics(ulog)
 
                 self.data_df = self.compute_resampled_dataframe(ulog)
 
             else:
-                print("ERROR: file extension needs to be either csv or ulg:")
-                print(rel_data_path)
-                exit(1)
+                raise TypeError("File extension needs to be either csv or ulg")
 
 
     def check_ulog_for_req_topics(self, ulog):
