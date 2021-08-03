@@ -133,7 +133,7 @@ class RotorModel():
         X_moments[:, 0] = leaver_moment_vec * actuator_input**2 * \
             self.air_density * self.prop_diameter**4
         X_moments[:, 1] = leaver_moment_vec * \
-            actuator_input*v_air_parallel_abs * self.air_density * self.prop_diameter**4
+            actuator_input*v_air_parallel_abs * self.air_density * self.prop_diameter**3
 
         # Rotor drag moment
         X_moments[2, 2] = - self.turning_direction * \
