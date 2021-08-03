@@ -2,8 +2,7 @@
 # general information
 model_name: "Gazebo Delta VTOL"
 model_type: "Delta VTOL"
-model_file:
-  "delta_quadplane_model.py"
+model_class: "DeltaQuadPlaneModel"
 
   # all vectors in FRD body frame if not specified otherwise
 model_config:

@@ -26,13 +26,17 @@ class ModelConfig():
             print(log_file_path)
             exit(1)
 
+        self.model_name = config_dict["model_name"]
+        self.model_type = config_dict["model_type"]
+        self.model_class = config_dict["model_class"]
+
         self.check_dynamics_model_config(config_dict)
 
         self.dynamics_model_config = config_dict["dynamics_model_config"]
         self.model_config = config_dict["model_config"]
 
         self.generate_req_topic_list()
-        print("Initializing of configuration succesfull. ")
+        print("Initializing of configuration successful. ")
 
         return
 

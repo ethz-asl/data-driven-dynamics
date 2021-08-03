@@ -2,8 +2,7 @@
 # general information
 model_name: "Tilt Wing VTOL"
 model_type: "Tilt Wing"
-model_file:
-  "tiltwing_model.py"
+model_class: "TiltWingModel"
 
   # all vectors in FRD body frame if not specified otherwise
 model_config:
