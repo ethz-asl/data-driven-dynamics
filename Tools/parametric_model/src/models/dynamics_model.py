@@ -297,8 +297,11 @@ class DynamicsModel():
         metrics_dict = {"R2": float(self.reg.score(X, y))}
         self.coef_name_list.extend(["intercept"])
         coef_list = list(self.reg.coef_) + [self.reg.intercept_]
-        self.generate_model_dict(
-            coef_list, metrics_dict, self.rotor_config_dict)
+        model_dict = {}
+        model_dict.update(self.rotor_config_dict)
+        if hasattr(self, 'aero_config_dict'):
+            model_dict.update(self.aero_config_dict)
+        self.generate_model_dict(coef_list, metrics_dict, model_dict)
         self.save_result_dict_to_yaml(file_name=self.model_name)
 
         return
