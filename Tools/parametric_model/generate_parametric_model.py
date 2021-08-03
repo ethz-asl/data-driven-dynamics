@@ -30,7 +30,7 @@ def start_model_estimation(arg_list):
     config_file = arg_list.config
 
     data_handler = DataHandler(config_file)
-    data_handler.loadLog(arg_list.log_path)
+    data_handler.loadLogs(arg_list.log_path)
     if data_selection_enabled:
         data_handler.visually_select_data()
     data_handler.visualize_data()
