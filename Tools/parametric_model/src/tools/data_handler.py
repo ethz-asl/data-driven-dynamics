@@ -20,7 +20,13 @@ from src.tools.dataframe_tools import compute_flight_time, resample_dataframe_li
 from src.tools.quat_utils import quaternion_to_rotation_matrix
 
 
-class DataHandler():
+class DataHandler(object):
+
+    visual_dataframe_selector_config_dict = {
+        "x_axis_col": "timestamp",
+        "sub_plt1_data": ["q0", "q1", "q2", "q3"],
+        "sub_plt2_data": ["u0", "u1", "u2", "u3"]}
+
     def __init__(self, config_file="qpm_gazebo_standard_vtol_config.yaml"):
         self.config = ModelConfig(config_file)
         config_dict=self.config.dynamics_model_config
@@ -34,18 +40,13 @@ class DataHandler():
         self.req_topics_dict = config_dict["data"]["required_ulog_topics"]
         self.req_dataframe_topic_list = config_dict["data"]["req_dataframe_topic_list"]
 
-        self.visual_dataframe_selector_config_dict = {
-            "x_axis_col": "timestamp",
-            "sub_plt1_data": ["q0", "q1", "q2", "q3"],
-            "sub_plt2_data": ["u0", "u1", "u2", "u3"]}
-
         self.estimate_forces = config_dict["estimate_forces"]
         self.estimate_moments = config_dict["estimate_moments"]
 
         # used to generate a dict with the resulting coefficients later on.
         self.coef_name_list = []
         self.result_dict = {}
-    
+
     def loadLog(self, rel_data_path):
         self.rel_data_path = rel_data_path
         if (os.path.isdir(rel_data_path)):
