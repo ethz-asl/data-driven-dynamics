@@ -47,40 +47,36 @@ class DataHandler(object):
         self.coef_name_list = []
         self.result_dict = {}
 
-    def loadLog(self, rel_data_path):
+    def loadLogs(self, rel_data_path):
         self.rel_data_path = rel_data_path
         if (os.path.isdir(rel_data_path)):
             self.data_df = pd.DataFrame()
             for filename in os.listdir(rel_data_path):
-                if filename.endswith(".ulg"):
-                    print(os.path.join(rel_data_path, filename))
-                    ulog = load_ulog(os.path.join(rel_data_path, filename))
-                    self.check_ulog_for_req_topics(ulog)
-                    self.data_df = self.data_df.append(self.compute_resampled_dataframe(ulog))
-                    self.data_df.reset_index(drop=True, inplace=True)
-
-                elif filename.endswith(".csv"):
-                    raise Exception("Parsing CSV files from a directory is not supported")
-                    
-                else:
-                    continue
+                self.loadLogFile(os.path.join(rel_data_path, filename))
 
         else:
-            if (rel_data_path.endswith(".csv")):
-                self.data_df = pd.read_csv(rel_data_path, index_col=0)
-                for req_topic in self.req_dataframe_topic_list:
-                    assert(
-                        req_topic in self.data_df), ("missing topic in loaded csv: " + str(req_topic))
-
-            elif (rel_data_path.endswith(".ulg")):
-                ulog = load_ulog(rel_data_path)
-                self.check_ulog_for_req_topics(ulog)
-
-                self.data_df = self.compute_resampled_dataframe(ulog)
-
-            else:
+            if not self.loadLogFile(rel_data_path):
                 raise TypeError("File extension needs to be either csv or ulg")
 
+    def loadLogFile(self, rel_data_path):
+        if (rel_data_path.endswith(".csv")):
+            self.data_df = pd.read_csv(rel_data_path, index_col=0)
+            for req_topic in self.req_dataframe_topic_list:
+                assert(
+                    req_topic in self.data_df), ("missing topic in loaded csv: " + str(req_topic))
+            
+            return True
+
+        elif (rel_data_path.endswith(".ulg")):
+            ulog = load_ulog(rel_data_path)
+            self.check_ulog_for_req_topics(ulog)
+
+            self.data_df = self.compute_resampled_dataframe(ulog)
+
+            return True
+
+        else:
+            return False
 
     def check_ulog_for_req_topics(self, ulog):
         for topic_type in self.req_topics_dict.keys():
