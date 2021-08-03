@@ -28,7 +28,7 @@ def start_model_estimation(config, log_path, data_selection=False):
     print("Visual Data selection enabled: ", data_selection_enabled)
 
     data_handler = DataHandler(config)
-    data_handler.loadLog(log_path)
+    data_handler.loadLogs(log_path)
 
     if data_selection_enabled:
         data_handler.visually_select_data()
