@@ -30,6 +30,8 @@ class StandardPlaneModel(DynamicsModel):
         self.model_name = model_name
 
         self.rotor_config_dict = self.config.model_config["actuators"]["rotors"]
+        self.aero_config_dict = self.config.model_config["actuators"]["control_surfaces"]
+
         self.stall_angle = math.pi/180 * \
             self.config.model_config["aerodynamics"]["stall_angle_deg"]
         self.sig_scale_fac = self.config.model_config["aerodynamics"]["sig_scale_factor"]

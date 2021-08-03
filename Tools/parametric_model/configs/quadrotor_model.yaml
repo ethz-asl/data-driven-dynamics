@@ -1,9 +1,8 @@
 ---
 # general information
 model_name: "Gazebo Standart Multirotor"
-model_type: "Standart Multirotor"
-model_file:
-  "quadrotor_model.py"
+model_type: "Standard Multirotor"
+model_class: "MultiRotorModel"
 
   # all vectors in FRD body frame if not specified otherwise
 model_config:

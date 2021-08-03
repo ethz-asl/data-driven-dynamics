@@ -2,8 +2,7 @@
 # general information
 model_name: "Gazebo Delta VTOL"
 model_type: "Delta VTOL"
-model_file:
-  "delta_quadplane_model.py"
+model_class: "DeltaQuadPlaneModel"
 
   # all vectors in FRD body frame if not specified otherwise
 model_config:
@@ -77,13 +76,14 @@ model_config:
             - 0
 
     control_surfaces:
-      - control_surface_0:
-        description: "ailevon_right"
-        dataframe_name: "u5"
+      wing_:
+        - control_surface_0:
+          description: "ailevon_right"
+          dataframe_name: "u5"
 
-      - control_surface_1:
-        description: "ailevon_left"
-        dataframe_name: "u6"
+        - control_surface_1:
+          description: "ailevon_left"
+          dataframe_name: "u6"
 
   aerodynamics:
     stall_angle_deg: 20

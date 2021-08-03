@@ -1,8 +1,8 @@
 # general information
 model_name: "Gazebo Standard Plane"
 model_type: "Standard Plane"
-model_file:
-  "standardplane_model.py"
+model_class:
+  "StandardPlaneModel"
 
   # all vectors in FRD body frame if not specified otherwise
 model_config:
@@ -25,21 +25,22 @@ model_config:
             - 0
 
     control_surfaces:
-      - control_surface_0:
-        description: "aileron_right"
-        dataframe_name: "u6"
+      wing_:
+        - control_surface_0:
+          description: "aileron_right"
+          dataframe_name: "u6"
 
-      - control_surface_1:
-        description: "aileron_left"
-        dataframe_name: "u5"
+        - control_surface_1:
+          description: "aileron_left"
+          dataframe_name: "u5"
 
-      - control_surface_2:
-        description: "elevator"
-        dataframe_name: "u7"
+        - control_surface_2:
+          description: "elevator"
+          dataframe_name: "u7"
 
-      - control_surface_3:
-        description: "rudder"
-        dataframe_name: "u2"
+        - control_surface_3:
+          description: "rudder"
+          dataframe_name: "u2"
 
   aerodynamics:
     stall_angle_deg: 20

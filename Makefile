@@ -30,7 +30,7 @@ docker-run:
 	docker run -it --rm -e DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix ${registry}:${version} /bin/bash
 
 estimate-model:
-	python3 Tools/parametric_model/generate_parametric_model.py --model ${model} --config ${config} --data_selection ${data_selection} ${log} 
+	python3 Tools/parametric_model/generate_parametric_model.py --config ${config} --data_selection ${data_selection} ${log}
 
 format:
 	Tools/fix_code_style.sh .
