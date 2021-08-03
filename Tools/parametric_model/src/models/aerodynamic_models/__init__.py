@@ -7,7 +7,6 @@ __license__ = "BSD 3"
 
 from .aero_model_AAE import AeroModelAAE
 from .aero_model_Delta import AeroModelDelta
-from .tilt_wing_section_aero_model import TiltWingSection
 from .fuselage_drag_model import FuselageDragModel
 from .elevator_model import ElevatorModel
 from .standard_wing_model import StandardWingModel
