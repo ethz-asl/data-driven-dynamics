@@ -45,8 +45,11 @@ void ParametricDynamicsModel::setState(const ignition::math::Vector3d &B_air_spe
   Eigen::Vector3d moment_rotor_B{Eigen::Vector3d::Zero()};
   computeTotalRotorWrench(ignition2eigen(B_air_speed_W_B), actuator_inputs, force_rotor_B, moment_rotor_B);
 
-  // Transform all the forces and moments into the body frame
-  force_ = force_rotor_B;
+  Eigen::Vector3d force_aero_B{Eigen::Vector3d::Zero()};
+  Eigen::Vector3d moment_aero_B{Eigen::Vector3d::Zero()};
+  computeTotalAeroWrench(ignition2eigen(B_air_speed_W_B), actuator_inputs, force_aero_B, moment_aero_B)
+      // Transform all the forces and moments into the body frame
+      force_ = force_rotor_B;
   moment_ = moment_rotor_B;
 }
 
@@ -126,4 +129,23 @@ Eigen::Vector3d ParametricDynamicsModel::computeRotorMoment(const Eigen::Vector3
 
   return moment_leaver + moment_drag + moment_rolling;
 }
+
+void ParametricDynamicsModel::computeTotalAeroWrench(const Eigen::Vector3d airspeed,
+                                                     const Eigen::VectorXd &actuator_inputs,
+                                                     Eigen::Vector3d &rotor_force, Eigen::Vector3d &rotor_moment) {}
+
+Eigen::Vector3d ParametricDynamicsModel::computeAeroForce(const Eigen::Vector3d airspeed, const double actuator_input,
+                                                          const RotorParameters &rotor_params) {
+  if (!std::isfinite(actuator_input)) return Eigen::Vector3d::Zero();
+
+  return Eigen::Vector3d::Zero();
+}
+Eigen::Vector3d ParametricDynamicsModel::computeAeroMoment(const Eigen::Vector3d airspeed, const double actuator_input,
+                                                           const RotorParameters &rotor_params,
+                                                           Eigen::Vector3d rotor_force) {
+  if (!std::isfinite(actuator_input)) return Eigen::Vector3d::Zero();
+
+  return Eigen::Vector3d::Zero();
+}
+
 }  // namespace gazebo
