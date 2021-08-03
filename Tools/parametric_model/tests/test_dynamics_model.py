@@ -19,7 +19,7 @@ def test_transformations(config_file="dynamics_model_test_config.yaml"):
     config = ModelConfig(config_file_path)
 
     data_handler = DataHandler(config_file_path)
-    data_handler.loadLog("resources/quadrotor_model.ulg")
+    data_handler.loadLogs("resources/quadrotor_model.ulg")
 
     data_df = data_handler.get_dataframes()
 
