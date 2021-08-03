@@ -77,13 +77,14 @@ model_config:
             - 0
 
     control_surfaces:
-      - control_surface_0:
-        description: "ailevon_right"
-        dataframe_name: "u5"
+      wing_:
+        - control_surface_0:
+          description: "ailevon_right"
+          dataframe_name: "u5"
 
-      - control_surface_1:
-        description: "ailevon_left"
-        dataframe_name: "u6"
+        - control_surface_1:
+          description: "ailevon_left"
+          dataframe_name: "u6"
 
   aerodynamics:
     stall_angle_deg: 20
