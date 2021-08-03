@@ -2,7 +2,8 @@
 # general information
 model_name: "Gazebo Delta VTOL"
 model_type: "Delta VTOL"
-model_class: "DeltaQuadPlaneModel"
+model_class:
+  "DeltaQuadPlaneModel"
 
   # all vectors in FRD body frame if not specified otherwise
 model_config:
@@ -148,3 +149,8 @@ dynamics_model_config:
           - "accelerometer_m_s2[0]"
           - "accelerometer_m_s2[1]"
           - "accelerometer_m_s2[2]"
+        dataframe_name:
+          - "timestamp"
+          - "acc_b_x"
+          - "acc_b_y"
+          - "acc_b_z"

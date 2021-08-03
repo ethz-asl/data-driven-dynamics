@@ -14,7 +14,7 @@ from sklearn.linear_model import LinearRegression
 from scipy.linalg import block_diag
 from .model_plots import model_plots, quad_plane_model_plots
 from .model_config import ModelConfig
-from .aerodynamic_models import AeroModelDelta
+from .aerodynamic_models import StandardWingModel
 import matplotlib.pyplot as plt
 
 """Currently this model estimates only Forces but no moments."""
@@ -50,7 +50,7 @@ class DeltaQuadPlaneModel(DynamicsModel):
                                      "V_air_body_y", "V_air_body_z"]].to_numpy()
         flap_commands = self.data_df[["u5", "u6"]].to_numpy()
         aoa_mat = self.data_df[["AoA"]].to_numpy()
-        aero_model = AeroModelDelta(
+        aero_model = StandardWingModel(
             stall_angle=20.0, sig_scale_fac=self.sig_scale_fac)
         X_aero_forces, aero_coef_list = aero_model.compute_aero_features(
             airspeed_mat, aoa_mat, flap_commands)
@@ -61,7 +61,7 @@ class DeltaQuadPlaneModel(DynamicsModel):
 
         # prepare linear accelerations as regressand for forces
         accel_body_mat = self.data_df[[
-            "accelerometer_m_s2[0]", "accelerometer_m_s2[1]", "accelerometer_m_s2[2]"]].to_numpy()
+            "acc_b_x", "acc_b_y", "acc_b_z"]].to_numpy()
         self.y_forces = accel_body_mat.flatten()
 
         return self.X_forces, self.y_forces
