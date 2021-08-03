@@ -75,8 +75,7 @@ class DynamicsModel():
             self.y = self.y_moments
 
         else:
-            print("ERROR: Neither Forces nor Moments estimation activated")
-            exit(1)
+            raise ValueError("Neither Forces nor Moments estimation activated")
         
         return self.X, self.y
 

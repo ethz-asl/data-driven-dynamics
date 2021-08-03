@@ -28,7 +28,7 @@ class QuadPlaneModel(DynamicsModel):
         super(QuadPlaneModel, self).__init__(
             config_dict=self.config.dynamics_model_config)
 
-        self.model_name = "quadplane_model"
+        self.model_name = model_name
 
         self.rotor_config_dict = self.config.model_config["actuators"]["rotors"]
         self.stall_angle = math.pi/180 * \
