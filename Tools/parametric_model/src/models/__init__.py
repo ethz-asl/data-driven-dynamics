@@ -12,4 +12,5 @@ from .quadplane_model import QuadPlaneModel
 from .delta_quadplane_model import DeltaQuadPlaneModel
 from .multirotor_model import MultiRotorModel
 from . model_config import ModelConfig
+from . tiltwing_model import TiltWingModel
 from .standardplane_model import StandardPlaneModel

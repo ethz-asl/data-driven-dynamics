@@ -1,0 +1,324 @@
+---
+# general information
+model_name: "Tilt Wing VTOL"
+model_type: "Tilt Wing"
+model_class: "TiltWingModel"
+
+  # all vectors in FRD body frame if not specified otherwise
+model_config:
+  optimzation_parameters:
+    initial_coefficients:
+      c_d_fuselage_x: 0.0
+      c_d_fuselage_y: 0.0
+      c_d_fuselage_z: 0.0
+      c_d_wing_xz_cs: 0.0
+      c_d_wing_xz_lin: -0.3908667228324042
+      c_d_wing_xz_offset: 0.05457696116853583
+      c_d_wing_xz_quad: 0.6513920135255704
+      c_d_wing_xz_stall_90_deg: 0.26801885452631513
+      c_d_wing_xz_stall_min: 0.004204829038298996
+      c_l_wing_xz_cs: 1.3185080528876658
+      c_l_wing_xz_lin: 0.17366568809485372
+      c_l_wing_xz_offset: 0.18392401561630053
+      c_l_wing_xz_stall: 0.40795648548466446
+      elevator_c_l: 0.0
+      tail_rot_drag_lin: 0.4644595167391117
+      tail_rot_thrust_lin: -23.56492973422354
+      tail_rot_thrust_quad: 1627.8310955818965
+      wing_rot_drag_lin: 0.697751701879497
+      wing_rot_thrust_lin: -24.055415541492494
+      wing_rot_thrust_quad: 1606.4042023576094
+    coefficient_bounds:
+      c_d_fuselage_x: !!python/tuple [0, 10]
+      c_d_fuselage_y: !!python/tuple [0, 10]
+      c_d_fuselage_z: !!python/tuple [0, 10]
+      c_d_wing_xz_cs: !!python/tuple [0, 10]
+      c_d_wing_xz_lin: !!python/tuple [-10, 10]
+      c_d_wing_xz_offset: !!python/tuple [0, 10]
+      c_d_wing_xz_quad: !!python/tuple [0, 10]
+      c_d_wing_xz_stall_90_deg: !!python/tuple [0, 10]
+      c_d_wing_xz_stall_min: !!python/tuple [0, 10]
+      c_l_wing_xz_cs: !!python/tuple [0, 10]
+      c_l_wing_xz_lin: !!python/tuple [0, 10]
+      c_l_wing_xz_offset: !!python/tuple [-10, 10]
+      c_l_wing_xz_stall: !!python/tuple [0, 10]
+      elevator_c_l: !!python/tuple [0, 10]
+      tail_rot_drag_lin: !!python/tuple [0, 1000]
+      tail_rot_thrust_lin: !!python/tuple [-1000, 0]
+      tail_rot_thrust_quad: !!python/tuple [0, 10000]
+      wing_rot_drag_lin: !!python/tuple [0, 1000]
+      wing_rot_thrust_lin: !!python/tuple [-1000, 0]
+      wing_rot_thrust_quad: !!python/tuple [0, 10000]
+  mass: 6.1
+  actuators:
+    rotors:
+      # All rotors in the same group will share the coefficients
+      tail_:
+        - rotor_4:
+          description: "rotor tail"
+          dataframe_name: "u4"
+          rotor_type: "RotorModel"
+          diameter: 0.254
+          # For positive thrust
+          rotor_axis:
+            - 0
+            - 0
+            - -1
+          turning_direction: -1
+          position:
+            - 0.35
+            - 0.35
+            - -0.07
+
+      wing_:
+        - rotor_0:
+          description: "rotor wing right, right"
+          dataframe_name: "u0"
+          rotor_type: "TiltingRotorModel"
+          tilt_actuator_dataframe_name: "u_tilt"
+          diameter: 0.406
+          # rotor_axis and position corresponds to having 0 wing_tilt, e.g. the wing facing forward
+          rotor_axis:
+            - 1
+            - 0
+            - 0
+          tilt_axis:
+            - 0
+            - 1
+            - 0
+          max_tilt_angle_deg: 90
+          turning_direction: 1
+          position:
+            - 0.35
+            - 0.35
+            - -0.07
+
+        - rotor_1:
+          description: "rotor wing right, left"
+          dataframe_name: "u1"
+          rotor_type: "TiltingRotorModel"
+          tilt_actuator_dataframe_name: "u_tilt"
+          diameter: 0.406
+          rotor_axis:
+            - 1
+            - 0
+            - 0
+          tilt_axis:
+            - 0
+            - 1
+            - 0
+          max_tilt_angle_deg: 90
+          turning_direction: -1
+          position:
+            - -0.35
+            - -0.35
+            - -0.07
+
+        - rotor_2:
+          description: "rotor wing left, right"
+          dataframe_name: "u2"
+          rotor_type: "TiltingRotorModel"
+          tilt_actuator_dataframe_name: "u_tilt"
+          diameter: 0.406
+          rotor_axis:
+            - 1
+            - 0
+            - 0
+          tilt_axis:
+            - 0
+            - 1
+            - 0
+          max_tilt_angle_deg: 90
+          turning_direction: -1
+          position:
+            - 0.35
+            - -0.35
+            - -0.07
+
+        - rotor_3:
+          description: "rotor wing left, left"
+          dataframe_name: "u3"
+          rotor_type: "TiltingRotorModel"
+          tilt_actuator_dataframe_name: "u_tilt"
+          diameter: 0.406
+          rotor_axis:
+            - 1
+            - 0
+            - 0
+          tilt_axis:
+            - 0
+            - 1
+            - 0
+          max_tilt_angle_deg: 90
+          turning_direction: 1
+          position:
+            - -0.35
+            - 0.35
+            - -0.07
+
+    control_surfaces:
+      - aileron_right:
+        description: "aileron right, positive up"
+        dataframe_name: "u5"
+
+      - flap_right:
+        description: "flap right, positive up"
+        dataframe_name: "u6"
+
+      - flap_left:
+        description: "flap left, positive up"
+        dataframe_name: "u7"
+
+      - aileron_left:
+        description: "aileron left, positive up"
+        dataframe_name: "u8"
+
+      - elevator:
+        description: "elevator, positive up"
+        dataframe_name: "u9"
+
+    wing_tilt:
+      - wing_tilt:
+        description: "wing tilt, -1 to 1 = cruise (0°) to hover (90°) configuration"
+        dataframe_name: "u_tilt"
+
+  aerodynamics:
+    stall_angle_deg: 15
+    sig_scale_factor: 30
+    main_wing_sections:
+      - wing_right_right:
+        rotor: "u0"
+        control_surface_dataframe_name: "u5"
+        wing_surface: 0.425
+        cp_position:
+          - 0
+          - 0
+          - 0
+        stall_angle_deg: 15
+        sig_scale_factor: 30
+        description: "wing segment right, right"
+
+      - wing_right_left:
+        rotor: "u1"
+        control_surface_dataframe_name: "u6"
+        wing_surface: 0.425
+        cp_position:
+          - 0
+          - 0
+          - 0
+        stall_angle_deg: 15
+        sig_scale_factor: 30
+        description: "wing segment right, left"
+
+      - wing_left_right:
+        rotor: "u2"
+        control_surface_dataframe_name: "u7"
+        wing_surface: 0.425
+        cp_position:
+          - 0
+          - 0
+          - 0
+        stall_angle_deg: 15
+        sig_scale_factor: 30
+        description: "wing segment left, right"
+
+      - wing_left_left:
+        rotor: "u3"
+        control_surface_dataframe_name: "u8"
+        wing_surface: 0.425
+        cp_position:
+          - 0
+          - 0
+          - 0
+        stall_angle_deg: 15
+        sig_scale_factor: 30
+        description: "wing segment left, left"
+
+dynamics_model_config:
+  estimate_forces: True
+  estimate_moments: False
+  resample_freq: 1
+  data:
+    required_ulog_topics:
+      actuator_controls_0:
+        ulog_name:
+          - "timestamp"
+          - "control[0]"
+          - "control[1]"
+          - "control[2]"
+          - "control[4]"
+          - "control[5]"
+          - "control[6]"
+          - "control[7]"
+        dataframe_name:
+          - "timestamp"
+          - "u0"
+          - "u1"
+          - "u2"
+          - "u5"
+          - "u6"
+          - "u7"
+          - "u8"
+        actuator_type:
+          - "timestamp"
+          - "motor"
+          - "motor"
+          - "motor"
+          - "control_surface"
+          - "control_surface"
+          - "control_surface"
+          - "control_surface"
+      actuator_controls_1:
+        ulog_name:
+          - "timestamp"
+          - "control[0]"
+          - "control[4]"
+          - "control[5]"
+        dataframe_name:
+          - "timestamp"
+          - "u9"
+          - "u4"
+          - "u3"
+        actuator_type:
+          - "timestamp"
+          - "control_surface"
+          - "motor"
+          - "motor"
+      cl84_log:
+        ulog_name:
+          - "timestamp"
+          - "d_w_is"
+        dataframe_name:
+          - "timestamp"
+          - "u_tilt"
+
+      vehicle_local_position:
+        ulog_name:
+          - "timestamp"
+          - "vx"
+          - "vy"
+          - "vz"
+      tw_attitude_id:
+        ulog_name:
+          - "timestamp"
+          - "q[0]"
+          - "q[1]"
+          - "q[2]"
+          - "q[3]"
+        dataframe_name:
+          - "timestamp"
+          - "q0"
+          - "q1"
+          - "q2"
+          - "q3"
+      vehicle_acceleration:
+        ulog_name:
+          - "timestamp"
+          - "xyz[0]"
+          - "xyz[1]"
+          - "xyz[2]"
+        dataframe_name:
+          - "timestamp"
+          - "acc_b_x"
+          - "acc_b_y"
+          - "acc_b_z"

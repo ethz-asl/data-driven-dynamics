@@ -5,7 +5,7 @@ __license__ = "BSD 3"
 import os
 import sys
 import inspect
-from src.models import MultiRotorModel, StandardPlaneModel, QuadPlaneModel, DeltaQuadPlaneModel
+from src.models import MultiRotorModel, StandardPlaneModel, QuadPlaneModel, DeltaQuadPlaneModel, TiltWingModel
 import src.models as models
 from src.tools import DataHandler
 import argparse
