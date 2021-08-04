@@ -46,13 +46,13 @@ class QuadPlaneModel(DynamicsModel):
             X_aero_forces, aero_coef_list = aero_model.compute_aero_features(
                 airspeed_mat, aoa_mat, flap_commands)
             self.X_forces = np.hstack((self.X_rotor_forces, X_aero_forces))
-            X = self.X_forces
+            self.X = self.X_forces
 
             # Accelerations
             accel_body_mat = self.data_df[[
                 "acc_b_x", "acc_b_y", "acc_b_z"]].to_numpy()
             self.y_forces = accel_body_mat.flatten()
-            y = self.y_forces
+            self.y = self.y_forces
 
             # Set coefficients
             self.coef_name_list.extend(
@@ -64,13 +64,13 @@ class QuadPlaneModel(DynamicsModel):
                 ["ang_vel_x", "ang_vel_y", "ang_vel_z"])
             self.X_moments = np.hstack(
                 (self.X_rotor_moments, X_body_rot_moment))
-            X = self.X_moments
+            self.X = self.X_moments
 
             # Angular acceleration
             angular_accel_body_mat = self.data_df[[
                 "ang_acc_b_x", "ang_acc_b_y", "ang_acc_b_z"]].to_numpy()
             self.y_moments = angular_accel_body_mat.flatten()
-            y = self.y_moments
+            self.y = self.y_moments
 
             # Set coefficients
             self.coef_name_list.extend(
