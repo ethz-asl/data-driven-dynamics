@@ -44,10 +44,10 @@ class StandardPlaneModel(DynamicsModel):
                                         "V_air_body_y", "V_air_body_z"]].to_numpy()
             flap_commands = self.data_df[["u5", "u6", "u7"]].to_numpy()
             aoa_mat = self.data_df[["AoA"]].to_numpy()
-            aero_model = StandardWingModel(
+            aero_model = StandardWingModel(self.aero_config_dict,
                 stall_angle=self.stall_angle, sig_scale_fac=self.sig_scale_fac)
             X_aero_forces, aero_coef_list = aero_model.compute_aero_features(
-                airspeed_mat, aoa_mat, flap_commands)
+                airspeed_mat, aoa_mat)
             self.X_forces = np.hstack((self.X_rotor_forces, X_aero_forces))
             X = self.X_forces
 
