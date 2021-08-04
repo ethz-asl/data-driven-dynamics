@@ -89,8 +89,6 @@ Current vehicle model choices are:
 
 - delta_quadplane_model
 
-- tiltwing_model
-
 #### Config File
 
 The config file allows to configure the intra class vehicle variations, used log file topics, data processing and other aspects of the pipeline. The default location is in `Tools/parametric_model/configs`. The path can be passed in the make target through the `config=<config_file_path>` argument. If no config is specified the default model config is used.
