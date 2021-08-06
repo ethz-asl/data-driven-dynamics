@@ -114,7 +114,7 @@ Eigen::Vector3d ParametricDynamicsModel::computeRotorMoment(const Eigen::Vector3
   Eigen::Vector3d moment_leaver{Eigen::Vector3d::Zero()};
   moment_leaver = (c_m_leaver_quad * std::pow(actuator_input, 2) +
                    c_m_leaver_lin * actuator_input * v_airspeed_vertical_to_rotor_axis.norm()) *
-                  leaver_moment_vec * kAirDensity * std::pow(prop_diameter, 4);
+                  leaver_moment_vec * kAirDensity * std::pow(prop_diameter, 3);
 
   Eigen::Vector3d moment_drag{Eigen::Vector3d::Zero()};
   moment_drag = ((c_m_drag_z_quad * turning_direction) * std::pow(actuator_input, 2) +
