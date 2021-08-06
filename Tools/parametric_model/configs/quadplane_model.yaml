@@ -5,6 +5,11 @@ model_class: "QuadPlaneModel"
 
   # all vectors in FRD body frame if not specified otherwise
 model_config:
+  mass: 5
+  moment_of_inertia:
+    Ixx: 0.477708333333
+    Iyy: 0.341666666667
+    Izz: 0.811041666667
   actuators:
     rotors:
       # All rotors in the same group will share the coefficients
