@@ -47,6 +47,10 @@ model_config:
           description: "rudder"
           dataframe_name: "u2"
 
+        - control_surface_4:
+          description: "flaps"
+          dataframe_name: "u3"
+
   aerodynamics:
     stall_angle_deg: 20
     sig_scale_factor: 30

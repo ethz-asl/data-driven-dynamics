@@ -76,20 +76,6 @@ class StandardWingModel():
 
         return X_wing_body_frame
 
-    def compute_single_aero_feature(self, v_airspeed, angle_of_attack):
-        """
-        Used to compute the feature matrices for a single timestamp
-
-        Inputs:
-
-        v_airspeed: numpy array of dimension (1,3) with [v_a_x, v_a_y, v_a_z]
-        angle_of_attack: corresponding AoA values
-        roll_commands = numpy array of dimension (1,3) with columns for [u_roll_1, u_roll_2, u_pitch_collective]
-        """
-        X_wing = self.compute_wing_force_features(v_airspeed, angle_of_attack)
-
-        return X_wing
-
     def compute_aero_features(self, v_airspeed_mat, angle_of_attack_vec):
         """
         Inputs:
@@ -99,12 +85,12 @@ class StandardWingModel():
         flap_commands = numpy array of dimension (n,3) with columns for [u_aileron_right, u_aileron_left, u_elevator]
         """
         print("Starting computation of aero features...")
-        X_aero = self.compute_single_aero_feature(
+        X_aero = self.compute_wing_force_features(
             v_airspeed_mat[0, :], angle_of_attack_vec[0])
         aero_features_bar = Bar(
             'Feature Computatiuon', max=v_airspeed_mat.shape[0])
         for i in range(1, len(angle_of_attack_vec)):
-            X_curr = self.compute_single_aero_feature(
+            X_curr = self.compute_wing_force_features(
                 v_airspeed_mat[i, :], angle_of_attack_vec[i])
             X_aero = np.vstack((X_aero, X_curr))
             aero_features_bar.next()
