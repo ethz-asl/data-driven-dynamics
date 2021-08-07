@@ -494,3 +494,14 @@ class DynamicsModel():
         except np.linalg.LinAlgError:
             raise RuntimeError("Unable to estimate the moment matrices: Unobservable paramteres")
             
+        fig2 = plt.figure("Fisher Information")
+        fax1 = fig2.add_subplot(1, 2, 1)
+        fax1.hist(self.data_df["fisher_information_force"], bins=range(0, 500, 1))
+        fax1.set_title("Fisher Information Force")
+        # fax1.set_xlim(0.0, 500.0)
+        # fax1.set_ylim(0, 900)
+        fax2 = fig2.add_subplot(1, 2, 2)
+        fax2.hist(self.data_df["fisher_information_rot"], bins=np.arange(-0.5, 10, 0.1))
+        fax2.set_title("Fisher Information Moments")
+        # fax2.set_xlim(-0.5, 10.0)
+        # fax2.set_ylim(0, 6000)
