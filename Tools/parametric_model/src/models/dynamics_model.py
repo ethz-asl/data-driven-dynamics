@@ -433,3 +433,64 @@ class DynamicsModel():
 
         plt.show()
         return
+
+
+    def compute_fisher_information(self):
+
+        X_forces_x = self.X_forces[0:self.X_forces.shape[0]:3, :]
+        X_forces_y = self.X_forces[1:self.X_forces.shape[0]:3, :]
+        X_forces_z = self.X_forces[2:self.X_forces.shape[0]:3, :]
+
+        X_moments_x = self.X_moments[0:self.X_moments.shape[0]:3, :]
+        X_moments_y = self.X_moments[1:self.X_moments.shape[0]:3, :]
+        X_moments_z = self.X_moments[2:self.X_moments.shape[0]:3, :]
+
+
+        fisher_information_f_mat = np.zeros(shape=(X_forces_x.shape[0],1))
+        fisher_information_m_mat = np.zeros(shape=(X_moments_x.shape[0],1))
+        
+        information_matrix_f = np.zeros(shape=(X_forces_x.shape[1],X_forces_x.shape[1]))
+        information_matrix_m = np.zeros(shape=(X_moments_x.shape[1],X_moments_x.shape[1]))
+
+        ## TODO: Parse accelerometer noise characteristics
+        R_acc = np.diag([0.004, 0.004, 0.004])
+        R_gyro = np.diag([1.0, 1.0, 1.0])
+        fudge_factor = 5.0
+
+        for i in range(X_forces_x.shape[0]):
+            jacobian_m = np.vstack((X_moments_x[i, :], X_moments_y[i, :], X_moments_z[i, :]))
+            jacobian_f = np.vstack((X_forces_x[i, :], X_forces_y[i, :], X_forces_z[i, :]))
+            fisher_information_matrix_f = np.transpose(jacobian_f) @ np.linalg.inv(R_acc) @ jacobian_f
+            fisher_information_matrix_m = np.transpose(jacobian_m) @ np.linalg.inv(R_gyro) @ jacobian_m
+            
+            information_matrix_f += fisher_information_matrix_f
+            information_matrix_m += fisher_information_matrix_m
+
+            fisher_information_f_mat[i]= np.trace(fisher_information_matrix_f)
+            fisher_information_m_mat[i]= np.trace(fisher_information_matrix_m)
+
+        fisher_information_f_df = pd.DataFrame(fisher_information_f_mat, columns=["fisher_information_force"])
+        fisher_information_m_df = pd.DataFrame(fisher_information_m_mat, columns=["fisher_information_rot"])
+
+        self.data_df = pd.concat(
+            [self.data_df, fisher_information_f_df], axis=1, join="inner")
+        self.data_df = pd.concat(
+            [self.data_df, fisher_information_m_df], axis=1, join="inner")
+
+        try:
+            error_covariance_matrix_f = np.linalg.inv(information_matrix_f)
+            cramer_rao_bounds_f = fudge_factor * np.sqrt(np.diag(error_covariance_matrix_f))
+            metric_dict = dict(zip(self.rotor_forces_coef_list + self.aero_forces_coef_list, cramer_rao_bounds_f))
+            print("Cramer-Rao Bounds for force parameters:") 
+            for key, value in metric_dict.items():
+                print(key,'\t',value)
+        except np.linalg.LinAlgError:
+            raise RuntimeError("Unable to estimate the force matrices: Unobservable paramteres")
+        
+        try:
+            error_covariance_matrix_m = np.linalg.inv(information_matrix_m)
+            moment_camel_rao_bounds = np.diag(error_covariance_matrix_m)
+            print("Camel Rao Bounds moment parameters:", moment_camel_rao_bounds)
+        except np.linalg.LinAlgError:
+            raise RuntimeError("Unable to estimate the moment matrices: Unobservable paramteres")
+            

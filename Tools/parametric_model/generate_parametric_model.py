@@ -51,6 +51,7 @@ def start_model_estimation(config, log_path, data_selection=False):
     model.load_dataframes(data_df)
     model.estimate_model()
     model.compute_residuals()
+    model.compute_fisher_information()
     model.plot_model_predicitons()
 
     return
