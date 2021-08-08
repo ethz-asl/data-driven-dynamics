@@ -21,6 +21,8 @@ class StandardWingModel():
     def __init__(self, config_dict, stall_angle=35.0, sig_scale_fac=30):
         self.stall_angle = stall_angle*math.pi/180.0
         self.sig_scale_fac = sig_scale_fac
+        self.air_density = 1.225
+        self.area = 1.2 # [m^2]
 
     def compute_wing_force_features(self, v_airspeed, angle_of_attack):
         """
@@ -45,29 +47,24 @@ class StandardWingModel():
             if abs(AoA) < stall_angle: cropped_sym_sigmoid(AoA) = 0
             if abs(AoA) > stall_angle: cropped_sym_sigmoid(AoA) = 1
         """
-        v_xz = math.sqrt(v_airspeed[0]**2 + v_airspeed[2]**2)
-        X_wing_aero_frame = np.zeros((3, 8))
+        q_xz = 0.5 * self.air_density * (v_airspeed[0]**2 + v_airspeed[2]**2) #TODO Take dynamic pressure
+        X_wing_aero_frame = np.zeros((3, 5))
 
         # region interpolation using a symmetric sigmoid function
         # 0 in linear/quadratic region, 1 in post-stall region
         stall_region = cropped_sym_sigmoid(
-            angle_of_attack, x_offset=self.stall_angle, scale_fac=self.sig_scale_fac)
+            np.abs(angle_of_attack), x_offset=self.stall_angle, scale_fac=self.sig_scale_fac)
         # 1 in linear/quadratic region, 0 in post-stall region
         flow_attached_region = 1 - stall_region
 
         # Compute Drag force coeffiecients:
-        X_wing_aero_frame[0, 0] = -flow_attached_region*v_xz**2
-        X_wing_aero_frame[0, 1] = -flow_attached_region*angle_of_attack*v_xz**2
-        X_wing_aero_frame[0, 2] = -flow_attached_region * \
-            angle_of_attack**2*v_xz**2
-        X_wing_aero_frame[0, 3] = -stall_region * \
-            (1 - math.sin(angle_of_attack)**2)*v_xz**2
-        X_wing_aero_frame[0, 4] = -stall_region * \
-            (math.sin(angle_of_attack)**2)*v_xz**2
+        X_wing_aero_frame[0, 0] = -flow_attached_region * q_xz * self.area
+        X_wing_aero_frame[0, 1] = -flow_attached_region * q_xz * self.area * angle_of_attack
+        X_wing_aero_frame[0, 2] = -flow_attached_region * q_xz * self.area * angle_of_attack**2
         # Compute Lift force coefficients:
-        X_wing_aero_frame[2, 5] = -flow_attached_region*angle_of_attack*v_xz**2
-        X_wing_aero_frame[2, 6] = -flow_attached_region*v_xz**2
-        X_wing_aero_frame[2, 7] = -stall_region*v_xz**2
+        # Stall region: stall_region * 2 * math.sin(angle_of_attack) * math.cos(angle_of_attack)
+        X_wing_aero_frame[2, 3] = -flow_attached_region* q_xz  * self.area
+        X_wing_aero_frame[2, 4] = -flow_attached_region * q_xz * self.area * angle_of_attack
 
         # Transorm from stability axis frame to body FRD frame
         R_aero_to_body = Rotation.from_rotvec(
@@ -95,7 +92,6 @@ class StandardWingModel():
             X_aero = np.vstack((X_aero, X_curr))
             aero_features_bar.next()
         aero_features_bar.finish()
-        wing_coef_list = ["c_d_wing_xz_offset", "c_d_wing_xz_lin", "c_d_wing_xz_quad", "c_d_wing_xz_stall_min", "c_d_wing_xz_stall_90_deg",
-                          "c_l_wing_xz_offset", "c_l_wing_xz_lin", "c_l_wing_xz_stall"]
-        aero_coef_list = wing_coef_list
-        return X_aero, aero_coef_list
+        wing_coef_list = ["c_d_wing_xz_offset", "c_d_wing_xz_lin", "c_d_wing_xz_quad",
+                          "c_l_wing_xz_offset", "c_l_wing_xz_lin"]
+        return X_aero, wing_coef_list
