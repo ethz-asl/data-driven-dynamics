@@ -12,10 +12,8 @@ import math
 from .dynamics_model import DynamicsModel
 from .rotor_models import RotorModel
 from sklearn.linear_model import LinearRegression
-from .model_plots import model_plots, quad_plane_model_plots
 from .model_config import ModelConfig
 from .aerodynamic_models import StandardWingModel, ControlSurfaceModel
-import matplotlib.pyplot as plt
 
 
 """This model estimates forces and moments for quad plane as for example the standard vtol in gazebo."""
@@ -105,35 +103,3 @@ class StandardPlaneModel(DynamicsModel):
             # Set coefficients
             self.coef_name_list.extend(
                 self.rotor_moments_coef_list + X_body_rot_moment_coef_list)
-
-    def plot_model_predicitons(self):
-
-        y_pred = self.reg.predict(self.X)
-
-        if (self.estimate_forces and self.estimate_moments):
-            y_forces_pred = y_pred[0:self.y_forces.shape[0]]
-            y_moments_pred = y_pred[self.y_forces.shape[0]:]
-            model_plots.plot_accel_predeictions(
-                self.y_forces, y_forces_pred, self.data_df["timestamp"])
-            model_plots.plot_angular_accel_predeictions(
-                self.y_moments, y_moments_pred, self.data_df["timestamp"])
-            model_plots.plot_airspeed_and_AoA(
-                self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "AoA"]], self.data_df["timestamp"])
-
-        elif (self.estimate_forces):
-            y_forces_pred = y_pred
-            model_plots.plot_accel_predeictions(
-                self.y_forces, y_forces_pred, self.data_df["timestamp"])
-            model_plots.plot_airspeed_and_AoA(
-                self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "AoA"]], self.data_df["timestamp"])
-
-        elif (self.estimate_moments):
-            y_moments_pred = y_pred
-            model_plots.plot_angular_accel_predeictions(
-                self.y_moments, y_moments_pred, self.data_df["timestamp"])
-            model_plots.plot_airspeed_and_AoA(
-                self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "AoA"]], self.data_df["timestamp"])
-
-        plt.show()
-
-        return
