@@ -52,6 +52,7 @@ model_config:
           dataframe_name: "u3"
 
   aerodynamics:
+    area: 1.2
     stall_angle_deg: 20
     sig_scale_factor: 30
 

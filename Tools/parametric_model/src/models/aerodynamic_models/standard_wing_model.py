@@ -18,11 +18,11 @@ https://docs.px4.io/master/en/airframes/airframe_reference.html#standard-plane
 
 
 class StandardWingModel():
-    def __init__(self, config_dict, stall_angle=35.0, sig_scale_fac=30):
-        self.stall_angle = stall_angle*math.pi/180.0
-        self.sig_scale_fac = sig_scale_fac
+    def __init__(self, config_dict):
+        self.stall_angle = config_dict["stall_angle_deg"]*math.pi/180.0
+        self.sig_scale_fac = config_dict["sig_scale_factor"]
         self.air_density = 1.225
-        self.area = 1.2 # [m^2]
+        self.area = config_dict["area"]
 
     def compute_wing_force_features(self, v_airspeed, angle_of_attack):
         """
@@ -52,8 +52,9 @@ class StandardWingModel():
 
         # region interpolation using a symmetric sigmoid function
         # 0 in linear/quadratic region, 1 in post-stall region
+
         stall_region = cropped_sym_sigmoid(
-            np.abs(angle_of_attack), x_offset=self.stall_angle, scale_fac=self.sig_scale_fac)
+            angle_of_attack, x_offset=self.stall_angle, scale_fac=self.sig_scale_fac)
         # 1 in linear/quadratic region, 0 in post-stall region
         flow_attached_region = 1 - stall_region
 

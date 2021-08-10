@@ -31,19 +31,14 @@ class StandardPlaneModel(DynamicsModel):
 
         self.rotor_config_dict = self.config.model_config["actuators"]["rotors"]
         self.aero_config_dict = self.config.model_config["actuators"]["control_surfaces"]
-
-        self.stall_angle = math.pi/180 * \
-            self.config.model_config["aerodynamics"]["stall_angle_deg"]
-        self.sig_scale_fac = self.config.model_config["aerodynamics"]["sig_scale_factor"]
-
+        self.aerodynamics_dict = self.config.model_config["aerodynamics"]
 
     def prepare_force_regression_matrices(self):
             # Aerodynamics features
             airspeed_mat = self.data_df[[
                 "V_air_body_x", "V_air_body_y", "V_air_body_z"]].to_numpy()
             aoa_mat = self.data_df[["AoA"]].to_numpy()
-            aero_model = StandardWingModel(self.aero_config_dict,
-                stall_angle=self.stall_angle, sig_scale_fac=self.sig_scale_fac)
+            aero_model = StandardWingModel(self.aerodynamics_dict)
             X_aero_forces, aero_coef_list = aero_model.compute_aero_features(airspeed_mat, aoa_mat)
 
             self.aero_forces_coef_list = aero_coef_list
@@ -59,8 +54,7 @@ class StandardPlaneModel(DynamicsModel):
                 for config_dict in aero_group_list:
                     controlsurface_input_name = config_dict["dataframe_name"]
                     u_vec = self.data_df[controlsurface_input_name].to_numpy()
-                    control_surface_model = ControlSurfaceModel(config_dict, u_vec, stall_angle=self.stall_angle, 
-                        sig_scale_fac=self.sig_scale_fac)
+                    control_surface_model = ControlSurfaceModel(config_dict, self.aerodynamics_dict, u_vec)
 
                     if (self.estimate_forces):
                         X_force_curr, curr_aero_forces_coef_list = control_surface_model.compute_actuator_force_matrix(airspeed_mat, aoa_mat)

@@ -15,13 +15,12 @@ The control surface model is conform to PX4's standard plane
 
 
 class ControlSurfaceModel():
-    def __init__(self, config_dict, actuator_input_vec, stall_angle=35.0, sig_scale_fac=30):
-        self.stall_angle = stall_angle*math.pi/180.0
-        self.sig_scale_fac = sig_scale_fac
+    def __init__(self, config_dict, aerodynamics_dict, actuator_input_vec):
         self.name = config_dict["description"]
         self.actuator_input_vec = np.array(actuator_input_vec)
         self.n_timestamps = actuator_input_vec.shape[0]
         self.air_density = 1.225
+        self.area = aerodynamics_dict["area"]
 
     def compute_actuator_force_features(self, index, v_airspeed, angle_of_attack):
         """
@@ -33,8 +32,8 @@ class ControlSurfaceModel():
         lift_axis = np.array([v_airspeed[0], 0.0, v_airspeed[2]])
         lift_axis = (lift_axis / np.linalg.norm(lift_axis)).reshape((3, 1))
         drag_axis = (-1.0 * v_airspeed / np.linalg.norm(v_airspeed)).reshape((3, 1))
-        X_lift = lift_axis @ np.array([[actuator_input]]) *q_xz
-        X_drag = drag_axis @ np.array([[actuator_input]]) *q_xz
+        X_lift = lift_axis @ np.array([[actuator_input]]) *q_xz * self.area
+        X_drag = drag_axis @ np.array([[actuator_input]]) *q_xz * self.area
         R_aero_to_body = Rotation.from_rotvec([0, -angle_of_attack, 0]).as_matrix()
         X_lift_body = R_aero_to_body @ X_lift
         X_drag_body = R_aero_to_body @ X_drag
