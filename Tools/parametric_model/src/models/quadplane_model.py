@@ -42,8 +42,6 @@ class QuadPlaneModel(DynamicsModel):
             aoa_mat = self.data_df[["AoA"]].to_numpy()
             aero_model = StandardWingModel(self.aerodynamics_dict)
             X_aero_forces, aero_coef_list = aero_model.compute_aero_force_features(airspeed_mat, aoa_mat)
-            aero_model = StandardWingModel(self.aerodynamics_dict)
-            X_aero_forces, aero_coef_list = aero_model.compute_aero_force_features(airspeed_mat, aoa_mat)
 
             self.aero_forces_coef_list = aero_coef_list
             self.X_aero_forces = X_aero_forces
