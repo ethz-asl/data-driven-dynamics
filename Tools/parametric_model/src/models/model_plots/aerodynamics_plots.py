@@ -173,7 +173,7 @@ def plot_liftdrag_curve(coef_dict, aerodynamics_dict):
         flow_attached_region = 1 - stall_region
         c_l_vec[i] = flow_attached_region * (cl_0 + cl_alpha * aoa_rad[i])
         c_d_vec[i] = flow_attached_region * (cd_0 + cd_alpha * aoa_rad[i] + cd_alpha2 * aoa_rad[i] * aoa_rad[i])
-    fig, (ax1, ax2) = plt.subplots(2)
+    fig, (ax1, ax2, ax3) = plt.subplots(3)
 
     ax1.plot(aoa_deg, c_l_vec, label="prediction")
     ax1.set_title("Lift coefficient over angle of attack [deg]")
@@ -184,6 +184,11 @@ def plot_liftdrag_curve(coef_dict, aerodynamics_dict):
     ax2.set_title("Lift coefficient over angle of attack [deg]")
     ax2.set_xlabel('Angle of Attack [deg]')
     ax2.set_ylabel('Drag Coefficient')
+
+    ax3.plot(c_l_vec, c_d_vec, label="prediction")
+    ax3.set_title("C_D/C_L")
+    ax3.set_xlabel('C_L Lift Coefficient')
+    ax3.set_ylabel('C_D Drag Coefficient')
 
     return
 
