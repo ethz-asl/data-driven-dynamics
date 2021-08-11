@@ -413,11 +413,11 @@ class DynamicsModel():
 
         ax3 = fig.add_subplot(2, 2, 3, projection='3d')
 
-        plot_scatter(ax3, "Measured Force", "acc_b_x", "acc_b_y", "acc_b_z", 'blue')
+        plot_scatter(ax3, "Measured Acceleration", "acc_b_x", "acc_b_y", "acc_b_z", 'blue')
 
         ax4 = fig.add_subplot(2, 2, 4, projection='3d')
 
-        plot_scatter(ax4, "Measured Moment", "ang_acc_b_x", "ang_acc_b_y", "ang_acc_b_z", 'blue')
+        plot_scatter(ax4, "Measured Angular Acceleration", "ang_acc_b_x", "ang_acc_b_y", "ang_acc_b_z", 'blue')
 
         plt.show()
         return
