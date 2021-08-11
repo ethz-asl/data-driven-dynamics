@@ -75,10 +75,6 @@ static constexpr int kDefaultFlapChannel = 4;
 static constexpr int kDefaultRudderChannel = 2;
 static constexpr int kDefaultThrottleChannel = 3;
 
-/// \brief  Wrapper function for extracting control surface parameters from a
-///         YAML node.
-inline void YAMLReadControlSurface(const YAML::Node& node, const std::string& name, ControlSurface& surface);
-
 /// \brief  This function reads a vector from a YAML node and converts it into
 ///         a vector of type Eigen.
 template <typename Derived>
@@ -89,7 +85,6 @@ template <typename T>
 inline void YAMLReadParam(const YAML::Node& node, const std::string& name, T& value);
 
 /// \brief  Macros to reduce copies of names.
-#define READ_CONTROL_SURFACE(node, item) YAMLReadControlSurface(node, #item, item);
 #define READ_EIGEN_VECTOR(node, item) YAMLReadEigenVector(node, #item, item);
 #define READ_PARAM(node, item) YAMLReadParam(node, #item, item);
 
@@ -110,29 +105,7 @@ struct RotorParameters {
 struct FWAerodynamicParameters {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  FWAerodynamicParameters()
-      : alpha_max(kDefaultAlphaMax),
-        alpha_min(kDefaultAlphaMin),
-        c_drag_alpha(kDefaultCDragAlpha),
-        c_drag_beta(kDefaultCDragBeta),
-        c_drag_delta_ail(kDefaultCDragDeltaAil),
-        c_drag_delta_flp(kDefaultCDragDeltaFlp),
-        c_side_force_beta(kDefaultCSideForceBeta),
-        c_lift_alpha(kDefaultCLiftAlpha),
-        c_lift_delta_ail(kDefaultCLiftDeltaAil),
-        c_lift_delta_flp(kDefaultCLiftDeltaFlp),
-        c_roll_moment_beta(kDefaultCRollMomentBeta),
-        c_roll_moment_p(kDefaultCRollMomentP),
-        c_roll_moment_r(kDefaultCRollMomentR),
-        c_roll_moment_delta_ail(kDefaultCRollMomentDeltaAil),
-        c_roll_moment_delta_flp(kDefaultCRollMomentDeltaFlp),
-        c_pitch_moment_alpha(kDefaultCPitchMomentAlpha),
-        c_pitch_moment_q(kDefaultCPitchMomentQ),
-        c_pitch_moment_delta_elv(kDefaultCPitchMomentDeltaElv),
-        c_yaw_moment_beta(kDefaultCYawMomentBeta),
-        c_yaw_moment_r(kDefaultCYawMomentR),
-        c_yaw_moment_delta_rud(kDefaultCYawMomentDeltaRud),
-        c_thrust(kDefaultCThrust) {}
+  FWAerodynamicParameters() {}
 
   std::vector<RotorParameters> rotor_parameters_;
   double vertical_rot_drag_lin{0.07444735702448266};
@@ -143,36 +116,6 @@ struct FWAerodynamicParameters {
   double vertical_c_m_leaver_lin{-8.33722923229799};
   double vertical_c_m_leaver_quad{32.623014913712176};
   double vertical_c_m_rolling{-1.467193735480539};
-
-  double alpha_max;
-  double alpha_min;
-
-  Eigen::Vector3d c_drag_alpha;
-  Eigen::Vector3d c_drag_beta;
-  Eigen::Vector3d c_drag_delta_ail;
-  Eigen::Vector3d c_drag_delta_flp;
-
-  Eigen::Vector2d c_side_force_beta;
-
-  Eigen::Vector4d c_lift_alpha;
-  Eigen::Vector2d c_lift_delta_ail;
-  Eigen::Vector2d c_lift_delta_flp;
-
-  Eigen::Vector2d c_roll_moment_beta;
-  Eigen::Vector2d c_roll_moment_p;
-  Eigen::Vector2d c_roll_moment_r;
-  Eigen::Vector2d c_roll_moment_delta_ail;
-  Eigen::Vector2d c_roll_moment_delta_flp;
-
-  Eigen::Vector2d c_pitch_moment_alpha;
-  Eigen::Vector2d c_pitch_moment_q;
-  Eigen::Vector2d c_pitch_moment_delta_elv;
-
-  Eigen::Vector2d c_yaw_moment_beta;
-  Eigen::Vector2d c_yaw_moment_r;
-  Eigen::Vector2d c_yaw_moment_delta_rud;
-
-  Eigen::Vector3d c_thrust;
 
   void LoadAeroParamsYAML(const std::string& yaml_path) {
     const YAML::Node node = YAML::LoadFile(yaml_path);
@@ -225,36 +168,6 @@ struct FWAerodynamicParameters {
         rotor_parameters_.push_back(rotor_parameter);
       }
 
-      READ_PARAM(node, alpha_max);
-      READ_PARAM(node, alpha_min);
-
-      READ_EIGEN_VECTOR(node, c_drag_alpha);
-      READ_EIGEN_VECTOR(node, c_drag_beta);
-      READ_EIGEN_VECTOR(node, c_drag_delta_ail);
-      READ_EIGEN_VECTOR(node, c_drag_delta_flp);
-
-      READ_EIGEN_VECTOR(node, c_side_force_beta);
-
-      READ_EIGEN_VECTOR(node, c_lift_alpha);
-      READ_EIGEN_VECTOR(node, c_lift_delta_ail);
-      READ_EIGEN_VECTOR(node, c_lift_delta_flp);
-
-      READ_EIGEN_VECTOR(node, c_roll_moment_beta);
-      READ_EIGEN_VECTOR(node, c_roll_moment_p);
-      READ_EIGEN_VECTOR(node, c_roll_moment_r);
-      READ_EIGEN_VECTOR(node, c_roll_moment_delta_ail);
-      READ_EIGEN_VECTOR(node, c_roll_moment_delta_flp);
-
-      READ_EIGEN_VECTOR(node, c_pitch_moment_alpha);
-      READ_EIGEN_VECTOR(node, c_pitch_moment_q);
-      READ_EIGEN_VECTOR(node, c_pitch_moment_delta_elv);
-
-      READ_EIGEN_VECTOR(node, c_yaw_moment_beta);
-      READ_EIGEN_VECTOR(node, c_yaw_moment_r);
-      READ_EIGEN_VECTOR(node, c_yaw_moment_delta_rud);
-
-      READ_EIGEN_VECTOR(node, c_thrust);
-
     } catch (const std::exception& ex) {
       gzerr << ex.what() << std::endl;
     } catch (const std::string& ex) {
@@ -281,71 +194,6 @@ struct ControlSurface {
     READ_PARAM(node, deflection_max);
   }
 };
-
-struct FWVehicleParameters {
-  FWVehicleParameters()
-      : wing_span(kDefaultWingSpan),
-        wing_surface(kDefaultWingSurface),
-        chord_length(kDefaultChordLength),
-        thrust_inclination(kDefaultThrustInclination),
-        throttle_channel(kDefaultThrottleChannel),
-        aileron_left(kDefaultAileronLeftChannel),
-        aileron_right(kDefaultAileronRightChannel),
-        elevator(kDefaultElevatorChannel),
-        flap(kDefaultFlapChannel),
-        rudder(kDefaultRudderChannel) {}
-
-  double wing_span;
-  double wing_surface;
-  double chord_length;
-  double thrust_inclination;
-
-  int throttle_channel;
-
-  ControlSurface aileron_left;
-  ControlSurface aileron_right;
-  ControlSurface elevator;
-  ControlSurface flap;
-  ControlSurface rudder;
-
-  void LoadVehicleParamsYAML(const std::string& yaml_path) {
-    const YAML::Node node = YAML::LoadFile(yaml_path);
-
-    gzdbg << yaml_path << std::endl;
-    gzdbg << "IsDefined" << node.IsDefined() << std::endl;
-    gzdbg << "IsMap" << node.IsMap() << std::endl;
-    gzdbg << "IsNull" << node.IsNull() << std::endl;
-    gzdbg << "IsScalar" << node.IsScalar() << std::endl;
-    gzdbg << "IsSequence" << node.IsSequence() << std::endl;
-
-    try {
-      READ_PARAM(node, wing_span);
-      READ_PARAM(node, wing_surface);
-      READ_PARAM(node, chord_length);
-      READ_PARAM(node, thrust_inclination);
-
-      READ_PARAM(node, throttle_channel);
-
-      READ_CONTROL_SURFACE(node, aileron_left);
-      READ_CONTROL_SURFACE(node, aileron_right);
-      READ_CONTROL_SURFACE(node, elevator);
-      READ_CONTROL_SURFACE(node, flap);
-      READ_CONTROL_SURFACE(node, rudder);
-
-    } catch (const std::exception& ex) {
-      gzerr << ex.what() << std::endl;
-    } catch (const std::string& ex) {
-      gzerr << ex << std::endl;
-    } catch (...) {
-      gzerr << "meeep" << std::endl;
-    }
-  }
-};
-
-inline void YAMLReadControlSurface(const YAML::Node& node, const std::string& name, ControlSurface& surface) {
-  const YAML::Node surface_node = node[name];
-  surface.LoadControlSurfaceNode(surface_node);
-}
 
 template <typename Derived>
 inline void YAMLReadEigenVector(const YAML::Node& node, const std::string& name, Eigen::MatrixBase<Derived>& value) {
