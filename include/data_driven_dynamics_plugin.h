@@ -104,24 +104,8 @@ class DataDrivenDynamicsPlugin : public ModelPlugin {
   /// \brief    Most current wind speed reading [m/s].
   ignition::math::Vector3d W_wind_speed_W_B_;
 
-  /// \brief    The physical properties of the aircraft.
-  FWVehicleParameters vehicle_params_;
-
   /// \brief    The parametric model of the aircraft
   std::shared_ptr<ParametricDynamicsModel> parametric_model_;
-
-  /// \brief    Left aileron deflection [rad].
-  double delta_aileron_left_{0.0};
-  /// \brief    Right aileron deflection [rad].
-  double delta_aileron_right_{0.0};
-  /// \brief    Elevator deflection [rad].
-  double delta_elevator_{0.0};
-  /// \brief    Flap deflection [rad].
-  double delta_flap_{0.0};
-  /// \brief    Rudder deflection [rad].
-  double delta_rudder_{0.0};
-  /// \brief    Throttle input, in range from 0 to 1.
-  double throttle_{0.0};
 
   int num_input_channels = 16;
   Eigen::VectorXd actuator_inputs_;

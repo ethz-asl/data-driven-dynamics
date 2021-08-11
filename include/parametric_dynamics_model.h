@@ -34,16 +34,11 @@ class ParametricDynamicsModel {
   ParametricDynamicsModel();
   virtual ~ParametricDynamicsModel();
   void setState(const ignition::math::Vector3d &B_air_speed_W_B, const ignition::math::Vector3d &B_angular_velocity_W_B,
-                double delta_aileron_left, double delta_aileron_right, double delta_elevator, double delta_flap,
-                double delta_rudder, const Eigen::VectorXd actuator_inputs);
+                const Eigen::VectorXd actuator_inputs);
   void LoadAeroParams(std::string aero_params_yaml) { aero_params_->LoadAeroParamsYAML(aero_params_yaml); };
-  void LoadVehicleParams(std::string vehicle_params_yaml) {
-    vehicle_params_->LoadVehicleParamsYAML(vehicle_params_yaml);
-  };
   Eigen::Vector3d getForce() { return force_; };
   Eigen::Vector3d getMoment() { return moment_; };
   std::shared_ptr<FWAerodynamicParameters> getAeroParams() { return aero_params_; };
-  std::shared_ptr<FWVehicleParameters> getVehicleParams() { return vehicle_params_; };
   inline static Eigen::Vector3d ignition2eigen(const ignition::math::Vector3d &vec) {
     return Eigen::Vector3d(vec.X(), vec.Y(), vec.Z());
   };
@@ -61,9 +56,6 @@ class ParametricDynamicsModel {
   double throttle_{0.0};
   /// \brief    The aerodynamic properties of the aircraft.
   std::shared_ptr<FWAerodynamicParameters> aero_params_;
-
-  /// \brief    The physical properties of the aircraft.
-  std::shared_ptr<FWVehicleParameters> vehicle_params_;
 };
 }  // namespace gazebo
 #endif  // PARAMETRIC_DYNAMICS_MODEL_H

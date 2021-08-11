@@ -70,19 +70,7 @@ void DataDrivenDynamicsPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _s
     }
     parametric_model_->LoadAeroParams(aero_params_yaml);
   } else {
-    gzwarn << "[gazebo_fw_dynamics_plugin] No aerodynamic paramaters YAML file"
-           << " specified, using default Techpod parameters.\n";
-  }
-
-  // Get the path to fixed-wing vehicle parameters YAML file. If not provided,
-  // default Techpod parameters are used.
-  if (_sdf->HasElement("vehicleParamsYAML")) {
-    std::string vehicle_params_yaml = _sdf->GetElement("vehicleParamsYAML")->Get<std::string>();
-
-    vehicle_params_.LoadVehicleParamsYAML(vehicle_params_yaml);
-    parametric_model_->LoadVehicleParams(vehicle_params_yaml);
-  } else {
-    gzwarn << "[gazebo_fw_dynamics_plugin] No vehicle paramaters YAML file"
+    gzwarn << "[gazebo_data_driven_dynamics_plugin] No aerodynamic paramaters YAML file"
            << " specified, using default Techpod parameters.\n";
   }
 
@@ -121,8 +109,7 @@ void DataDrivenDynamicsPlugin::UpdateForcesAndMoments(Eigen::Vector3d& forces, E
   ignition::math::Vector3d B_air_speed_W_B = W_rot_W_B.RotateVectorReverse(link_->WorldLinearVel() - W_wind_speed_W_B_);
   ignition::math::Vector3d B_angular_velocity_W_B = link_->RelativeAngularVel();
 
-  parametric_model_->setState(B_air_speed_W_B, B_angular_velocity_W_B, delta_aileron_left_, delta_aileron_right_,
-                              delta_elevator_, delta_flap_, delta_rudder_, actuator_inputs_);
+  parametric_model_->setState(B_air_speed_W_B, B_angular_velocity_W_B, actuator_inputs_);
 
   const Eigen::Vector3d parametric_force = parametric_model_->getForce();
   const Eigen::Vector3d parametric_moment = parametric_model_->getMoment();
@@ -146,19 +133,6 @@ double DataDrivenDynamicsPlugin::NormalizedInputToAngle(const ControlSurface& su
 }
 
 void DataDrivenDynamicsPlugin::ActuatorsCallback(CommandMotorSpeedPtr& actuators_msg) {
-  // TODO: Get channel information from yml file
-  delta_aileron_left_ =
-      -NormalizedInputToAngle(vehicle_params_.aileron_left, static_cast<double>(actuators_msg->motor_speed(5)));
-  delta_aileron_right_ =
-      -NormalizedInputToAngle(vehicle_params_.aileron_right, static_cast<double>(actuators_msg->motor_speed(6)));
-  delta_elevator_ =
-      -NormalizedInputToAngle(vehicle_params_.elevator, static_cast<double>(actuators_msg->motor_speed(7)));
-  delta_flap_ = NormalizedInputToAngle(vehicle_params_.flap, static_cast<double>(actuators_msg->motor_speed(3)));
-  delta_rudder_ = NormalizedInputToAngle(vehicle_params_.rudder, static_cast<double>(actuators_msg->motor_speed(2)));
-  // TODO: Throttle is set to zero since force is applied outside of this plugin
-  // throttle_ = actuators_msg->normalized(vehicle_params_.throttle_channel);
-  throttle_ = 0.0;
-
   for (size_t i = 0; i < actuator_inputs_.size(); i++) {
     actuator_inputs_(i) = static_cast<double>(actuators_msg->motor_speed(i));
   }

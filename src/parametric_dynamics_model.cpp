@@ -19,17 +19,13 @@
 
 namespace gazebo {
 
-ParametricDynamicsModel::ParametricDynamicsModel() {
-  aero_params_ = std::make_shared<FWAerodynamicParameters>();
-  vehicle_params_ = std::make_shared<FWVehicleParameters>();
-}
+ParametricDynamicsModel::ParametricDynamicsModel() { aero_params_ = std::make_shared<FWAerodynamicParameters>(); }
 
 ParametricDynamicsModel::~ParametricDynamicsModel() {}
 
 void ParametricDynamicsModel::setState(const ignition::math::Vector3d &B_air_speed_W_B,
                                        const ignition::math::Vector3d &B_angular_velocity_W_B,
-                                       double delta_aileron_left, double delta_aileron_right, double delta_elevator,
-                                       double delta_flap, double delta_rudder, const Eigen::VectorXd actuator_inputs) {
+                                       const Eigen::VectorXd actuator_inputs) {
   // Traditionally, fixed-wing aerodynamics use NED (North-East-Down) frame,
   // but since our model's body frame is in North-West-Up frame we rotate the
   // linear and angular velocities by 180 degrees around the X axis.
