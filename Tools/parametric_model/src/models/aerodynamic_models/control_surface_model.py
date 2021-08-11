@@ -40,8 +40,28 @@ class ControlSurfaceModel():
 
         return np.hstack((X_lift_body, X_drag_body))
 
+    def compute_actuator_moment_features(self, index, v_airspeed, angle_of_attack):
+        """
+        Model description:
+        """
+        actuator_input = self.actuator_input_vec[index]
+        q_xz = 0.5 * self.air_density * (v_airspeed[0]**2 + v_airspeed[2]**2) #TODO Take dynamic pressure
+        lift_axis = np.array([v_airspeed[0], 0.0, v_airspeed[2]])
+        yaw_axis = (lift_axis / np.linalg.norm(lift_axis)).reshape((3, 1))
+        roll_axis = ( v_airspeed / np.linalg.norm(v_airspeed)).reshape((3, 1))
+        pitch_axis = np.cross(np.transpose(yaw_axis), np.transpose(roll_axis)).reshape((3, 1))
+        X_roll_moment = roll_axis @ np.array([[actuator_input]]) * q_xz * self.area
+        X_pitch_moment = pitch_axis @ np.array([[actuator_input]]) * q_xz * self.area
+        X_yaw_moment = yaw_axis @ np.array([[actuator_input]]) *q_xz * self.area
+        R_aero_to_body = Rotation.from_rotvec([0, -angle_of_attack, 0]).as_matrix()
+        X_roll_moment_body = R_aero_to_body @ X_roll_moment
+        X_pitch_moment_body = R_aero_to_body @ X_pitch_moment
+        X_yaw_moment_body = R_aero_to_body @ X_yaw_moment
+
+        return np.hstack((X_roll_moment_body, X_pitch_moment_body, X_yaw_moment_body))
+
     def compute_actuator_force_matrix(self, v_airspeed_mat, angle_of_attack_vec):
-        print("Computing force features for rotor:", self.name)
+        print("Computing force features for control surface:", self.name)
 
         X_forces = self.compute_actuator_force_features(0, v_airspeed_mat[0, :], angle_of_attack_vec[0, :])
         rotor_features_bar = Bar(
@@ -55,3 +75,18 @@ class ControlSurfaceModel():
         self.X_forces = X_forces
         self.X_thrust = X_forces[:, 1:]
         return X_forces, coef_list_forces
+
+    def compute_actuator_moment_matrix(self, v_airspeed_mat, angle_of_attack_vec):
+        print("Computing moment features for control surface:", self.name)
+
+        X_moments = self.compute_actuator_moment_features(0, v_airspeed_mat[0, :], angle_of_attack_vec[0, :])
+        rotor_features_bar = Bar(
+            'Feature Computatiuon', max=self.actuator_input_vec.shape[0])
+        for index in range(1, self.n_timestamps):
+            X_moment_curr = self.compute_actuator_moment_features(index, v_airspeed_mat[index, :], angle_of_attack_vec[index, :])
+            X_moments = np.vstack((X_moments, X_moment_curr))
+            rotor_features_bar.next()
+        rotor_features_bar.finish()
+        coef_list_moments = ["c_m_x_delta", "c_m_y_pitch_delta", "c_m_z_delta"]
+        self.X_moments = X_moments
+        return X_moments, coef_list_moments

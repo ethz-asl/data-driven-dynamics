@@ -39,7 +39,7 @@ class StandardPlaneModel(DynamicsModel):
                 "V_air_body_x", "V_air_body_y", "V_air_body_z"]].to_numpy()
             aoa_mat = self.data_df[["AoA"]].to_numpy()
             aero_model = StandardWingModel(self.aerodynamics_dict)
-            X_aero_forces, aero_coef_list = aero_model.compute_aero_features(airspeed_mat, aoa_mat)
+            X_aero_forces, aero_coef_list = aero_model.compute_aero_force_features(airspeed_mat, aoa_mat)
 
             self.aero_forces_coef_list = aero_coef_list
             self.X_aero_forces = X_aero_forces
@@ -85,15 +85,48 @@ class StandardPlaneModel(DynamicsModel):
                 self.rotor_forces_coef_list + self.aero_forces_coef_list)
 
     def prepare_moment_regression_matrices(self):
+            # Aerodynamics features
+            airspeed_mat = self.data_df[[
+                "V_air_body_x", "V_air_body_y", "V_air_body_z"]].to_numpy()
+            aoa_mat = self.data_df[["AoA"]].to_numpy()
+            aero_model = StandardWingModel(self.aerodynamics_dict)
+            X_aero_moments, aero_moments_coef_list = aero_model.compute_aero_moment_features(airspeed_mat, aoa_mat)
+
+            self.aero_moments_coef_list = aero_moments_coef_list
+            self.X_aero_moments = X_aero_moments
+
+            aero_config_dict = self.aero_config_dict
+            for aero_group in aero_config_dict.keys():
+                aero_group_list = self.aero_config_dict[aero_group]
+
+                for config_dict in aero_group_list:
+                    controlsurface_input_name = config_dict["dataframe_name"]
+                    u_vec = self.data_df[controlsurface_input_name].to_numpy()
+                    control_surface_model = ControlSurfaceModel(config_dict, self.aerodynamics_dict, u_vec)
+
+                    if (self.estimate_moments):
+                        X_moment_curr, curr_aero_moments_coef_list = control_surface_model.compute_actuator_moment_matrix(airspeed_mat, aoa_mat)
+                        # Include aero group name in coefficient names:
+                        for i in range(len(curr_aero_moments_coef_list)):
+                            curr_aero_moments_coef_list[i] = list(config_dict.keys())[0] + "_" + \
+                                curr_aero_moments_coef_list[i]
+                
+                        if 'X_aero_moments' not in vars():
+                            X_aero_moments = X_moment_curr
+                            self.aero_moments_coef_list = curr_aero_moments_coef_list
+                        else:
+                            X_aero_moments = np.hstack(
+                                (X_aero_moments, X_moment_curr))
+                            self.aero_moments_coef_list += curr_aero_moments_coef_list
+                        self.X_aero_moments = X_aero_moments
+
+            self.X_moments = np.hstack((self.X_rotor_moments, self.X_aero_moments))
+
             # Angular acceleration
             moment_mat = np.matmul(self.data_df[[
                 "ang_acc_b_x", "ang_acc_b_y", "ang_acc_b_z"]].to_numpy(), self.moment_of_inertia)
             self.y_moments = moment_mat.flatten()
-            # features due to rotation of body frame
-            X_body_rot_moment, X_body_rot_moment_coef_list = self.compute_body_rotation_features(
-                ["ang_vel_x", "ang_vel_y", "ang_vel_z"])
-            self.X_moments = np.hstack(
-                (self.X_rotor_moments, X_body_rot_moment))
+
             # Set coefficients
             self.coef_name_list.extend(
-                self.rotor_moments_coef_list + X_body_rot_moment_coef_list)
+                self.rotor_moments_coef_list + self.aero_moments_coef_list)
