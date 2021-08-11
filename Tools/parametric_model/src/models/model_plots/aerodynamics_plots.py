@@ -150,6 +150,43 @@ def plot_example_plate_model(plot_range_deg=[-100, 100]):
     plt.grid()
     plt.show()
 
+def plot_liftdrag_curve(coef_dict, aerodynamics_dict):
+    plot_range_deg=[-180, 180]
+    aoa_deg = np.linspace(plot_range_deg[0], plot_range_deg[1], num=(plot_range_deg[1] - plot_range_deg[0] + 1))
+    aoa_rad = aoa_deg * math.pi/180
+    cl_0 = coef_dict["c_l_wing_xz_offset"]
+    cl_alpha = coef_dict["c_l_wing_xz_lin"]
+    cd_0 = coef_dict["c_d_wing_xz_offset"]
+    cd_alpha = coef_dict["c_d_wing_xz_lin"]
+    cd_alpha2 = coef_dict["c_d_wing_xz_quad"]
+
+    c_l_vec = np.zeros(aoa_deg.shape[0])
+    c_d_vec = np.zeros(aoa_deg.shape[0])
+    stall_angle = aerodynamics_dict["stall_angle_deg"] * math.pi/180
+    sig_scale_fac = aerodynamics_dict["sig_scale_factor"]
+
+    # region interpolation using a symmetric sigmoid function
+    # 0 in linear/quadratic region, 1 in post-stall region
+    for i in range(aoa_deg.shape[0]):
+        stall_region = cropped_sym_sigmoid(aoa_rad[i], x_offset=stall_angle, scale_fac=sig_scale_fac)
+        # 1 in linear/quadratic region, 0 in post-stall region
+        flow_attached_region = 1 - stall_region
+        c_l_vec[i] = flow_attached_region * (cl_0 + cl_alpha * aoa_rad[i])
+        c_d_vec[i] = flow_attached_region * (cd_0 + cd_alpha * aoa_rad[i] + cd_alpha2 * aoa_rad[i] * aoa_rad[i])
+    fig, (ax1, ax2) = plt.subplots(2)
+
+    ax1.plot(aoa_deg, c_l_vec, label="prediction")
+    ax1.set_title("Lift coefficient over angle of attack [deg]")
+    ax1.set_xlabel('Angle of Attack [deg]')
+    ax1.set_ylabel('Lift Coefficient')
+
+    ax2.plot(aoa_deg, c_d_vec, label="prediction")
+    ax2.set_title("Lift coefficient over angle of attack [deg]")
+    ax2.set_xlabel('Angle of Attack [deg]')
+    ax2.set_ylabel('Drag Coefficient')
+
+    return
+
 
 if __name__ == '__main__':
     plot_example_plate_model()
