@@ -150,15 +150,20 @@ def plot_example_plate_model(plot_range_deg=[-100, 100]):
     plt.grid()
     plt.show()
 
+
 def plot_liftdrag_curve(coef_dict, aerodynamics_dict):
-    plot_range_deg=[-180, 180]
-    aoa_deg = np.linspace(plot_range_deg[0], plot_range_deg[1], num=(plot_range_deg[1] - plot_range_deg[0] + 1))
+    plot_range_deg = [-180, 180]
+    aoa_deg = np.linspace(plot_range_deg[0], plot_range_deg[1], num=(
+        plot_range_deg[1] - plot_range_deg[0] + 1))
     aoa_rad = aoa_deg * math.pi/180
     cl_0 = coef_dict["c_l_wing_xz_offset"]
     cl_alpha = coef_dict["c_l_wing_xz_lin"]
+    cl_fp = coef_dict["c_l_wing_xz_fp"]
     cd_0 = coef_dict["c_d_wing_xz_offset"]
     cd_alpha = coef_dict["c_d_wing_xz_lin"]
     cd_alpha2 = coef_dict["c_d_wing_xz_quad"]
+    cd_fp_min = coef_dict["c_d_wing_xz_fp_min"]
+    cd_fp_max = coef_dict["c_d_wing_xz_fp_max"]
 
     c_l_vec = np.zeros(aoa_deg.shape[0])
     c_d_vec = np.zeros(aoa_deg.shape[0])
@@ -168,11 +173,18 @@ def plot_liftdrag_curve(coef_dict, aerodynamics_dict):
     # region interpolation using a symmetric sigmoid function
     # 0 in linear/quadratic region, 1 in post-stall region
     for i in range(aoa_deg.shape[0]):
-        stall_region = cropped_sym_sigmoid(aoa_rad[i], x_offset=stall_angle, scale_fac=sig_scale_fac)
+        stall_region = cropped_sym_sigmoid(
+            aoa_rad[i], x_offset=stall_angle, scale_fac=sig_scale_fac)
         # 1 in linear/quadratic region, 0 in post-stall region
         flow_attached_region = 1 - stall_region
-        c_l_vec[i] = flow_attached_region * (cl_0 + cl_alpha * aoa_rad[i])
-        c_d_vec[i] = flow_attached_region * (cd_0 + cd_alpha * aoa_rad[i] + cd_alpha2 * aoa_rad[i] * aoa_rad[i])
+        c_l_vec[i] = flow_attached_region * \
+            (cl_0 + cl_alpha * aoa_rad[i]) + \
+            stall_region * math.sin(2*aoa_rad[i])*cl_fp
+        c_d_vec[i] = flow_attached_region * \
+            (cd_0 + cd_alpha * aoa_rad[i] +
+             cd_alpha2 * aoa_rad[i] * aoa_rad[i]) + stall_region * \
+            (math.sin(aoa_rad[i])**2 * cd_fp_max +
+             (1-(math.sin(aoa_rad[i]))**2) * cd_fp_min)
     fig, (ax1, ax2) = plt.subplots(2)
 
     ax1.plot(aoa_deg, c_l_vec, label="prediction")

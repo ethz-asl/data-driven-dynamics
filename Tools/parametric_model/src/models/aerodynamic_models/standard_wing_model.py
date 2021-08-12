@@ -62,17 +62,18 @@ class StandardWingModel():
         flow_attached_region = 1 - stall_region
 
         # Compute Drag force coeffiecients:
-        X_wing_aero_frame[0, 0] = -flow_attached_region*q_x_A
-        X_wing_aero_frame[0, 1] = -flow_attached_region*angle_of_attack*q_x_A
+        X_wing_aero_frame[0, 0] = -flow_attached_region * q_x_A
+        X_wing_aero_frame[0, 1] = - \
+            flow_attached_region * q_x_A * angle_of_attack
         X_wing_aero_frame[0, 2] = -flow_attached_region * \
-            angle_of_attack**2*q_x_A
+            q_x_A * angle_of_attack**2
         X_wing_aero_frame[0, 3] = -stall_region * \
             (1 - math.sin(angle_of_attack)**2)*q_x_A
         X_wing_aero_frame[0, 4] = -stall_region * \
             (math.sin(angle_of_attack)**2)*q_x_A
         # Compute Lift force coefficients:
-        X_wing_aero_frame[2, 5] = -flow_attached_region*angle_of_attack*q_x_A
-        X_wing_aero_frame[2, 6] = -flow_attached_region*q_x_A
+        X_wing_aero_frame[2, 5] = -flow_attached_region*q_x_A
+        X_wing_aero_frame[2, 6] = -flow_attached_region*q_x_A*angle_of_attack
         X_wing_aero_frame[2, 7] = -stall_region * \
             q_x_A * math.sin(2*angle_of_attack)
 
