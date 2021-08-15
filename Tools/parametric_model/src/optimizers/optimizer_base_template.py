@@ -21,7 +21,7 @@ class OptimizerBaseTemplate(ABC):
     abstract methods. 
     """
 
-    def __init__(self):
+    def __init__(self, optimizer_config):
         self.estimation_completed = False
         self.parametersNotEstimatedError = ParametersNotEstimatedError()
 

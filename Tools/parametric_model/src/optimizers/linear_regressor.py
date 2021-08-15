@@ -8,8 +8,8 @@ from sklearn.linear_model import LinearRegression
 
 class LinearRegressor(OptimizerBaseTemplate):
 
-    def __init__(self):
-        super(LinearRegressor, self).__init__()
+    def __init__(self, optimizer_config):
+        super(LinearRegressor, self).__init__(optimizer_config)
         self.reg = LinearRegression(fit_intercept=False)
 
     def estimate_parameters(self, X, y):
