@@ -57,6 +57,8 @@ model_config:
     sig_scale_factor: 30
 
 dynamics_model_config:
+  optimizer_config:
+    optimizer_class: "LinearRegressor"
   estimate_forces: True
   estimate_moments: True
   resample_freq: 100.0

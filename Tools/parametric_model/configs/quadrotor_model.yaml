@@ -2,7 +2,8 @@
 # general information
 model_name: "Gazebo Standart Multirotor"
 model_type: "Standard Multirotor"
-model_class: "MultiRotorModel"
+model_class:
+  "MultiRotorModel"
 
   # all vectors in FRD body frame if not specified otherwise
 model_config:
@@ -71,6 +72,8 @@ model_config:
             - -0.023
 
 dynamics_model_config:
+  optimizer_config:
+    optimizer_class: "LinearRegressor"
   estimate_forces: True
   estimate_moments: True
   resample_freq: 100.0

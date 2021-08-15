@@ -11,7 +11,7 @@ import math
 import time
 import yaml
 import numpy as np
-import src.optimizers as optimizer
+import src.optimizers as optimizers
 from scipy.linalg import block_diag
 import matplotlib.pyplot as plt
 
@@ -33,6 +33,7 @@ class DynamicsModel():
         self.model_name = "unknown_model"
         self.config_dict = config_dict
         self.resample_freq = config_dict["resample_freq"]
+        self.optimizer_config = config_dict["optimizer_config"]
         print("Resample frequency: ", self.resample_freq, "Hz")
         self.req_topics_dict = config_dict["data"]["required_ulog_topics"]
         self.req_dataframe_topic_list = config_dict["data"]["req_dataframe_topic_list"]
@@ -336,7 +337,15 @@ class DynamicsModel():
         print("resampled data contains ", self.data_df_len, "timestamps.")
         X, y = self.prepare_regression_matrices()
 
-        self.optimizer = optimizer.LinearRegressor()
+        try:
+            # This will call the optimizer constructor directly from the optimizer_class
+            self.optimizer = getattr(optimizers, self.optimizer_config["optimizer_class"])(
+                self.optimizer_config)
+        except AttributeError:
+            error_str = "Optimizer Class '{0}' not found, is it added to optimizers "\
+                        "directory and optimizers/__init__.py?"
+            raise AttributeError(error_str)
+
         self.optimizer.estimate_parameters(X, y)
 
         print("regression complete")
