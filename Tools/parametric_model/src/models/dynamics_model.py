@@ -11,7 +11,7 @@ import math
 import time
 import yaml
 import numpy as np
-from sklearn.linear_model import LinearRegression
+import src.optimizers as optimizer
 from scipy.linalg import block_diag
 import matplotlib.pyplot as plt
 
@@ -80,7 +80,7 @@ class DynamicsModel():
 
         else:
             raise ValueError("Neither Forces nor Moments estimation activated")
-        
+
         return self.X, self.y
 
     def prepare_force_regression_matrices(self):
@@ -332,13 +332,12 @@ class DynamicsModel():
         print("resampled data contains ", self.data_df_len, "timestamps.")
         X, y = self.prepare_regression_matrices()
 
-        self.reg = LinearRegression(fit_intercept=False)
-        self.reg.fit(X, y)
+        self.optimizer = optimizer.LinearRegressor()
+        self.optimizer.estimate_parameters(X, y)
 
         print("regression complete")
-        metrics_dict = {"R2": float(self.reg.score(X, y))}
-        self.coef_name_list.extend(["intercept"])
-        coef_list = list(self.reg.coef_) + [self.reg.intercept_]
+        metrics_dict = self.optimizer.compute_optimization_metrics()
+        coef_list = self.optimizer.get_optimization_parameters()
         model_dict = {}
         model_dict.update(self.rotor_config_dict)
         if hasattr(self, 'aero_config_dict'):
@@ -349,8 +348,8 @@ class DynamicsModel():
         return
 
     def compute_residuals(self):
-        
-        y_pred = self.reg.predict(self.X)
+
+        y_pred = self.optimizer.predict(self.X)
 
         y_forces_pred = y_pred[0:self.y_forces.shape[0]]
         y_moments_pred = y_pred[self.y_forces.shape[0]:]
@@ -364,7 +363,7 @@ class DynamicsModel():
             "residual_force_x", "residual_force_y", "residual_force_z"])
         self.data_df = pd.concat(
             [self.data_df, residual_force_df], axis=1, join="inner")
-        
+
         stacked_error_y_moments = np.array(error_y_moments)
         mom_mat = stacked_error_y_moments.reshape((-1, 3))
         residual_moment_df = pd.DataFrame(mom_mat, columns=[
@@ -374,13 +373,14 @@ class DynamicsModel():
 
     def plot_model_predicitons(self):
         def plot_scatter(ax, title, dataframe_x, dataframe_y, dataframe_z, color='blue'):
-            ax.scatter(self.data_df[dataframe_x], self.data_df[dataframe_y], self.data_df[dataframe_z], s=10, facecolor=color, lw=0, alpha=0.1)
+            ax.scatter(self.data_df[dataframe_x], self.data_df[dataframe_y],
+                       self.data_df[dataframe_z], s=10, facecolor=color, lw=0, alpha=0.1)
             ax.set_title(title)
             ax.set_xlabel(dataframe_x)
             ax.set_ylabel(dataframe_y)
             ax.set_zlabel(dataframe_z)
 
-        y_pred = self.reg.predict(self.X)
+        y_pred = self.optimizer.predict(self.X)
 
         if (self.estimate_forces and self.estimate_moments):
             y_forces_pred = y_pred[0:self.y_forces.shape[0]]
@@ -408,24 +408,29 @@ class DynamicsModel():
 
         fig = plt.figure("Residual Visualization")
         ax1 = fig.add_subplot(2, 2, 1, projection='3d')
-        plot_scatter(ax1, "Residual force", "residual_force_x", "residual_force_y", "residual_force_z", 'blue')
+        plot_scatter(ax1, "Residual force", "residual_force_x",
+                     "residual_force_y", "residual_force_z", 'blue')
 
         ax2 = fig.add_subplot(2, 2, 2, projection='3d')
 
-        plot_scatter(ax2, "Residual moment", "residual_moment_x", "residual_moment_y", "residual_moment_z", 'blue')
+        plot_scatter(ax2, "Residual moment", "residual_moment_x",
+                     "residual_moment_y", "residual_moment_z", 'blue')
 
         ax3 = fig.add_subplot(2, 2, 3, projection='3d')
 
-        plot_scatter(ax3, "Measured Acceleration", "acc_b_x", "acc_b_y", "acc_b_z", 'blue')
+        plot_scatter(ax3, "Measured Acceleration",
+                     "acc_b_x", "acc_b_y", "acc_b_z", 'blue')
 
         ax4 = fig.add_subplot(2, 2, 4, projection='3d')
 
-        plot_scatter(ax4, "Measured Angular Acceleration", "ang_acc_b_x", "ang_acc_b_y", "ang_acc_b_z", 'blue')
+        plot_scatter(ax4, "Measured Angular Acceleration",
+                     "ang_acc_b_x", "ang_acc_b_y", "ang_acc_b_z", 'blue')
 
         if hasattr(self, 'aero_config_dict'):
-            coef_list = list(self.reg.coef_) + [self.reg.intercept_]
+            coef_list = self.optimizer.get_optimization_parameters()
             coef_dict = dict(zip(self.coef_name_list, coef_list))
-            aerodynamics_plots.plot_liftdrag_curve(coef_dict, self.aerodynamics_dict)
+            aerodynamics_plots.plot_liftdrag_curve(
+                coef_dict, self.aerodynamics_dict)
 
         plt.show()
         return
