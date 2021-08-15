@@ -1,7 +1,8 @@
 # general information
 model_name: "Gazebo Standart VTOL"
 model_type: "Standard VTOL"
-model_class: "QuadPlaneModel"
+model_class:
+  "QuadPlaneModel"
 
   # all vectors in FRD body frame if not specified otherwise
 model_config:
@@ -99,6 +100,8 @@ model_config:
     sig_scale_factor: 30
 
 dynamics_model_config:
+  optimizer_config:
+    optimizer_class: "LinearRegressor"
   estimate_forces: True
   estimate_moments: True
   resample_freq: 100.0
