@@ -6,3 +6,4 @@ __license__ = "BSD 3"
 
 from . import models
 from . import tools
+from . import optimizers
