@@ -34,6 +34,7 @@ def start_model_estimation(config, log_path, data_selection=False):
     if data_selection_enabled:
         data_handler.visually_select_data()
     data_handler.visualize_data()
+    data_handler.compare_rates()
 
     data_df = data_handler.get_dataframes()
 

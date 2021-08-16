@@ -157,3 +157,31 @@ class DataHandler(object):
         ax4 = fig.add_subplot(num_plots, 2, 4, projection='3d')
         plot_scatter(ax4, 'Body Angular Acceleration', 'ang_acc_b_x', 'ang_acc_b_y', 'ang_acc_b_z', 'red')
         plt.show(block=False)
+
+    def compare_rates(self):
+        angular_vel_mat = self.data_df[["ang_vel_x", "ang_vel_y", "ang_vel_z"]].to_numpy()
+        angular_vel_mat_1 = np.roll(angular_vel_mat, -1, axis=0)
+        diff_angular_acc_mat = (angular_vel_mat_1 - angular_vel_mat) / 0.01
+        angular_acc_mat = self.data_df[["ang_acc_b_x", "ang_acc_b_y", "ang_acc_b_z"]].to_numpy()
+        print(angular_vel_mat)
+        print(angular_vel_mat_1)
+        print(diff_angular_acc_mat)
+
+        timestamp_array = np.array(self.data_df["timestamp"])
+
+        fig, (ax1, ax2, ax3) = plt.subplots(3)
+        fig.suptitle('Comparison of angular accelerations')
+        ax1.plot(timestamp_array, angular_acc_mat[:, 0], label='ang_acc_b_x')
+        ax1.plot(timestamp_array, diff_angular_acc_mat[:, 0], label='finite diff ang_vel_x')
+        ax1.set_title('angular acceleration in x direction of body frame [m/s^2]')
+
+        ax2.plot(timestamp_array, angular_acc_mat[:, 1], label='ang_acc_b_y')
+        ax2.plot(timestamp_array, diff_angular_acc_mat[:, 1], label='finite diff ang_vel_y')
+        ax2.set_title('angular acceleration in y direction of body frame [m/s^2]')
+
+        ax3.plot(timestamp_array, angular_acc_mat[:, 2], label='ang_acc_b_z')
+        ax3.plot(timestamp_array, diff_angular_acc_mat[:, 2], label='finite diff ang_vel_z')
+        ax3.set_title('angular acceleration in z direction of body frame [m/s^2]')
+
+        plt.legend()
+        return
