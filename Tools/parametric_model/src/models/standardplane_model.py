@@ -89,8 +89,9 @@ class StandardPlaneModel(DynamicsModel):
             airspeed_mat = self.data_df[[
                 "V_air_body_x", "V_air_body_y", "V_air_body_z"]].to_numpy()
             aoa_mat = self.data_df[["AoA"]].to_numpy()
+            angular_vel_mat = self.data_df[["ang_vel_x", "ang_vel_y", "ang_vel_z"]].to_numpy()
             aero_model = StandardWingModel(self.aerodynamics_dict)
-            X_aero_moments, aero_moments_coef_list = aero_model.compute_aero_moment_features(airspeed_mat, aoa_mat)
+            X_aero_moments, aero_moments_coef_list = aero_model.compute_aero_moment_features(airspeed_mat, aoa_mat, angular_vel_mat)
 
             self.aero_moments_coef_list = aero_moments_coef_list
             self.X_aero_moments = X_aero_moments

@@ -74,7 +74,7 @@ class StandardWingModel():
 
         return X_wing_body_frame
 
-    def compute_wing_moment_features(self, v_airspeed, angle_of_attack):
+    def compute_wing_moment_features(self, v_airspeed, angle_of_attack, body_rates):
         """
         Model description:
 
@@ -99,7 +99,7 @@ class StandardWingModel():
         """
         q_xz = 0.5 * self.air_density * (v_airspeed[0]**2 + v_airspeed[2]**2) #TODO Take dynamic pressure
 
-        X_wing_aero_frame = np.zeros((3, 2))
+        X_wing_aero_frame = np.zeros((3, 3))
 
         # region interpolation using a symmetric sigmoid function
         # 0 in linear/quadratic region, 1 in post-stall region
@@ -113,6 +113,7 @@ class StandardWingModel():
         # Compute Pitch Moment coeffiecients:
         X_wing_aero_frame[1, 0] = flow_attached_region * q_xz * self.area
         X_wing_aero_frame[1, 1] = flow_attached_region * q_xz * self.area * angle_of_attack
+        X_wing_aero_frame[1, 2] = flow_attached_region * q_xz * self.area * body_rates[1]
 
         #TODO: Compute Yaw Moment coeffiecients:
 
@@ -146,7 +147,7 @@ class StandardWingModel():
                           "c_l_wing_xz_offset", "c_l_wing_xz_lin"]
         return X_aero, wing_coef_list
 
-    def compute_aero_moment_features(self, v_airspeed_mat, angle_of_attack_vec):
+    def compute_aero_moment_features(self, v_airspeed_mat, angle_of_attack_vec, body_rate_vec):
         """
         Inputs:
 
@@ -155,15 +156,15 @@ class StandardWingModel():
         """
         print("Starting computation of aero moment features...")
         X_aero = self.compute_wing_moment_features(
-            v_airspeed_mat[0, :], angle_of_attack_vec[0])
+            v_airspeed_mat[0, :], angle_of_attack_vec[0], body_rate_vec[0, :])
         aero_features_bar = Bar(
             'Feature Computatiuon', max=v_airspeed_mat.shape[0])
         for i in range(1, len(angle_of_attack_vec)):
             X_curr = self.compute_wing_moment_features(
-                v_airspeed_mat[i, :], angle_of_attack_vec[i])
+                v_airspeed_mat[i, :], angle_of_attack_vec[i], body_rate_vec[i, :])
             X_aero = np.vstack((X_aero, X_curr))
             aero_features_bar.next()
         aero_features_bar.finish()
-        wing_coef_list = ["c_m_x_wing_xz_offset", "c_m_x_wing_xz_lin"]
+        wing_coef_list = ["c_m_x_wing_xz_offset", "c_m_x_wing_xz_lin", "c_m_x_wing_xz_rate"]
         aero_coef_list = wing_coef_list
         return X_aero, aero_coef_list
