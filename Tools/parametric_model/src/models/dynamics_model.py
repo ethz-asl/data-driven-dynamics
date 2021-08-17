@@ -107,7 +107,7 @@ class DynamicsModel():
                 airspeed_body_mat[i, 2], airspeed_body_mat[i, 0])
         airspeed_body_mat = np.hstack((airspeed_body_mat, aoa_vec))
         airspeed_body_df = pd.DataFrame(airspeed_body_mat, columns=[
-            "V_air_body_x", "V_air_body_y", "V_air_body_z", "AoA"])
+            "V_air_body_x", "V_air_body_y", "V_air_body_z", "angle_of_attack"])
         self.data_df = pd.concat(
             [self.data_df, airspeed_body_df], axis=1, join="inner")
 
@@ -390,21 +390,21 @@ class DynamicsModel():
             model_plots.plot_angular_accel_predeictions(
                 self.y_moments, y_moments_pred, self.data_df["timestamp"])
             model_plots.plot_airspeed_and_AoA(
-                self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "AoA"]], self.data_df["timestamp"])
+                self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "angle_of_attack"]], self.data_df["timestamp"])
 
         elif (self.estimate_forces):
             y_forces_pred = y_pred
             model_plots.plot_accel_predeictions(
                 self.y_forces, y_forces_pred, self.data_df["timestamp"])
             model_plots.plot_airspeed_and_AoA(
-                self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "AoA"]], self.data_df["timestamp"])
+                self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "angle_of_attack"]], self.data_df["timestamp"])
 
         elif (self.estimate_moments):
             y_moments_pred = y_pred
             model_plots.plot_angular_accel_predeictions(
                 self.y_moments, y_moments_pred, self.data_df["timestamp"])
             model_plots.plot_airspeed_and_AoA(
-                self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "AoA"]], self.data_df["timestamp"])
+                self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "angle_of_attack"]], self.data_df["timestamp"])
 
         fig = plt.figure("Residual Visualization")
         ax1 = fig.add_subplot(2, 2, 1, projection='3d')
