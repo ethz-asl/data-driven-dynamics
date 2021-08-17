@@ -102,12 +102,16 @@ class DynamicsModel():
         groundspeed_ned_mat = (self.data_df[airspeed_topic_list]).to_numpy()
         airspeed_body_mat = self.rot_to_body_frame(groundspeed_ned_mat)
         aoa_vec = np.zeros((airspeed_body_mat.shape[0], 1))
+        sideslip_vec = np.zeros((airspeed_body_mat.shape[0], 1))
         for i in range(airspeed_body_mat.shape[0]):
             aoa_vec[i, :] = math.atan2(
                 airspeed_body_mat[i, 2], airspeed_body_mat[i, 0])
+            sideslip_vec[i, :] = math.atan2(
+                airspeed_body_mat[i, 1], airspeed_body_mat[i, 0], sideslip_vec)
+
         airspeed_body_mat = np.hstack((airspeed_body_mat, aoa_vec))
         airspeed_body_df = pd.DataFrame(airspeed_body_mat, columns=[
-            "V_air_body_x", "V_air_body_y", "V_air_body_z", "angle_of_attack"])
+            "V_air_body_x", "V_air_body_y", "V_air_body_z", "angle_of_attack", "angle_of_sideslip"])
         self.data_df = pd.concat(
             [self.data_df, airspeed_body_df], axis=1, join="inner")
 
