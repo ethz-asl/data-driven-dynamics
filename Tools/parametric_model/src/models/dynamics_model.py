@@ -107,9 +107,9 @@ class DynamicsModel():
             aoa_vec[i, :] = math.atan2(
                 airspeed_body_mat[i, 2], airspeed_body_mat[i, 0])
             sideslip_vec[i, :] = math.atan2(
-                airspeed_body_mat[i, 1], airspeed_body_mat[i, 0], sideslip_vec)
+                airspeed_body_mat[i, 1], airspeed_body_mat[i, 0])
 
-        airspeed_body_mat = np.hstack((airspeed_body_mat, aoa_vec))
+        airspeed_body_mat = np.hstack((airspeed_body_mat, aoa_vec, sideslip_vec))
         airspeed_body_df = pd.DataFrame(airspeed_body_mat, columns=[
             "V_air_body_x", "V_air_body_y", "V_air_body_z", "angle_of_attack", "angle_of_sideslip"])
         self.data_df = pd.concat(
