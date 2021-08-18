@@ -54,10 +54,11 @@ class QPOptimizer(OptimizerBaseTemplate):
         self.X = X
         self.y = y
         c = cvxpy.Variable(self.n)
-        cost = cvxpy.sum_squares(X @ c - y)
+        cost = cvxpy.sum_squares(self.X @ c - self.y)
         self.prob = cvxpy.Problem(cvxpy.Minimize(cost), [self.G @ c <= self.h])
         self.prob.solve(verbose=True)
         self.c_opt = np.array(c.value).reshape((self.n, 1))
+        print(self.c_opt)
         self.estimation_completed = True
 
     def get_optimization_parameters(self):
@@ -66,15 +67,21 @@ class QPOptimizer(OptimizerBaseTemplate):
 
     def predict(self, X_pred):
         self.check_estimation_completed()
-        y_pred = X_pred @ self.c_opt
-        return y_pred
+        y_pred = np.matmul(X_pred, self.c_opt)
+        return y_pred.flatten()
 
     def compute_optimization_metrics(self):
         self.check_estimation_completed()
-        print(self.X.shape)
-        print(self.c_opt.shape)
-        y_pred = self.X @ self.c_opt
-        metrics_dict = {"Dual Variables": self.prob.constraints[0].dual_value,
+        y_pred = self.predict(self.X)
+        metrics_dict = {"Dual Variables": (self.prob.constraints[0].dual_value).tolist(),
                         "RMSE": math_tools.rmse_between_numpy_arrays(y_pred, self.y)
                         }
+        from src.models.model_plots import model_plots
+        print(y_pred.shape)
+        print(self.y.shape)
+        # n = list(range(y_pred.shape[0]/3))
+        # print(n)
+        # model_plots.plot_accel_predeictions(
+        #     self.y, y_pred, n)
+
         return metrics_dict
