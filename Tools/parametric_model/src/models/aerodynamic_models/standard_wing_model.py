@@ -47,8 +47,11 @@ class StandardWingModel():
             if abs(AoA) < stall_angle: cropped_sym_sigmoid(AoA) = 0
             if abs(AoA) > stall_angle: cropped_sym_sigmoid(AoA) = 1
         """
-        q_xz = 0.5 * self.air_density * (v_airspeed[0]**2 + v_airspeed[2]**2) #TODO Take dynamic pressure
-        X_wing_aero_frame = np.zeros((3, 5))
+
+        # compute dynamic pressure times wing area
+        q_x_A = 0.5 * self.air_density * self.area * \
+            (v_airspeed[0]**2 + v_airspeed[2]**2)  # TODO Take dynamic pressure
+        X_wing_aero_frame = np.zeros((3, 8))
 
         # region interpolation using a symmetric sigmoid function
         # 0 in linear/quadratic region, 1 in post-stall region
@@ -59,13 +62,20 @@ class StandardWingModel():
         flow_attached_region = 1 - stall_region
 
         # Compute Drag force coeffiecients:
-        X_wing_aero_frame[0, 0] = -flow_attached_region * q_xz * self.area
-        X_wing_aero_frame[0, 1] = -flow_attached_region * q_xz * self.area * angle_of_attack
-        X_wing_aero_frame[0, 2] = -flow_attached_region * q_xz * self.area * angle_of_attack**2
+        X_wing_aero_frame[0, 0] = -flow_attached_region * q_x_A
+        X_wing_aero_frame[0, 1] = - \
+            flow_attached_region * q_x_A * angle_of_attack
+        X_wing_aero_frame[0, 2] = -flow_attached_region * \
+            q_x_A * angle_of_attack**2
+        X_wing_aero_frame[0, 3] = -stall_region * \
+            (1 - math.sin(angle_of_attack)**2)*q_x_A
+        X_wing_aero_frame[0, 4] = -stall_region * \
+            (math.sin(angle_of_attack)**2)*q_x_A
         # Compute Lift force coefficients:
-        # Stall region: stall_region * 2 * math.sin(angle_of_attack) * math.cos(angle_of_attack)
-        X_wing_aero_frame[2, 3] = -flow_attached_region* q_xz  * self.area
-        X_wing_aero_frame[2, 4] = -flow_attached_region * q_xz * self.area * angle_of_attack
+        X_wing_aero_frame[2, 5] = -flow_attached_region*q_x_A
+        X_wing_aero_frame[2, 6] = -flow_attached_region*q_x_A*angle_of_attack
+        X_wing_aero_frame[2, 7] = -stall_region * \
+            q_x_A * math.sin(2*angle_of_attack)
 
         # Transorm from stability axis frame to body FRD frame
         R_aero_to_body = Rotation.from_rotvec(
@@ -97,7 +107,8 @@ class StandardWingModel():
             if abs(AoA) < stall_angle: cropped_sym_sigmoid(AoA) = 0
             if abs(AoA) > stall_angle: cropped_sym_sigmoid(AoA) = 1
         """
-        q_xz = 0.5 * self.air_density * (v_airspeed[0]**2 + v_airspeed[2]**2) #TODO Take dynamic pressure
+        q_xz = 0.5 * self.air_density * \
+            (v_airspeed[0]**2 + v_airspeed[2]**2)  # TODO Take dynamic pressure
 
         X_wing_aero_frame = np.zeros((3, 2))
 
@@ -109,12 +120,13 @@ class StandardWingModel():
         flow_attached_region = 1 - stall_region
 
         # Compute Roll Moment coeffiecients:
- 
+
         # Compute Pitch Moment coeffiecients:
         X_wing_aero_frame[1, 0] = flow_attached_region * q_xz * self.area
-        X_wing_aero_frame[1, 1] = flow_attached_region * q_xz * self.area * angle_of_attack
+        X_wing_aero_frame[1, 1] = flow_attached_region * \
+            q_xz * self.area * angle_of_attack
 
-        #TODO: Compute Yaw Moment coeffiecients:
+        # TODO: Compute Yaw Moment coeffiecients:
 
         # Transorm from stability axis frame to body FRD frame
         R_aero_to_body = Rotation.from_rotvec(
@@ -122,7 +134,6 @@ class StandardWingModel():
         X_wing_body_frame = R_aero_to_body @ X_wing_aero_frame
 
         return X_wing_body_frame
-
 
     def compute_aero_force_features(self, v_airspeed_mat, angle_of_attack_vec):
         """
@@ -143,7 +154,8 @@ class StandardWingModel():
             aero_features_bar.next()
         aero_features_bar.finish()
         wing_coef_list = ["c_d_wing_xz_offset", "c_d_wing_xz_lin", "c_d_wing_xz_quad",
-                          "c_l_wing_xz_offset", "c_l_wing_xz_lin"]
+                          "c_d_wing_xz_fp_min", "c_d_wing_xz_fp_max",
+                          "c_l_wing_xz_offset", "c_l_wing_xz_lin", "c_l_wing_xz_fp"]
         return X_aero, wing_coef_list
 
     def compute_aero_moment_features(self, v_airspeed_mat, angle_of_attack_vec):
