@@ -73,7 +73,20 @@ model_config:
 
 dynamics_model_config:
   optimizer_config:
-    optimizer_class: "LinearRegressor"
+    optimizer_class: "QPOptimizer"
+    optimzation_parameters:
+    parameter_bounds:
+      c_d_fuselage_x: !!python/tuple [0.0, 2.0]
+      c_d_fuselage_y: !!python/tuple [0.0, 2.0]
+      c_d_fuselage_z: !!python/tuple [0.0, 2.0]
+      vertical_c_m_drag_z_lin: !!python/tuple [-1.0, 0.0]
+      vertical_c_m_drag_z_quad: !!python/tuple [0.0, 2.0]
+      vertical_c_m_leaver_lin: !!python/tuple [-1.0, 0.0]
+      vertical_c_m_leaver_quad: !!python/tuple [0.0, 2.0]
+      vertical_c_m_rolling: !!python/tuple [0.0, 2.0]
+      vertical_rot_drag_lin: !!python/tuple [0.0, 2.0]
+      vertical_rot_thrust_lin: !!python/tuple [-1.0, 0.0]
+      vertical_rot_thrust_quad: !!python/tuple [0.0, 10.0]
   estimate_forces: True
   estimate_moments: True
   resample_freq: 100.0
