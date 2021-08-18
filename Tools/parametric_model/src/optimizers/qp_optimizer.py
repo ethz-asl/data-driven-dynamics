@@ -59,7 +59,6 @@ class QPOptimizer(OptimizerBaseTemplate):
         self.prob = cvxpy.Problem(cvxpy.Minimize(cost), [self.G @ c <= self.h])
         self.prob.solve(verbose=True)
         self.c_opt = np.array(c.value).reshape((self.n, 1))
-        print(self.c_opt)
         self.estimation_completed = True
 
     def get_optimization_parameters(self):
