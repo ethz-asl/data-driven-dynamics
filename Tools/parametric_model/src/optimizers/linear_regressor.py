@@ -4,6 +4,7 @@ __license__ = "BSD 3"
 
 from src.optimizers import OptimizerBaseTemplate
 from sklearn.linear_model import LinearRegression
+from src.tools import math_tools
 
 
 class LinearRegressor(OptimizerBaseTemplate):
@@ -30,5 +31,7 @@ class LinearRegressor(OptimizerBaseTemplate):
 
     def compute_optimization_metrics(self):
         self.check_estimation_completed()
-        metrics_dict = {"R2": float(self.reg.score(self.X, self.y))}
+        y_pred = self.predict(self.X)
+        metrics_dict = {"R2": float(self.reg.score(self.X, self.y)),
+                        "RMSE": math_tools.rmse_between_numpy_arrays(y_pred, self.y)}
         return metrics_dict
