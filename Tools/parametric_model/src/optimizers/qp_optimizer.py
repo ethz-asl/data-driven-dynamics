@@ -7,6 +7,7 @@ import cvxpy
 import numpy as np
 import warnings
 from src.tools import math_tools
+from sklearn.metrics import r2_score
 
 
 class QPOptimizer(OptimizerBaseTemplate):
@@ -73,15 +74,9 @@ class QPOptimizer(OptimizerBaseTemplate):
     def compute_optimization_metrics(self):
         self.check_estimation_completed()
         y_pred = self.predict(self.X)
-        metrics_dict = {"Dual Variables": (self.prob.constraints[0].dual_value).tolist(),
-                        "RMSE": math_tools.rmse_between_numpy_arrays(y_pred, self.y)
-                        }
-        from src.models.model_plots import model_plots
-        print(y_pred.shape)
-        print(self.y.shape)
-        # n = list(range(y_pred.shape[0]/3))
-        # print(n)
-        # model_plots.plot_accel_predeictions(
-        #     self.y, y_pred, n)
-
+        metrics_dict = {
+            "RMSE": math_tools.rmse_between_numpy_arrays(y_pred, self.y),
+            "R2": float(r2_score(self.y, y_pred)),
+            "Dual Variables": (self.prob.constraints[0].dual_value).tolist()
+        }
         return metrics_dict
