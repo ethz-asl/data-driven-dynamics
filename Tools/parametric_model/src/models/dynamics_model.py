@@ -336,7 +336,7 @@ class DynamicsModel():
         try:
             # This will call the optimizer constructor directly from the optimizer_class
             self.optimizer = getattr(optimizers, self.optimizer_config["optimizer_class"])(
-                self.optimizer_config)
+                self.optimizer_config, self.coef_name_list)
         except AttributeError:
             error_str = "Optimizer Class '{0}' not found, is it added to optimizers "\
                         "directory and optimizers/__init__.py?"
