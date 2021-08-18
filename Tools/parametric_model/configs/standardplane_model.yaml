@@ -58,10 +58,55 @@ model_config:
 
 dynamics_model_config:
   optimizer_config:
-    optimizer_class: "LinearRegressor"
+    optimizer_class: "QPOptimizer"
+    optimzation_parameters:
+    parameter_bounds:
+      c_d_wing_xz_fp_max: !!python/tuple [1.8, 1.8]
+      c_d_wing_xz_fp_min: !!python/tuple [0.05, 0.05]
+      c_d_wing_xz_lin: !!python/tuple [0, 100]
+      c_d_wing_xz_offset: !!python/tuple [0, 0.5]
+      c_d_wing_xz_quad: !!python/tuple [0, 100]
+      c_l_wing_xz_fp: !!python/tuple [0.7, 0.7]
+      c_l_wing_xz_lin: !!python/tuple [0, 5]
+      c_l_wing_xz_offset: !!python/tuple [0, 0.5]
+      c_m_x_wing_xz_lin: !!python/tuple [-1, 1]
+      c_m_x_wing_xz_offset: !!python/tuple [-1, 1]
+      control_surface_0_c_d_delta: !!python/tuple [-1000000, 1000000]
+      control_surface_0_c_l_delta: !!python/tuple [-1000000, 1000000]
+      control_surface_0_c_m_x_delta: !!python/tuple [-1000000, 1000000]
+      control_surface_0_c_m_y_pitch_delta: !!python/tuple [-1000000, 1000000]
+      control_surface_0_c_m_z_delta: !!python/tuple [-1000000, 1000000]
+      control_surface_1_c_d_delta: !!python/tuple [-1000000, 1000000]
+      control_surface_1_c_l_delta: !!python/tuple [-1000000, 1000000]
+      control_surface_1_c_m_x_delta: !!python/tuple [-1000000, 1000000]
+      control_surface_1_c_m_y_pitch_delta: !!python/tuple [-1000000, 1000000]
+      control_surface_1_c_m_z_delta: !!python/tuple [-1000000, 1000000]
+      control_surface_2_c_d_delta: !!python/tuple [-1000000, 1000000]
+      control_surface_2_c_l_delta: !!python/tuple [-1000000, 1000000]
+      control_surface_2_c_m_x_delta: !!python/tuple [-1000000, 1000000]
+      control_surface_2_c_m_y_pitch_delta: !!python/tuple [-1000000, 1000000]
+      control_surface_2_c_m_z_delta: !!python/tuple [-1000000, 1000000]
+      control_surface_3_c_d_delta: !!python/tuple [-1000000, 1000000]
+      control_surface_3_c_l_delta: !!python/tuple [-1000000, 1000000]
+      control_surface_3_c_m_x_delta: !!python/tuple [-1000000, 1000000]
+      control_surface_3_c_m_y_pitch_delta: !!python/tuple [-1000000, 1000000]
+      control_surface_3_c_m_z_delta: !!python/tuple [-1000000, 1000000]
+      control_surface_4_c_d_delta: !!python/tuple [-1000000, 1000000]
+      control_surface_4_c_l_delta: !!python/tuple [-1000000, 1000000]
+      control_surface_4_c_m_x_delta: !!python/tuple [-1000000, 1000000]
+      control_surface_4_c_m_y_pitch_delta: !!python/tuple [-1000000, 1000000]
+      control_surface_4_c_m_z_delta: !!python/tuple [-1000000, 1000000]
+      puller_c_m_drag_z_lin: !!python/tuple [-1000000, 1000000]
+      puller_c_m_drag_z_quad: !!python/tuple [-1000000, 1000000]
+      puller_c_m_leaver_lin: !!python/tuple [0, 0]
+      puller_c_m_leaver_quad: !!python/tuple [0, 0]
+      puller_c_m_rolling: !!python/tuple [0, 0]
+      puller_rot_drag_lin: !!python/tuple [0, 10]
+      puller_rot_thrust_lin: !!python/tuple [-1, 0]
+      puller_rot_thrust_quad: !!python/tuple [0, 20]
   estimate_forces: True
   estimate_moments: True
-  resample_freq: 100.0
+  resample_freq: 50.0
   data:
     required_ulog_topics:
       actuator_outputs:
