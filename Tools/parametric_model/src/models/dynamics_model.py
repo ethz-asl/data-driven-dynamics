@@ -388,9 +388,11 @@ class DynamicsModel():
 
         if (self.estimate_forces and self.estimate_moments):
             y_forces_pred = y_pred[0:self.y_forces.shape[0]]
+            y_forces_var = self.X_forces @ self.cramer_rao_bounds_f
+
             y_moments_pred = y_pred[self.y_forces.shape[0]:]
             model_plots.plot_accel_predeictions(
-                self.y_forces, y_forces_pred, self.data_df["timestamp"])
+                self.y_forces, y_forces_pred, y_forces_var, self.data_df["timestamp"])
             model_plots.plot_angular_accel_predeictions(
                 self.y_moments, y_moments_pred, self.data_df["timestamp"])
             model_plots.plot_airspeed_and_AoA(
@@ -480,19 +482,25 @@ class DynamicsModel():
         try:
             error_covariance_matrix_f = np.linalg.inv(information_matrix_f)
             cramer_rao_bounds_f = fudge_factor * np.sqrt(np.diag(error_covariance_matrix_f))
-            metric_dict = dict(zip(self.rotor_forces_coef_list + self.aero_forces_coef_list, cramer_rao_bounds_f))
+
+            forces_dict = self.rotor_forces_coef_list
+            if hasattr(self, 'aero_forces_coef_list'):
+                forces_dict = forces_dict + self.aero_forces_coef_list
+            metric_dict = dict(zip(forces_dict, cramer_rao_bounds_f))
             print("Cramer-Rao Bounds for force parameters:") 
             for key, value in metric_dict.items():
                 print(key,'\t',value)
         except np.linalg.LinAlgError:
             raise RuntimeError("Unable to estimate the force matrices: Unobservable paramteres")
         
-        try:
-            error_covariance_matrix_m = np.linalg.inv(information_matrix_m)
-            moment_camel_rao_bounds = np.diag(error_covariance_matrix_m)
-            print("Camel Rao Bounds moment parameters:", moment_camel_rao_bounds)
-        except np.linalg.LinAlgError:
-            raise RuntimeError("Unable to estimate the moment matrices: Unobservable paramteres")
+        self.cramer_rao_bounds_f = cramer_rao_bounds_f
+        # try:
+        #     error_covariance_matrix_m = np.linalg.inv(information_matrix_m)
+        #     cramer_rao_bounds_m = fudge_factor * np.sqrt(np.diag(error_covariance_matrix_m))
+        #     metric_dict = dict(zip(self.rotor_moments_coef_list + self.aero_moments_coef_list, cramer_rao_bounds_f))
+        #     print("Camel Rao Bounds moment parameters:", cramer_rao_bounds_m)
+        # except np.linalg.LinAlgError:
+        #     raise RuntimeError("Unable to estimate the moment matrices: Unobservable paramteres")
             
         fig2 = plt.figure("Fisher Information")
         fax1 = fig2.add_subplot(1, 2, 1)
