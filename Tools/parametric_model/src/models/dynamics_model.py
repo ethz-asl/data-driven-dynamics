@@ -391,10 +391,12 @@ class DynamicsModel():
             y_forces_var = self.X_forces @ self.cramer_rao_bounds_f
 
             y_moments_pred = y_pred[self.y_forces.shape[0]:]
+            y_moments_var = self.X_moments @ self.cramer_rao_bounds_m
+
             model_plots.plot_accel_predeictions(
                 self.y_forces, y_forces_pred, y_forces_var, self.data_df["timestamp"])
             model_plots.plot_angular_accel_predeictions(
-                self.y_moments, y_moments_pred, self.data_df["timestamp"])
+                self.y_moments, y_moments_pred, y_moments_var, self.data_df["timestamp"])
             model_plots.plot_airspeed_and_AoA(
                 self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "angle_of_attack"]], self.data_df["timestamp"])
 
@@ -494,14 +496,23 @@ class DynamicsModel():
             raise RuntimeError("Unable to estimate the force matrices: Unobservable paramteres")
         
         self.cramer_rao_bounds_f = cramer_rao_bounds_f
-        # try:
-        #     error_covariance_matrix_m = np.linalg.inv(information_matrix_m)
-        #     cramer_rao_bounds_m = fudge_factor * np.sqrt(np.diag(error_covariance_matrix_m))
-        #     metric_dict = dict(zip(self.rotor_moments_coef_list + self.aero_moments_coef_list, cramer_rao_bounds_f))
-        #     print("Camel Rao Bounds moment parameters:", cramer_rao_bounds_m)
-        # except np.linalg.LinAlgError:
-        #     raise RuntimeError("Unable to estimate the moment matrices: Unobservable paramteres")
-            
+        try:
+            error_covariance_matrix_m = np.linalg.inv(information_matrix_m)
+            cramer_rao_bounds_m = fudge_factor * np.sqrt(np.diag(error_covariance_matrix_m))
+
+            moments_dict = self.rotor_moments_coef_list
+            if hasattr(self, 'aero_moments_coef_list'):
+                moments_dict = moments_dict + self.aero_moments_coef_list
+
+            metric_dict = dict(zip(moments_dict, cramer_rao_bounds_m))
+            print("Cramer-Rao Bounds for moment parameters:") 
+            for key, value in metric_dict.items():
+                print(key,'\t',value)
+        except np.linalg.LinAlgError:
+            raise RuntimeError("Unable to estimate the moment matrices: Unobservable paramteres")
+
+        self.cramer_rao_bounds_m = cramer_rao_bounds_m
+
         fig2 = plt.figure("Fisher Information")
         fax1 = fig2.add_subplot(1, 2, 1)
         fax1.hist(self.data_df["fisher_information_force"], bins=range(0, 500, 1))
