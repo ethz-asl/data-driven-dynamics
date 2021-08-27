@@ -435,6 +435,9 @@ class DynamicsModel():
             coef_dict = dict(zip(self.coef_name_list, coef_list))
             aerodynamics_plots.plot_liftdrag_curve(coef_dict, self.aerodynamics_dict)
 
+        fig = plt.figure("Fisher Information")
+        model_plots.plot_fisher_information(self.data_df["fisher_information_force"], self.data_df["fisher_information_rot"], self.data_df["timestamp"])
+
         plt.show()
         return
 

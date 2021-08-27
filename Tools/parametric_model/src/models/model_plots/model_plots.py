@@ -109,6 +109,17 @@ def plot_airspeed_and_AoA(airspeed_mat, timestamp_array):
     plt.legend()
     return
 
+def plot_fisher_information(fi_force_array, fi_moment_array, timestamp_array):
+    fisher_information_force_mat = np.array(fi_force_array)
+    fisher_information_moment_mat =  np.array(fi_moment_array)
+    timestamp_array = np.array(timestamp_array)
+    fig, (ax1, ax2) = plt.subplots(2)
+    fig.suptitle('Fisher Infomration Metrics')
+    ax1.plot(timestamp_array, fisher_information_force_mat, label='measurement')
+    ax2.plot(timestamp_array, fisher_information_moment_mat, label='measurement')
+
+    return
+
 
 def plot_accel_and_airspeed_in_y_direction(stacked_acc_vec, stacked_acc_vec_pred, v_a_y, timestamp_array):
     """
