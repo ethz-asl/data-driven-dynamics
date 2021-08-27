@@ -53,6 +53,9 @@ def start_model_estimation(config, log_path, data_selection=False):
     model.compute_residuals()
     model.plot_model_predicitons()
 
+
+    # TODO: Also try using a different flight log that hasn't been seen during training.
+
     return
 
 
