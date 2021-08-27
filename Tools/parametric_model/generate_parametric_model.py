@@ -49,12 +49,16 @@ def start_model_estimation(config, log_path, data_selection=False):
         raise AttributeError(error_str)
 
     model.load_dataframes(data_df)
+    # TODO: Separate model estimation with feature computation
+
     model.estimate_model()
     model.compute_residuals()
     model.plot_model_predicitons()
 
 
-    # TODO: Also try using a different flight log that hasn't been seen during training.
+    test_data_handler = DataHandler(config)
+    test_data_handler.loadLogs(log_path)
+    # TODO: Add interface for model to not overwrite regression, but maybe dataframes?
 
     return
 
