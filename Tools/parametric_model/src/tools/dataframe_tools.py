@@ -13,6 +13,7 @@ ACTUATOR_CONTROLS_THRESHOLD = -0.2
 
 
 def compute_flight_time(ulog, pwm_threshold=None, control_threshold=None):
+    ## TODO: Compute flight time from land detection, not PWM thresholds
     """This function computes the flight time by a simple thresholding of actuator outputs or control values. 
     This works usually well for logs from the simulator or mission flights. But in some cases the assumption of an actuator output staying higher than the trsehhold for the hole flight might not be valid."""
 
