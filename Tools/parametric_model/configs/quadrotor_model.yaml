@@ -75,7 +75,7 @@ dynamics_model_config:
     optimizer_class: "QPOptimizer"
     optimzation_parameters:
     parameter_bounds:
-      c_d_fuselage_x: !!python/tuple [0.0, 2.0]
+      c_d_fuselage_x: !!python/tuple [0.0, 0.0]
       c_d_fuselage_y: !!python/tuple [0.0, 2.0]
       c_d_fuselage_z: !!python/tuple [0.0, 2.0]
       vertical_c_m_drag_z_lin: !!python/tuple [-1.0, 0.0]
