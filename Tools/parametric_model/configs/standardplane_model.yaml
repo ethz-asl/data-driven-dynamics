@@ -70,6 +70,7 @@ dynamics_model_config:
       c_l_wing_xz_offset: !!python/tuple [0, 0.5]
       c_m_x_wing_xz_lin: !!python/tuple [-1, 1]
       c_m_x_wing_xz_offset: !!python/tuple [-1, 1]
+      c_m_z_wing_lin: !!python/tuple [-1, 1]
       control_surface_0_c_d_delta: !!python/tuple [-1000000, 1000000]
       control_surface_0_c_l_delta: !!python/tuple [-1000000, 1000000]
       control_surface_0_c_m_x_delta: !!python/tuple [-1000000, 1000000]
