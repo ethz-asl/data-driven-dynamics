@@ -112,7 +112,7 @@ def plot_actuator_inputs(actuator_mat, actuator_name_list, timestamp_array):
     n_actuator = actuator_mat.shape[1]
     fig, (ax1) = plt.subplots(1)
     fig.suptitle('Normalized Actuator Inputs')
-    for i in range n_actuator:
+    for i in range(n_actuator):
         ax1.plot(timestamp_array,
                  actuator_mat[:, i], label=actuator_name_list[0])
 
