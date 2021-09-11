@@ -13,8 +13,12 @@ from sklearn.metrics import r2_score
 
 class QPOptimizer(OptimizerBaseTemplate):
 
-    def __init__(self, optimizer_config, param_name_list):
+    def __init__(self, optimizer_config, param_name_list, verbose=False):
         super(QPOptimizer, self).__init__(optimizer_config, param_name_list)
+        print("Define and solve problem:")
+        print("min_c (X * c -y)^T * (X * c -y)")
+        print(" s.t. G * c <= h")
+        self.verbose = verbose
         self.n = len(param_name_list)
         self.param_name_list = param_name_list
         if "parameter_bounds" in self.config:
@@ -37,6 +41,7 @@ class QPOptimizer(OptimizerBaseTemplate):
         self.fixed_coef_index_list = []
         self.fixed_coef_value_list = []
         self.optimization_coef_list = []
+        self.fixed_coef_list = []
         for i in range(self.n):
             current_param = self.param_name_list[i]
             try:
@@ -44,10 +49,10 @@ class QPOptimizer(OptimizerBaseTemplate):
             except IndexError:
                 print("Can not find bounds for parameter " +
                       current_param + " in config file.")
-            print(current_param, current_bnd_tuple)
             if (current_bnd_tuple[0] == current_bnd_tuple[1]):
                 self.fixed_coef_index_list.append(i)
                 self.fixed_coef_value_list.append(current_bnd_tuple[0])
+                self.fixed_coef_list.append(current_param)
             else:
                 self.G.append(-self.index_row(i))
                 self.G.append(self.index_row(i))
@@ -62,9 +67,25 @@ class QPOptimizer(OptimizerBaseTemplate):
             reversed_index = self.n_fixed_coef - i - 1
             self.G = np.delete(
                 self.G, self.fixed_coef_index_list[reversed_index], 1)
-        print(self.optimization_coef_list)
-        print(self.G)
-        print(self.h)
+        print("-------------------------------------------------------------------------------")
+        print("                    Initialized coefficient constraints                        ")
+        print("-------------------------------------------------------------------------------")
+        print("Fixed Coefficients: Value")
+        for fixed_coef in self.fixed_coef_list:
+            print(fixed_coef + ": ", param_bounds[fixed_coef][0])
+        print("-------------------------------------------------------------------------------")
+        print("Bounded Coefficients: (Min Value, Max Value)")
+        for opt_coef in self.optimization_coef_list:
+            print(opt_coef + ": ", param_bounds[opt_coef])
+        if self.verbose:
+            print(
+                "-------------------------------------------------------------------------------")
+            print(
+                "                           Constraints matrices                                ")
+            print(
+                "-------------------------------------------------------------------------------")
+            print(self.G)
+            print(self.h)
 
     def index_row(self, i):
         index_row = np.zeros(self.n)
@@ -83,13 +104,10 @@ class QPOptimizer(OptimizerBaseTemplate):
         return X, y
 
     def insert_fixed_coefs(self, c_opt):
-        print(self.param_name_list)
-        print(c_opt)
         c_opt = list(c_opt)
         for i in range(len(self.fixed_coef_index_list)):
             c_opt.insert(
                 self.fixed_coef_index_list[i], self.fixed_coef_value_list[i])
-        print(c_opt)
         return c_opt
 
     def estimate_parameters(self, X, y):
@@ -107,7 +125,7 @@ class QPOptimizer(OptimizerBaseTemplate):
         c = cvxpy.Variable(self.n_opt_coef)
         cost = cvxpy.sum_squares(self.X_reduced @ c - self.y_reduced)
         self.prob = cvxpy.Problem(cvxpy.Minimize(cost), [self.G @ c <= self.h])
-        self.prob.solve(verbose=True)
+        self.prob.solve(verbose=self.verbose)
         self.c_opt = np.array(self.insert_fixed_coefs(
             c.value)).reshape((self.n, 1))
         self.estimation_completed = True
@@ -126,7 +144,10 @@ class QPOptimizer(OptimizerBaseTemplate):
         y_pred = self.predict(self.X)
         metrics_dict = {
             "RMSE": math_tools.rmse_between_numpy_arrays(y_pred, self.y),
-            "R2": float(r2_score(self.y, y_pred)),
-            "Dual Variables": (self.prob.constraints[0].dual_value).tolist()
+            "R2": float(r2_score(self.y, y_pred))
         }
+        if self.verbose:
+            metrics_dict["Dual Variables"] = (
+                self.prob.constraints[0].dual_value).tolist()
+
         return metrics_dict

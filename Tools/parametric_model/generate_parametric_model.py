@@ -6,6 +6,7 @@ import os
 import sys
 import inspect
 from src.models import MultiRotorModel, StandardPlaneModel, QuadPlaneModel
+from src.models.model_config import ModelConfig
 import src.models as models
 from src.tools import DataHandler
 import argparse

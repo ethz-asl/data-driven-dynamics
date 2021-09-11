@@ -27,9 +27,12 @@ class DataHandler(object):
         "sub_plt1_data": ["q0", "q1", "q2", "q3"],
         "sub_plt2_data": ["u0", "u1", "u2", "u3"]}
 
-    def __init__(self, config_file="qpm_gazebo_standard_vtol_config.yaml"):
+    def __init__(self, config_file):
+        print("===============================================================================")
+        print("                              Data Processing                                  ")
+        print("===============================================================================")
         self.config = ModelConfig(config_file)
-        config_dict=self.config.dynamics_model_config
+        config_dict = self.config.dynamics_model_config
 
         assert type(
             config_dict) is dict, 'req_topics_dict input must be a dict'
@@ -38,6 +41,7 @@ class DataHandler(object):
         self.resample_freq = config_dict["resample_freq"]
         print("Resample frequency: ", self.resample_freq, "Hz")
         self.req_topics_dict = config_dict["data"]["required_ulog_topics"]
+
         self.req_dataframe_topic_list = config_dict["data"]["req_dataframe_topic_list"]
 
         self.estimate_forces = config_dict["estimate_forces"]
@@ -59,20 +63,24 @@ class DataHandler(object):
                 raise TypeError("File extension needs to be either csv or ulg")
 
     def loadLogFile(self, rel_data_path):
+
         if (rel_data_path.endswith(".csv")):
+            print("Loading CSV file: ", rel_data_path)
             self.data_df = pd.read_csv(rel_data_path, index_col=0)
+            print("Loading topics: ", self.req_dataframe_topic_list)
             for req_topic in self.req_dataframe_topic_list:
                 assert(
                     req_topic in self.data_df), ("missing topic in loaded csv: " + str(req_topic))
-            
             return True
 
         elif (rel_data_path.endswith(".ulg")):
+            print("Loading uLog file: ", rel_data_path)
             ulog = load_ulog(rel_data_path)
+            print("Loading topics:")
+            for req_topic in self.req_topics_dict:
+                print(req_topic)
             self.check_ulog_for_req_topics(ulog)
-
             self.data_df = self.compute_resampled_dataframe(ulog)
-
             return True
 
         else:
@@ -82,11 +90,9 @@ class DataHandler(object):
         for topic_type in self.req_topics_dict.keys():
             try:
                 topic_type_data = ulog.get_dataset(topic_type)
-
             except:
                 print("Missing topic type: ", topic_type)
                 exit(1)
-
             topic_type_data = topic_type_data.data
             ulog_topic_list = self.req_topics_dict[topic_type]["ulog_name"]
             for topic_index in range(len(ulog_topic_list)):
@@ -97,7 +103,6 @@ class DataHandler(object):
                     print("Missing topic: ", topic_type,
                           ulog_topic_list[topic_index])
                     exit(1)
-
         return
 
     def compute_resampled_dataframe(self, ulog):
@@ -126,6 +131,9 @@ class DataHandler(object):
         return resampled_df.dropna()
 
     def visually_select_data(self, plot_config_dict=None):
+        print("===============================================================================")
+        print("                           Data Selection Enabled                              ")
+        print("===============================================================================")
         from visual_dataframe_selector.data_selector import select_visual_data
         print("Number of data samples before cropping: ",
               self.data_df.shape[0])
@@ -137,23 +145,27 @@ class DataHandler(object):
 
     def visualize_data(self):
         def plot_scatter(ax, title, dataframe_x, dataframe_y, dataframe_z, color='blue'):
-            ax.scatter(self.data_df[dataframe_x], self.data_df[dataframe_y], self.data_df[dataframe_z], s=10, facecolor=color, lw=0, alpha=0.1)
+            ax.scatter(self.data_df[dataframe_x], self.data_df[dataframe_y],
+                       self.data_df[dataframe_z], s=10, facecolor=color, lw=0, alpha=0.1)
             ax.set_title(title)
             ax.set_xlabel(dataframe_x)
             ax.set_ylabel(dataframe_y)
             ax.set_zlabel(dataframe_z)
-        
+
         num_plots = 2
         fig = plt.figure("Data Visualization")
         ax1 = fig.add_subplot(num_plots, 2, 1, projection='3d')
         plot_scatter(ax1, 'Local Velocity', 'vx', 'vy', 'vz')
 
         ax2 = fig.add_subplot(num_plots, 2, 2, projection='3d')
-        plot_scatter(ax2, 'Body Acceleration', 'acc_b_x', 'acc_b_y', 'acc_b_z', 'red')
+        plot_scatter(ax2, 'Body Acceleration', 'acc_b_x',
+                     'acc_b_y', 'acc_b_z', 'red')
 
         ax3 = fig.add_subplot(num_plots, 2, 3, projection='3d')
-        plot_scatter(ax3, 'Body Angular Velocity', 'ang_vel_x', 'ang_vel_y', 'ang_vel_z', 'red')
+        plot_scatter(ax3, 'Body Angular Velocity', 'ang_vel_x',
+                     'ang_vel_y', 'ang_vel_z', 'red')
 
         ax4 = fig.add_subplot(num_plots, 2, 4, projection='3d')
-        plot_scatter(ax4, 'Body Angular Acceleration', 'ang_acc_b_x', 'ang_acc_b_y', 'ang_acc_b_z', 'red')
+        plot_scatter(ax4, 'Body Angular Acceleration',
+                     'ang_acc_b_x', 'ang_acc_b_y', 'ang_acc_b_z', 'red')
         plt.show(block=False)
