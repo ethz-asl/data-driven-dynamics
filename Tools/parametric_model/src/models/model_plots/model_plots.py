@@ -19,12 +19,12 @@ def plot_accel_predeictions(stacked_acc_vec, stacked_acc_vec_pred, timestamp_arr
 
     stacked_acc_vec = np.array(stacked_acc_vec)
     stacked_acc_vec_pred = np.array(stacked_acc_vec_pred)
-    timestamp_array = np.array(timestamp_array)
+    timestamp_array = np.array(timestamp_array)/1000000
 
     acc_mat = stacked_acc_vec.reshape((-1, 3))
     acc_mat_pred = stacked_acc_vec_pred.reshape((-1, 3))
 
-    fig, (ax1, ax2, ax3) = plt.subplots(3)
+    fig, (ax1, ax2, ax3) = plt.subplots(3, sharex=True)
     fig.suptitle('Predictions of linear accelerations')
     ax1.plot(timestamp_array, acc_mat[:, 0], label='measurement')
     ax1.plot(timestamp_array, acc_mat_pred[:, 0], label='prediction')
@@ -33,9 +33,10 @@ def plot_accel_predeictions(stacked_acc_vec, stacked_acc_vec_pred, timestamp_arr
     ax3.plot(timestamp_array, acc_mat[:, 2], label='measurement')
     ax3.plot(timestamp_array, acc_mat_pred[:, 2], label='prediction')
 
-    ax1.set_title('acceleration in x direction of body frame [m/s^2]')
-    ax2.set_title('acceleration in y direction of body frame [m/s^2]')
-    ax3.set_title('acceleration in z direction of body frame [m/s^2]')
+    ax1.set_ylabel('x [m/s^2]')
+    ax2.set_ylabel('y [m/s^2]')
+    ax3.set_ylabel('z [m/s^2]')
+    ax3.set_xlabel('time [s]')
     plt.legend()
     return
 
@@ -50,13 +51,13 @@ def plot_angular_accel_predeictions(stacked_acc_vec, stacked_acc_vec_pred, times
 
     stacked_acc_vec = np.array(stacked_acc_vec)
     stacked_acc_vec_pred = np.array(stacked_acc_vec_pred)
-    timestamp_array = np.array(timestamp_array)
+    timestamp_array = np.array(timestamp_array)/1000000
 
     acc_mat = stacked_acc_vec.reshape((-1, 3))
     acc_mat_pred = stacked_acc_vec_pred.reshape((-1, 3))
 
-    fig, (ax1, ax2, ax3) = plt.subplots(3)
-    fig.suptitle('Prediction of angular accelerations')
+    fig, (ax1, ax2, ax3) = plt.subplots(3, sharex=True)
+    fig.suptitle('Prediction of angular accelerations in body frame')
     ax1.plot(timestamp_array, acc_mat[:, 0], label='measurement')
     ax1.plot(timestamp_array, acc_mat_pred[:, 0], label='prediction')
     ax2.plot(timestamp_array, acc_mat[:, 1], label='measurement')
@@ -64,12 +65,10 @@ def plot_angular_accel_predeictions(stacked_acc_vec, stacked_acc_vec_pred, times
     ax3.plot(timestamp_array, acc_mat[:, 2], label='measurement')
     ax3.plot(timestamp_array, acc_mat_pred[:, 2], label='prediction')
 
-    ax1.set_title(
-        'angular acceleration in x direction of body frame [rad/s^2]')
-    ax2.set_title(
-        'angular acceleration in y direction of body frame [rad/s^2]')
-    ax3.set_title(
-        'angular acceleration in z direction of body frame [rad/s^2]')
+    ax1.set_ylabel('x [m/s^2]')
+    ax2.set_ylabel('y [m/s^2]')
+    ax3.set_ylabel('z [m/s^2]')
+    ax3.set_xlabel('time [s]')
     plt.legend()
     return
 
@@ -95,6 +94,30 @@ def plot_airspeed_and_AoA(airspeed_mat, timestamp_array):
     ax2.set_title('airspeed in y direction of body frame [m/s^2]')
     ax3.set_title('airspeed in z direction of body frame [m/s^2]')
     ax4.set_title("Aoa in body frame [radiants]")
+    plt.legend()
+    return
+
+
+def plot_actuator_inputs(actuator_mat, actuator_name_list, timestamp_array):
+    """
+    Input:
+    input_mat
+    actuator_name_list
+    timestamp_array: numpy array with n entries of corresponding timestamps.
+    """
+
+    airspeed_mat = np.array(actuator_mat)
+    timestamp_array = np.array(timestamp_array)/1000000
+
+    n_actuator = actuator_mat.shape[1]
+    fig, (ax1) = plt.subplots(1)
+    fig.suptitle('Normalized Actuator Inputs')
+    for i in range n_actuator:
+        ax1.plot(timestamp_array,
+                 actuator_mat[:, i], label=actuator_name_list[0])
+
+    ax1.set_ylabel('normalized actuator output')
+    ax1.set_xlabel('time [s]')
     plt.legend()
     return
 
