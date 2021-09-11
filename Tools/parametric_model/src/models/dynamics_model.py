@@ -16,8 +16,7 @@ from scipy.linalg import block_diag
 import matplotlib.pyplot as plt
 
 from .rotor_models import RotorModel, BiDirectionalRotorModel, TiltingRotorModel, ChangingAxisRotorModel
-from .model_plots import model_plots
-from .model_plots import aerodynamics_plots
+from .model_plots import model_plots, aerodynamics_plots, linear_model_plots
 from src.tools.ulog_tools import load_ulog, pandas_from_topic
 from src.tools.dataframe_tools import compute_flight_time, resample_dataframe_list
 from src.tools.quat_utils import quaternion_to_rotation_matrix
@@ -110,7 +109,8 @@ class DynamicsModel():
             sideslip_vec[i, :] = math.atan2(
                 airspeed_body_mat[i, 1], airspeed_body_mat[i, 0])
 
-        airspeed_body_mat = np.hstack((airspeed_body_mat, aoa_vec, sideslip_vec))
+        airspeed_body_mat = np.hstack(
+            (airspeed_body_mat, aoa_vec, sideslip_vec))
         airspeed_body_df = pd.DataFrame(airspeed_body_mat, columns=[
             "V_air_body_x", "V_air_body_y", "V_air_body_z", "angle_of_attack", "angle_of_sideslip"])
         self.data_df = pd.concat(
@@ -438,6 +438,8 @@ class DynamicsModel():
 
         plot_scatter(ax4, "Measured Angular Acceleration",
                      "ang_acc_b_x", "ang_acc_b_y", "ang_acc_b_z", 'blue')
+
+        linear_model_plots.plot_covariance_mat(self.X, self.coef_name_list)
 
         if hasattr(self, 'aero_config_dict'):
             coef_list = self.optimizer.get_optimization_parameters()
