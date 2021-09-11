@@ -22,6 +22,7 @@ Note that the forces are calculated in the NED body frame and are therefore nega
 """
 
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import math
 
@@ -49,7 +50,10 @@ class MultiRotorModel(DynamicsModel):
 
         accel_mat = self.data_df[[
             "acc_b_x", "acc_b_y", "acc_b_z"]].to_numpy()
-        self.y_forces = (accel_mat).flatten() * self.mass
+        force_mat = accel_mat * self.mass
+        self.y_forces = (force_mat).flatten()
+        self.data_df[["measured_force_x", "measured_force_y",
+                     "measured_force_z"]] = force_mat
 
         airspeed_mat = self.data_df[["V_air_body_x",
                                      "V_air_body_y", "V_air_body_z"]].to_numpy()
@@ -63,6 +67,8 @@ class MultiRotorModel(DynamicsModel):
     def prepare_moment_regression_matrices(self):
         moment_mat = np.matmul(self.data_df[[
             "ang_acc_b_x", "ang_acc_b_y", "ang_acc_b_z"]].to_numpy(), self.moment_of_inertia)
+        self.data_df[["measured_moment_x", "measured_moment_y",
+                     "measured_moment_z"]] = moment_mat
         self.y_moments = moment_mat.flatten()
         self.X_moments = self.X_rotor_moments
         self.coef_name_list.extend(self.rotor_moments_coef_list)
