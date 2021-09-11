@@ -18,6 +18,8 @@ class QPOptimizer(OptimizerBaseTemplate):
         print("Define and solve problem:")
         print("min_c (X * c -y)^T * (X * c -y)")
         print(" s.t. G * c <= h")
+        print("Initialized with the following coefficients: ")
+        print(param_name_list)
         self.verbose = verbose
         self.n = len(param_name_list)
         self.param_name_list = param_name_list
@@ -34,8 +36,8 @@ class QPOptimizer(OptimizerBaseTemplate):
     def __compute_ineq_contraints(self):
         param_bounds = self.config["parameter_bounds"]
         param_bnd_keys = list(param_bounds.keys())
-        assert (len(param_bnd_keys) ==
-                self.n), "Optimizer needs exactly one bound per coefficient"
+        # assert (len(param_bnd_keys) ==
+        #         self.n), "Optimizer needs exactly one bound per coefficient"
         self.G = []
         self.h = []
         self.fixed_coef_index_list = []
@@ -67,9 +69,7 @@ class QPOptimizer(OptimizerBaseTemplate):
             reversed_index = self.n_fixed_coef - i - 1
             self.G = np.delete(
                 self.G, self.fixed_coef_index_list[reversed_index], 1)
-        print("-------------------------------------------------------------------------------")
-        print("                    Initialized coefficient constraints                        ")
-        print("-------------------------------------------------------------------------------")
+
         print("Fixed Coefficients: Value")
         for fixed_coef in self.fixed_coef_list:
             print(fixed_coef + ": ", param_bounds[fixed_coef][0])
@@ -93,14 +93,17 @@ class QPOptimizer(OptimizerBaseTemplate):
         return index_row
 
     def remove_fixed_coef_features(self, X, y):
-        print("fixed values: ", self.fixed_coef_value_list)
         # remove elements starting from the back
         for i in range(self.n_fixed_coef):
             reversed_index = self.n_fixed_coef - i - 1
             coef_index = self.fixed_coef_index_list[reversed_index]
-            X = np.delete(X, coef_index, 1)
+            print(self.fixed_coef_index_list)
+            print(coef_index)
+            print(self.n)
+            print(X.shape)
             y = y - (X[:, coef_index] *
                      self.fixed_coef_value_list[reversed_index]).flatten()
+            X = np.delete(X, coef_index, 1)
         return X, y
 
     def insert_fixed_coefs(self, c_opt):
