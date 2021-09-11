@@ -34,7 +34,6 @@ class DynamicsModel():
         self.config_dict = config_dict
         self.resample_freq = config_dict["resample_freq"]
         self.optimizer_config = config_dict["optimizer_config"]
-        print("Resample frequency: ", self.resample_freq, "Hz")
         self.req_topics_dict = config_dict["data"]["required_ulog_topics"]
         self.req_dataframe_topic_list = config_dict["data"]["req_dataframe_topic_list"]
 
@@ -110,7 +109,8 @@ class DynamicsModel():
             sideslip_vec[i, :] = math.atan2(
                 airspeed_body_mat[i, 1], airspeed_body_mat[i, 0])
 
-        airspeed_body_mat = np.hstack((airspeed_body_mat, aoa_vec, sideslip_vec))
+        airspeed_body_mat = np.hstack(
+            (airspeed_body_mat, aoa_vec, sideslip_vec))
         airspeed_body_df = pd.DataFrame(airspeed_body_mat, columns=[
             "V_air_body_x", "V_air_body_y", "V_air_body_z", "angle_of_attack", "angle_of_sideslip"])
         self.data_df = pd.concat(
@@ -319,23 +319,33 @@ class DynamicsModel():
         file_path = result_path + file_name + "_" + timestr + ".yaml"
 
         with open(file_path, 'w') as outfile:
-            print(yaml.dump(self.result_dict, default_flow_style=False))
             yaml.dump(self.result_dict, outfile, default_flow_style=False)
+        print("-------------------------------------------------------------------------------")
+        print("Complete results saved to: ")
+        print(file_path)
+        print("-------------------------------------------------------------------------------")
 
-    def load_dataframes(self, data_frames):
-        self.data_df = data_frames
-
+    def load_dataframes(self, data_frame):
+        self.data_df = data_frame
         self.n_samples = self.data_df.shape[0]
         self.quaternion_df = self.data_df[["q0", "q1", "q2", "q3"]]
         self.q_mat = self.quaternion_df.to_numpy()
+        print("-------------------------------------------------------------------------------")
+        print("Initialized dataframe with the following columns: ")
+        print(list(self.data_df.columns))
+        print("Data contains ", self.data_df.shape[0], "timestamps.")
 
     def estimate_model(self):
-
-        print("Estimating quad plane model using the following data:")
-        print(self.data_df.columns)
-        self.data_df_len = self.data_df.shape[0]
-        print("resampled data contains ", self.data_df_len, "timestamps.")
+        print("===============================================================================")
+        print("                        Preparing Model Features                               ")
+        print("===============================================================================")
         X, y = self.prepare_regression_matrices()
+
+        print("===============================================================================")
+        print("                            Initialize Optimizer                               ")
+        print("                                " +
+              self.optimizer_config["optimizer_class"])
+        print("===============================================================================")
 
         try:
             # This will call the optimizer constructor directly from the optimizer_class
@@ -348,7 +358,9 @@ class DynamicsModel():
 
         self.optimizer.estimate_parameters(X, y)
 
-        print("regression complete")
+        print("===============================================================================")
+        print("                           Optimization Results                                ")
+        print("===============================================================================")
         metrics_dict = self.optimizer.compute_optimization_metrics()
         coef_list = self.optimizer.get_optimization_parameters()
         model_dict = {}
@@ -356,6 +368,16 @@ class DynamicsModel():
         if hasattr(self, 'aero_config_dict'):
             model_dict.update(self.aero_config_dict)
         self.generate_model_dict(coef_list, metrics_dict, model_dict)
+        print(
+            "                           Optimal Coefficients                              ")
+        print("-------------------------------------------------------------------------------")
+        print(
+            yaml.dump(self.result_dict["coefficients"], default_flow_style=False))
+        print("-------------------------------------------------------------------------------")
+        print("                            Optimization Metrics                               ")
+        print("-------------------------------------------------------------------------------")
+        print(
+            yaml.dump(self.result_dict["metrics"], default_flow_style=False))
         self.save_result_dict_to_yaml(file_name=self.model_name)
 
         return
