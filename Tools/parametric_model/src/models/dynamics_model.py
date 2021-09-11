@@ -442,23 +442,23 @@ class DynamicsModel():
 
         fig = plt.figure("Residual Visualization")
         ax1 = fig.add_subplot(2, 2, 1, projection='3d')
-        plot_scatter(ax1, "Residual force", "residual_force_x",
+        plot_scatter(ax1, "Residual forces [N]", "residual_force_x",
                      "residual_force_y", "residual_force_z", 'blue')
 
         ax2 = fig.add_subplot(2, 2, 2, projection='3d')
 
-        plot_scatter(ax2, "Residual moment", "residual_moment_x",
+        plot_scatter(ax2, "Residual Moments [Nm]", "residual_moment_x",
                      "residual_moment_y", "residual_moment_z", 'blue')
 
         ax3 = fig.add_subplot(2, 2, 3, projection='3d')
 
-        plot_scatter(ax3, "Measured Acceleration",
-                     "acc_b_x", "acc_b_y", "acc_b_z", 'blue')
+        plot_scatter(ax3, "Measured Forces [N]",
+                     "measured_force_x", "measured_force_y", "measured_force_z", 'blue')
 
         ax4 = fig.add_subplot(2, 2, 4, projection='3d')
 
-        plot_scatter(ax4, "Measured Angular Acceleration",
-                     "ang_acc_b_x", "ang_acc_b_y", "ang_acc_b_z", 'blue')
+        plot_scatter(ax4, "Measured Moments [Nm]",
+                     "measured_moment_x", "measured_moment_y", "measured_moment_z", 'blue')
 
         linear_model_plots.plot_covariance_mat(self.X, self.coef_name_list)
 
