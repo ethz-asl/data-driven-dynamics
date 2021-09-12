@@ -59,7 +59,7 @@ To run the simulation,
 
 ```
 source setup.bash
-Tools/sitl_run.sh -m techpod -s techpod_aerodynamics
+Tools/sitl_run.sh -m iris -s iris_aerodynamics
 ```
 
 ## Generating a Parametric Model from Log File
