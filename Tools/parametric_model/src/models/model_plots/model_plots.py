@@ -9,23 +9,23 @@ import math
 """The functions in this file can be used to plot data of any kind of model"""
 
 
-def plot_force_predeictions(stacked_force_vec, stacked_force_vec_pred, timestamp_array):
+def plot_accel_predeictions(stacked_acc_vec, stacked_acc_vec_pred, timestamp_array):
     """
     Input:
-    stacked_force_vec: numpy array of shape (3*n,1) containing stacked accelerations [a_x_1, a_y_1, a_z_1, a_x_2, ...]^T in body frame
-    stacked_force_vec_pred: numpy array of shape (3*n,1) containing stacked predicted accelerations [a_x_1, a_y_1, a_z_1, a_x_2, ...]^T in body frame
+    stacked_acc_vec: numpy array of shape (3*n,1) containing stacked accelerations [a_x_1, a_y_1, a_z_1, a_x_2, ...]^T in body frame
+    stacked_acc_vec_pred: numpy array of shape (3*n,1) containing stacked predicted accelerations [a_x_1, a_y_1, a_z_1, a_x_2, ...]^T in body frame
     timestamp_array: numpy array with n entries of corresponding timestamps.
     """
 
-    stacked_force_vec = np.array(stacked_force_vec)
-    stacked_force_vec_pred = np.array(stacked_force_vec_pred)
+    stacked_acc_vec = np.array(stacked_acc_vec)
+    stacked_acc_vec_pred = np.array(stacked_acc_vec_pred)
     timestamp_array = np.array(timestamp_array)/1000000
 
-    acc_mat = stacked_force_vec.reshape((-1, 3))
-    acc_mat_pred = stacked_force_vec_pred.reshape((-1, 3))
+    acc_mat = stacked_acc_vec.reshape((-1, 3))
+    acc_mat_pred = stacked_acc_vec_pred.reshape((-1, 3))
 
     fig, (ax1, ax2, ax3) = plt.subplots(3, sharex=True)
-    fig.suptitle('Predictions of Forces in Body Frame [N]')
+    fig.suptitle('Predictions of linear accelerations')
     ax1.plot(timestamp_array, acc_mat[:, 0], label='measurement')
     ax1.plot(timestamp_array, acc_mat_pred[:, 0], label='prediction')
     ax2.plot(timestamp_array, acc_mat[:, 1], label='measurement')
@@ -33,31 +33,31 @@ def plot_force_predeictions(stacked_force_vec, stacked_force_vec_pred, timestamp
     ax3.plot(timestamp_array, acc_mat[:, 2], label='measurement')
     ax3.plot(timestamp_array, acc_mat_pred[:, 2], label='prediction')
 
-    ax1.set_ylabel('x')
-    ax2.set_ylabel('y')
-    ax3.set_ylabel('z')
+    ax1.set_ylabel('x [m/s^2]')
+    ax2.set_ylabel('y [m/s^2]')
+    ax3.set_ylabel('z [m/s^2]')
     ax3.set_xlabel('time [s]')
     plt.legend()
     return
 
 
-def plot_moment_predeictions(stacked_moment_vec, stacked_moment_vec_pred, timestamp_array):
+def plot_angular_accel_predeictions(stacked_acc_vec, stacked_acc_vec_pred, timestamp_array):
     """
     Input:
-    stacked_moment_vec: numpy array of shape (3*n,1) containing stacked angular accelerations [w_x_1, w_y_1, w_z_1, w_x_2, ...]^T in body frame
-    stacked_moment_vec_pred: numpy array of shape (3*n,1) containing stacked predicted angular accelerations [w_x_1, w_y_1, w_z_1, w_x_2, ...]^T in body frame
+    stacked_acc_vec: numpy array of shape (3*n,1) containing stacked angular accelerations [w_x_1, w_y_1, w_z_1, w_x_2, ...]^T in body frame
+    stacked_acc_vec_pred: numpy array of shape (3*n,1) containing stacked predicted angular accelerations [w_x_1, w_y_1, w_z_1, w_x_2, ...]^T in body frame
     timestamp_array: numpy array with n entries of corresponding timestamps.
     """
 
-    stacked_moment_vec = np.array(stacked_moment_vec)
-    stacked_moment_vec_pred = np.array(stacked_moment_vec_pred)
+    stacked_acc_vec = np.array(stacked_acc_vec)
+    stacked_acc_vec_pred = np.array(stacked_acc_vec_pred)
     timestamp_array = np.array(timestamp_array)/1000000
 
-    acc_mat = stacked_moment_vec.reshape((-1, 3))
-    acc_mat_pred = stacked_moment_vec_pred.reshape((-1, 3))
+    acc_mat = stacked_acc_vec.reshape((-1, 3))
+    acc_mat_pred = stacked_acc_vec_pred.reshape((-1, 3))
 
     fig, (ax1, ax2, ax3) = plt.subplots(3, sharex=True)
-    fig.suptitle('Prediction of Moments in Body Frame [Nm]')
+    fig.suptitle('Prediction of angular accelerations in body frame')
     ax1.plot(timestamp_array, acc_mat[:, 0], label='measurement')
     ax1.plot(timestamp_array, acc_mat_pred[:, 0], label='prediction')
     ax2.plot(timestamp_array, acc_mat[:, 1], label='measurement')
@@ -65,9 +65,9 @@ def plot_moment_predeictions(stacked_moment_vec, stacked_moment_vec_pred, timest
     ax3.plot(timestamp_array, acc_mat[:, 2], label='measurement')
     ax3.plot(timestamp_array, acc_mat_pred[:, 2], label='prediction')
 
-    ax1.set_ylabel('x')
-    ax2.set_ylabel('y')
-    ax3.set_ylabel('z')
+    ax1.set_ylabel('x [m/s^2]')
+    ax2.set_ylabel('y [m/s^2]')
+    ax3.set_ylabel('z [m/s^2]')
     ax3.set_xlabel('time [s]')
     plt.legend()
     return

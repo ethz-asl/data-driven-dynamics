@@ -419,46 +419,46 @@ class DynamicsModel():
         if (self.estimate_forces and self.estimate_moments):
             y_forces_pred = y_pred[0:self.y_forces.shape[0]]
             y_moments_pred = y_pred[self.y_forces.shape[0]:]
-            model_plots.plot_force_predeictions(
+            model_plots.plot_accel_predeictions(
                 self.y_forces, y_forces_pred, self.data_df["timestamp"])
-            model_plots.plot_moment_predeictions(
+            model_plots.plot_angular_accel_predeictions(
                 self.y_moments, y_moments_pred, self.data_df["timestamp"])
             model_plots.plot_airspeed_and_AoA(
                 self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "angle_of_attack"]], self.data_df["timestamp"])
 
         elif (self.estimate_forces):
             y_forces_pred = y_pred
-            model_plots.plot_force_predeictions(
+            model_plots.plot_accel_predeictions(
                 self.y_forces, y_forces_pred, self.data_df["timestamp"])
             model_plots.plot_airspeed_and_AoA(
                 self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "angle_of_attack"]], self.data_df["timestamp"])
 
         elif (self.estimate_moments):
             y_moments_pred = y_pred
-            model_plots.plot_moment_predeictions(
+            model_plots.plot_angular_accel_predeictions(
                 self.y_moments, y_moments_pred, self.data_df["timestamp"])
             model_plots.plot_airspeed_and_AoA(
                 self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "angle_of_attack"]], self.data_df["timestamp"])
 
         fig = plt.figure("Residual Visualization")
         ax1 = fig.add_subplot(2, 2, 1, projection='3d')
-        plot_scatter(ax1, "Residual forces [N]", "residual_force_x",
+        plot_scatter(ax1, "Residual force", "residual_force_x",
                      "residual_force_y", "residual_force_z", 'blue')
 
         ax2 = fig.add_subplot(2, 2, 2, projection='3d')
 
-        plot_scatter(ax2, "Residual Moments [Nm]", "residual_moment_x",
+        plot_scatter(ax2, "Residual moment", "residual_moment_x",
                      "residual_moment_y", "residual_moment_z", 'blue')
 
         ax3 = fig.add_subplot(2, 2, 3, projection='3d')
 
-        plot_scatter(ax3, "Measured Forces [N]",
-                     "measured_force_x", "measured_force_y", "measured_force_z", 'blue')
+        plot_scatter(ax3, "Measured Acceleration",
+                     "acc_b_x", "acc_b_y", "acc_b_z", 'blue')
 
         ax4 = fig.add_subplot(2, 2, 4, projection='3d')
 
-        plot_scatter(ax4, "Measured Moments [Nm]",
-                     "measured_moment_x", "measured_moment_y", "measured_moment_z", 'blue')
+        plot_scatter(ax4, "Measured Angular Acceleration",
+                     "ang_acc_b_x", "ang_acc_b_y", "ang_acc_b_z", 'blue')
 
         linear_model_plots.plot_covariance_mat(self.X, self.coef_name_list)
 
