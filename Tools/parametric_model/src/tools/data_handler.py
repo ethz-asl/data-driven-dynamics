@@ -39,6 +39,7 @@ class DataHandler(object):
         assert bool(config_dict), 'req_topics_dict can not be empty'
         self.config_dict = config_dict
         self.resample_freq = config_dict["resample_freq"]
+        self.estimate_angular_acceleration = config_dict["estimate_angular_acceleration"]
         print("Resample frequency: ", self.resample_freq, "Hz")
         self.req_topics_dict = config_dict["data"]["required_ulog_topics"]
 
@@ -123,9 +124,23 @@ class DataHandler(object):
                 assert (len(topic_dict["dataframe_name"]) == len(topic_dict["ulog_name"])), (
                     'could not rename topics of type', topic_type, "due to rename list not having an entry for every topic.")
                 curr_df.columns = topic_dict["dataframe_name"]
-            df_list.append(curr_df)
             topic_type_bar.next()
+            if (topic_type == "vehicle_angular_velocity" and self.estimate_angular_acceleration):
+                print(curr_df)
+                ang_vel_np = curr_df[["ang_vel_x",
+                                      "ang_vel_y",  "ang_vel_z"]].to_numpy()
+                time_in_secods_np = (curr_df[["timestamp"]].to_numpy()/1000000)
+                time_in_secods_np = time_in_secods_np.flatten()
+                print(ang_vel_np)
+                ang_acc_np = np.gradient(ang_vel_np, time_in_secods_np, axis=0)
+                print(ang_acc_np)
+                topic_type_bar.next()
+                curr_df[["ang_acc_b_x", "ang_acc_b_y",
+                         "ang_acc_b_z"]] = ang_acc_np
+            df_list.append(curr_df)
+
         topic_type_bar.finish()
+        print(df_list)
         resampled_df = resample_dataframe_list(
             df_list, fts, self.resample_freq)
         return resampled_df.dropna()
