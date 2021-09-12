@@ -104,6 +104,7 @@ dynamics_model_config:
   estimate_forces: True
   estimate_moments: True
   resample_freq: 100.0
+  estimate_angular_acceleration: False
   data:
     required_ulog_topics:
       actuator_outputs:
