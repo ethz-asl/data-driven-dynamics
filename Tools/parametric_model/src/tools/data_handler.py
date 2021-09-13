@@ -126,23 +126,42 @@ class DataHandler(object):
                 curr_df.columns = topic_dict["dataframe_name"]
             topic_type_bar.next()
             if (topic_type == "vehicle_angular_velocity" and self.estimate_angular_acceleration):
-                print(curr_df)
-                ang_vel_np = curr_df[["ang_vel_x",
+                ang_vel_mat = curr_df[["ang_vel_x",
                                       "ang_vel_y",  "ang_vel_z"]].to_numpy()
                 time_in_secods_np = (curr_df[["timestamp"]].to_numpy()/1000000)
                 time_in_secods_np = time_in_secods_np.flatten()
-                print(ang_vel_np)
-                ang_acc_np = np.gradient(ang_vel_np, time_in_secods_np, axis=0)
-                print(ang_acc_np)
+                ang_acc_np = np.gradient(
+                    ang_vel_mat, time_in_secods_np, axis=0)
                 topic_type_bar.next()
                 curr_df[["ang_acc_b_x", "ang_acc_b_y",
                          "ang_acc_b_z"]] = ang_acc_np
+
             df_list.append(curr_df)
 
         topic_type_bar.finish()
-        print(df_list)
         resampled_df = resample_dataframe_list(
             df_list, fts, self.resample_freq)
+        if (self.estimate_angular_acceleration):
+            ang_vel_mat = resampled_df[["ang_vel_x",
+                                       "ang_vel_y",  "ang_vel_z"]].to_numpy()
+            for i in range(3):
+                ang_vel_mat[:, i] = np.convolve(
+                    ang_vel_mat[:, i], np.ones(33), mode='same') / 33
+
+            # Alternate forward differentiation version
+            # ang_vel_mat_1 = np.roll(ang_vel_mat, -1, axis=0)
+            # diff_angular_acc_mat = (
+            #     ang_vel_mat_1 - ang_vel_mat) * self.resample_freq
+            # resampled_df[["ang_acc_b_x", "ang_acc_b_y",
+            #               "ang_acc_b_z"]] = diff_angular_acc_mat
+
+            time_in_secods_np = (
+                resampled_df[["timestamp"]].to_numpy()/1000000)
+            time_in_secods_np = time_in_secods_np.flatten()
+            ang_acc_np = np.gradient(ang_vel_mat, time_in_secods_np, axis=0)
+            topic_type_bar.next()
+            resampled_df[["ang_acc_b_x", "ang_acc_b_y",
+                          "ang_acc_b_z"]] = ang_acc_np
         return resampled_df.dropna()
 
     def visually_select_data(self, plot_config_dict=None):
