@@ -141,6 +141,7 @@ class QPOptimizer(OptimizerBaseTemplate):
         return X, y
 
     def insert_fixed_coefs(self, c_opt):
+        print(c_opt)
         c_opt = list(c_opt)
         for i in range(len(self.fixed_coef_index_list)):
             c_opt.insert(
@@ -165,6 +166,12 @@ class QPOptimizer(OptimizerBaseTemplate):
         self.prob.solve(verbose=self.verbose)
         self.c_opt = np.array(self.insert_fixed_coefs(
             c.value)).reshape((self.n, 1))
+        self.estimation_completed = True
+
+    def set_optimal_coefficients(self, c_opt, X, y):
+        self.X = X
+        self.y = y
+        self.c_opt = np.array(c_opt).reshape((self.n, 1))
         self.estimation_completed = True
 
     def get_optimization_parameters(self):

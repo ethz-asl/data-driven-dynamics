@@ -115,7 +115,16 @@ As an example to get started you estimate the parameters of a quadrotor model wi
 make estimate-model model=quadrotor_model log=resources/quadrotor_model.ulg
 ```
 
-### Testing the functionality of Parametric model
+## Generating a Model Prediction for Given Parameters and Log
+
+It is also possible to test the obtained parameters for a certain model on a different log using:
+
+```
+make predict-model [model=<modeltype>] [config=<config_file_path>] [data_selection=<True/False>] log=<log_file_path> model_results=<model_results_path>
+```
+
+
+## Testing the functionality of Parametric model
 
 To ensure that the parametric model works as expected you can perform a set of pytests, which are stored in `Tools/parametric_model/tests`. To start the tests you have to run the shell script:
 
