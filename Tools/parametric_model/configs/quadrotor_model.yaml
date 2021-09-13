@@ -1,4 +1,3 @@
----
 # general information
 model_name: "Gazebo Standard Multirotor"
 model_type: "Standard Multirotor"
@@ -84,15 +83,15 @@ dynamics_model_config:
       vertical_c_m_leaver_quad: !!python/tuple [0.0, 2.0]
       vertical_c_m_rolling: !!python/tuple [0.0, 2.0]
       vertical_rot_drag_lin: !!python/tuple [0.0, 2.0]
-      vertical_rot_thrust_lin: !!python/tuple [-1.0, 0.0]
-      vertical_rot_thrust_quad: !!python/tuple [0.0, 10.0]
+      vertical_rot_thrust_lin: !!python/tuple [-5.0, 0.0]
+      vertical_rot_thrust_quad: !!python/tuple [0.0, 50.0]
   estimate_forces: True
   estimate_moments: True
-  resample_freq: 100.0
+  resample_freq: 250.0
   estimate_angular_acceleration: True
   data:
     required_ulog_topics:
-      # Use with simulator logs only, disable estimate_angular_acceleration when using
+      #Use with simulator logs only, disable estimate_angular_acceleration when using
       # vehicle_angular_acceleration:
       #   ulog_name:
       #     - "timestamp"
