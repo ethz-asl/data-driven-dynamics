@@ -61,6 +61,12 @@ class LinearRegressor(OptimizerBaseTemplate):
         self.check_estimation_completed()
         return list(self.reg.coef_)
 
+    def set_optimal_coefficients(self, c_opt, X, y):
+        self.X = X
+        self.y = y
+        self.reg.coef_ = c_opt
+        self.estimation_completed = True
+
     def predict(self, X_pred):
         self.check_estimation_completed()
         return self.reg.predict(X_pred)

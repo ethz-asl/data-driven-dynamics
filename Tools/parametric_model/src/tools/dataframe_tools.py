@@ -42,7 +42,7 @@ from src.tools.ulog_tools import pandas_from_topic
 from src.tools.quat_utils import slerp
 
 # pre normalization thresholds
-PWM_THRESHOLD = 1050
+PWM_THRESHOLD = 1500
 ACTUATOR_CONTROLS_THRESHOLD = -0.2
 
 
@@ -63,7 +63,7 @@ def compute_flight_time(ulog, pwm_threshold=None, control_threshold=None):
     if "actuator_outputs" in topic_type_list:
         act_df = pandas_from_topic(ulog, ["actuator_outputs"])
         # choose first actuator data
-        act_df_crp = act_df[act_df.iloc[:, 2] > pwm_threshold]
+        act_df_crp = act_df[act_df.iloc[:, 4] > pwm_threshold]
 
     # special case for aero mini tilt wing for asl
     elif "actuator_controls_0" in topic_type_list:

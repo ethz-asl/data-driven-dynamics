@@ -72,6 +72,10 @@ class OptimizerBaseTemplate(ABC):
         pass
 
     @abstractmethod
+    def set_optimal_coefficients(self) -> None:
+        pass
+
+    @abstractmethod
     def get_optimization_parameters(self) -> List:
         pass
 

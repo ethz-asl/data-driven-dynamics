@@ -367,12 +367,32 @@ class DynamicsModel():
         print(list(self.data_df.columns))
         print("Data contains ", self.data_df.shape[0], "timestamps.")
 
-    def estimate_model(self):
+    def predict_model(self, opt_coefs_dict):
         print("===============================================================================")
         print("                        Preparing Model Features                               ")
         print("===============================================================================")
         X, y = self.prepare_regression_matrices()
 
+        c_opt_list = []
+        for coef in self.coef_name_list:
+            c_opt_list.append(opt_coefs_dict[coef])
+
+        self.initialize_optimizer()
+        self.optimizer.set_optimal_coefficients(c_opt_list, X, y)
+        self.generate_optimization_results()
+
+    def estimate_model(self):
+        print("===============================================================================")
+        print("                        Preparing Model Features                               ")
+        print("===============================================================================")
+        X, y = self.prepare_regression_matrices()
+        self.initialize_optimizer()
+        self.optimizer.estimate_parameters(X, y)
+        self.generate_optimization_results()
+
+        return
+
+    def initialize_optimizer(self):
         print("===============================================================================")
         print("                            Initialize Optimizer                               ")
         print("                                " +
@@ -388,8 +408,30 @@ class DynamicsModel():
                         "directory and optimizers/__init__.py?"
             raise AttributeError(error_str)
 
-        self.optimizer.estimate_parameters(X, y)
+    def generate_prediction_results(self):
+        print("===============================================================================")
+        print("                            Prediction Results                                 ")
+        print("===============================================================================")
+        metrics_dict = self.optimizer.compute_optimization_metrics()
+        coef_list = self.optimizer.get_optimization_parameters()
+        model_dict = {}
+        model_dict.update(self.rotor_config_dict)
+        if hasattr(self, 'aero_config_dict'):
+            model_dict.update(self.aero_config_dict)
+        self.generate_model_dict(coef_list, metrics_dict, model_dict)
+        print(
+            "                           Optimal Coefficients                              ")
+        print("-------------------------------------------------------------------------------")
+        print(
+            yaml.dump(self.result_dict["coefficients"], default_flow_style=False))
+        print("-------------------------------------------------------------------------------")
+        print("                             Prediction Metrics                                ")
+        print("-------------------------------------------------------------------------------")
+        print(
+            yaml.dump(self.result_dict["metrics"], default_flow_style=False))
+        self.save_result_dict_to_yaml(file_name=self.model_name)
 
+    def generate_optimization_results(self):
         print("===============================================================================")
         print("                           Optimization Results                                ")
         print("===============================================================================")
@@ -411,8 +453,6 @@ class DynamicsModel():
         print(
             yaml.dump(self.result_dict["metrics"], default_flow_style=False))
         self.save_result_dict_to_yaml(file_name=self.model_name)
-
-        return
 
     def compute_residuals(self):
 

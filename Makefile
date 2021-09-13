@@ -32,5 +32,8 @@ docker-run:
 estimate-model:
 	python3 Tools/parametric_model/generate_parametric_model.py --config ${config} --data_selection ${data_selection} ${log}
 
+predict-model:
+	python3 Tools/parametric_model/predict_model.py --config ${config} --model_results ${model_results} --data_selection ${data_selection} ${log}
+
 format:
 	Tools/fix_code_style.sh .
