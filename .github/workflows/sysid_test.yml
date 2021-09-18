@@ -30,9 +30,3 @@ jobs:
         run: make estimate-model model=quadrotor_model
       - name: Run multirotor_model estimation for system level test using resource csv
         run: make estimate-model model=quadrotor_model log=resources/quadrotor_model.csv
-      - name: Run standardplane_model estimation for system level test using resource ulog
-        run: make estimate-model model=standardplane_model
-      - name: Run quadplane_model estimation for system level test using resource ulog
-        run: make estimate-model model=quadplane_model
-      - name: Run quadplane_model estimation for system level test using resource csv
-        run: make estimate-model model=quadplane_model log=resources/quadplane_model.csv

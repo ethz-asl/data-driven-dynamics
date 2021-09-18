@@ -83,11 +83,7 @@ make estimate-model [model=<modeltype>] [config=<config_file_path>] [data_select
 The chosen vehicle model class determines what physical effects are modelled and what parameterts need to be regressed in the system identification process.
 Current vehicle model choices are:
 
-- multirotor_model (default config for quadrotor)
-
-- quadplane_model
-
-- delta_quadplane_model
+- quadrotor_model (default config for quadrotor)
 
 #### Config File
 
