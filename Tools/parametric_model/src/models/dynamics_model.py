@@ -448,23 +448,23 @@ class DynamicsModel():
         if (self.estimate_forces and self.estimate_moments):
             y_forces_pred = y_pred[0:self.y_forces.shape[0]]
             y_moments_pred = y_pred[self.y_forces.shape[0]:]
-            model_plots.plot_force_predeictions(
+            model_plots.plot_force_predictions(
                 self.y_forces, y_forces_pred, self.data_df["timestamp"])
-            model_plots.plot_moment_predeictions(
+            model_plots.plot_moment_predictions(
                 self.y_moments, y_moments_pred, self.data_df["timestamp"])
             model_plots.plot_airspeed_and_AoA(
                 self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "angle_of_attack"]], self.data_df["timestamp"])
 
         elif (self.estimate_forces):
             y_forces_pred = y_pred
-            model_plots.plot_force_predeictions(
+            model_plots.plot_force_predictions(
                 self.y_forces, y_forces_pred, self.data_df["timestamp"])
             model_plots.plot_airspeed_and_AoA(
                 self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "angle_of_attack"]], self.data_df["timestamp"])
 
         elif (self.estimate_moments):
             y_moments_pred = y_pred
-            model_plots.plot_moment_predeictions(
+            model_plots.plot_moment_predictions(
                 self.y_moments, y_moments_pred, self.data_df["timestamp"])
             model_plots.plot_airspeed_and_AoA(
                 self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "angle_of_attack"]], self.data_df["timestamp"])
