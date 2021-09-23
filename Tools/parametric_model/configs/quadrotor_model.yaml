@@ -1,6 +1,6 @@
 ---
 # general information
-model_name: "Gazebo Standart Multirotor"
+model_name: "Gazebo Standard Multirotor"
 model_type: "Standard Multirotor"
 model_class: "MultiRotorModel"
 

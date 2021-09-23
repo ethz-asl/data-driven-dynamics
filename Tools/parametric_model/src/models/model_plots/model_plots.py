@@ -34,11 +34,12 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import math
+plt.rcParams['mathtext.fontset']='cm'
 
 """The functions in this file can be used to plot data of any kind of model"""
 
 
-def plot_force_predeictions(stacked_force_vec, stacked_force_vec_pred, timestamp_array):
+def plot_force_predictions(stacked_force_vec, stacked_force_vec_pred, timestamp_array):
     """
     Input:
     stacked_force_vec: numpy array of shape (3*n,1) containing stacked accelerations [a_x_1, a_y_1, a_z_1, a_x_2, ...]^T in body frame
@@ -62,15 +63,15 @@ def plot_force_predeictions(stacked_force_vec, stacked_force_vec_pred, timestamp
     ax3.plot(timestamp_array, acc_mat[:, 2], label='measurement')
     ax3.plot(timestamp_array, acc_mat_pred[:, 2], label='prediction')
 
-    ax1.set_ylabel('x')
-    ax2.set_ylabel('y')
-    ax3.set_ylabel('z')
+    ax1.set_ylabel('$x$')
+    ax2.set_ylabel('$y$')
+    ax3.set_ylabel('$z$')
     ax3.set_xlabel('time [s]')
     plt.legend()
     return
 
 
-def plot_moment_predeictions(stacked_moment_vec, stacked_moment_vec_pred, timestamp_array):
+def plot_moment_predictions(stacked_moment_vec, stacked_moment_vec_pred, timestamp_array):
     """
     Input:
     stacked_moment_vec: numpy array of shape (3*n,1) containing stacked angular accelerations [w_x_1, w_y_1, w_z_1, w_x_2, ...]^T in body frame
@@ -94,9 +95,9 @@ def plot_moment_predeictions(stacked_moment_vec, stacked_moment_vec_pred, timest
     ax3.plot(timestamp_array, acc_mat[:, 2], label='measurement')
     ax3.plot(timestamp_array, acc_mat_pred[:, 2], label='prediction')
 
-    ax1.set_ylabel('x')
-    ax2.set_ylabel('y')
-    ax3.set_ylabel('z')
+    ax1.set_ylabel('$x$')
+    ax2.set_ylabel('$y$')
+    ax3.set_ylabel('$z$')
     ax3.set_xlabel('time [s]')
     plt.legend()
     return
@@ -119,10 +120,10 @@ def plot_airspeed_and_AoA(airspeed_mat, timestamp_array):
     ax2.plot(timestamp_array, airspeed_mat[:, 1], label='measurement')
     ax3.plot(timestamp_array, airspeed_mat[:, 2], label='measurement')
     ax4.plot(timestamp_array, airspeed_mat[:, 3], label='measurement')
-    ax1.set_title('airspeed in x direction of body frame [m/s^2]')
-    ax2.set_title('airspeed in y direction of body frame [m/s^2]')
-    ax3.set_title('airspeed in z direction of body frame [m/s^2]')
-    ax4.set_title("Aoa in body frame [radiants]")
+    ax1.set_title(r'Airspeed in body-$x$ [m/s^2]')
+    ax2.set_title(r'Airspeed in body-$y$ [m/s^2]')
+    ax3.set_title(r'Airspeed in body-$z$ [m/s^2]')
+    ax4.set_title("AoA in body frame [radians]")
     plt.legend()
     return
 

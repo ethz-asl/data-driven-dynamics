@@ -32,10 +32,6 @@
 """
 
 import os
-import sys
-import inspect
-from src.models import MultiRotorModel
-from src.models.model_config import ModelConfig
 import src.models as models
 from src.tools import DataHandler
 import argparse
@@ -55,13 +51,12 @@ def str2bool(v):
 
 
 def start_model_estimation(config, log_path, data_selection=False):
-    data_selection_enabled = data_selection
-    print("Visual Data selection enabled: ", data_selection_enabled)
+    print("Visual Data selection enabled: ", data_selection)
 
     data_handler = DataHandler(config)
     data_handler.loadLogs(log_path)
 
-    if data_selection_enabled:
+    if data_selection:
         data_handler.visually_select_data()
     data_handler.visualize_data()
 
