@@ -1,7 +1,8 @@
 """
  *
- *   Copyright (c) 2021 Manuel Galliker. All rights reserved.
- *
+ * Copyright (c) 2021 Manuel Galliker
+ *               2021 Autonomous Systems Lab ETH Zurich
+ * All rights reserved.
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
