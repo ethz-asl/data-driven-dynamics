@@ -1,6 +1,6 @@
 """
  *
- * Copyright (c) 2021 Manuel Galliker
+ * Copyright (c) 2021 Manuel Yves Galliker
  *               2021 Autonomous Systems Lab ETH Zurich
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without
@@ -51,18 +51,18 @@ F_thrust_tot = - mot_const * \
 Note that the forces are calculated in the NED body frame and are therefore negative.
 """
 
+
+
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import math
-
 from sklearn.linear_model import LinearRegression
 from .dynamics_model import DynamicsModel
 from .rotor_models import RotorModel
 from .aerodynamic_models import FuselageDragModel
 from .model_config import ModelConfig
-
-
 class MultiRotorModel(DynamicsModel):
     def __init__(self, config_file, model_name="multirotor_model"):
         self.config = ModelConfig(config_file)

@@ -1,6 +1,6 @@
 """
  *
- * Copyright (c) 2021 Manuel Galliker
+ * Copyright (c) 2021 Manuel Yves Galliker
  *               2021 Autonomous Systems Lab ETH Zurich
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,9 @@
 """ The model class contains properties shared between all models and shgall simplyfy automated checks and the later
 export to a sitl gazebo model by providing a unified interface for all models. """
 
+
+
+
 from progress.bar import Bar
 import pandas as pd
 import math
@@ -44,15 +47,12 @@ import numpy as np
 import src.optimizers as optimizers
 from scipy.linalg import block_diag
 import matplotlib.pyplot as plt
-
 from .rotor_models import RotorModel, BiDirectionalRotorModel, TiltingRotorModel, ChangingAxisRotorModel
 from .model_plots import model_plots, aerodynamics_plots, linear_model_plots
 from src.tools.ulog_tools import load_ulog, pandas_from_topic
 from src.tools.dataframe_tools import compute_flight_time, resample_dataframe_list
 from src.tools.quat_utils import quaternion_to_rotation_matrix
 from src.tools.math_tools import cropped_sym_sigmoid
-
-
 class DynamicsModel():
     def __init__(self, config_dict):
 
