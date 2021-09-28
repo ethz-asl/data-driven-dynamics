@@ -1,6 +1,6 @@
 """
  *
- * Copyright (c) 2021 Manuel Galliker
+ * Copyright (c) 2021 Manuel Yves Galliker
  *               2021 Autonomous Systems Lab ETH Zurich
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import math
-plt.rcParams['mathtext.fontset']='cm'
+plt.rcParams['mathtext.fontset'] = 'cm'
 
 """The functions in this file can be used to plot data of any kind of model"""
 

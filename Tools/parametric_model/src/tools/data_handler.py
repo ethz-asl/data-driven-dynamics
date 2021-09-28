@@ -1,6 +1,6 @@
 """
  *
- * Copyright (c) 2021 Manuel Galliker
+ * Copyright (c) 2021 Manuel Yves Galliker
  *               2021 Autonomous Systems Lab ETH Zurich
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,9 @@
 """ The model class contains properties shared between all models and shgall simplyfy automated checks and the later
 export to a sitl gazebo model by providing a unified interface for all models. """
 
+
+
+
 from progress.bar import Bar
 import pandas as pd
 import math
@@ -43,13 +46,10 @@ import yaml
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-
 from src.models.model_config import ModelConfig
 from src.tools.ulog_tools import load_ulog, pandas_from_topic
 from src.tools.dataframe_tools import compute_flight_time, resample_dataframe_list
 from src.tools.quat_utils import quaternion_to_rotation_matrix
-
-
 class DataHandler(object):
 
     visual_dataframe_selector_config_dict = {

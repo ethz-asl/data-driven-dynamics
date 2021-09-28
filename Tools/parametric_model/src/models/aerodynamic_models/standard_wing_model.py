@@ -1,6 +1,6 @@
 """
  *
- * Copyright (c) 2021 Manuel Galliker
+ * Copyright (c) 2021 Manuel Yves Galliker
  *               2021 Autonomous Systems Lab ETH Zurich
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without
@@ -137,7 +137,8 @@ class StandardWingModel():
             if abs(AoA) < stall_angle: cropped_sym_sigmoid(AoA) = 0
             if abs(AoA) > stall_angle: cropped_sym_sigmoid(AoA) = 1
         """
-        q_xz = 0.5 * self.air_density * (v_airspeed[0]**2 + v_airspeed[2]**2) #TODO Take dynamic pressure
+        q_xz = 0.5 * self.air_density * \
+            (v_airspeed[0]**2 + v_airspeed[2]**2)  # TODO Take dynamic pressure
         q_xy = 0.5 * self.air_density * (v_airspeed[0]**2 + v_airspeed[1]**2)
 
         X_wing_aero_frame = np.zeros((3, 3))
@@ -153,12 +154,12 @@ class StandardWingModel():
 
         # Compute Pitch Moment coeffiecients:
         X_wing_aero_frame[1, 0] = flow_attached_region * q_xz * self.area
-        X_wing_aero_frame[1, 1] = flow_attached_region * q_xz * self.area * angle_of_attack
+        X_wing_aero_frame[1, 1] = flow_attached_region * \
+            q_xz * self.area * angle_of_attack
 
-	# TODO: Compute Yaw Moment coeffiecients:   
-        X_wing_aero_frame[2, 2] = flow_attached_region * q_xy * self.area * angle_of_sideslip
-
-        
+        # TODO: Compute Yaw Moment coeffiecients:
+        X_wing_aero_frame[2, 2] = flow_attached_region * \
+            q_xy * self.area * angle_of_sideslip
 
         # Transorm from stability axis frame to body FRD frame
         R_aero_to_body = Rotation.from_rotvec(
@@ -166,7 +167,6 @@ class StandardWingModel():
         X_wing_body_frame = R_aero_to_body @ X_wing_aero_frame
 
         return X_wing_body_frame
-
 
     def compute_aero_force_features(self, v_airspeed_mat, angle_of_attack_vec):
         """
@@ -209,6 +209,7 @@ class StandardWingModel():
             X_aero = np.vstack((X_aero, X_curr))
             aero_features_bar.next()
         aero_features_bar.finish()
-        wing_coef_list = ["c_m_x_wing_xz_offset", "c_m_x_wing_xz_lin", "c_m_z_wing_lin"]
+        wing_coef_list = ["c_m_x_wing_xz_offset",
+                          "c_m_x_wing_xz_lin", "c_m_z_wing_lin"]
         aero_coef_list = wing_coef_list
         return X_aero, aero_coef_list

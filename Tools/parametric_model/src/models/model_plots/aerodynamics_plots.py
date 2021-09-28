@@ -1,6 +1,6 @@
 """
  *
- * Copyright (c) 2021 Manuel Galliker
+ * Copyright (c) 2021 Manuel Yves Galliker
  *               2021 Autonomous Systems Lab ETH Zurich
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without
@@ -180,9 +180,11 @@ def plot_example_plate_model(plot_range_deg=[-100, 100]):
     plt.grid()
     plt.show()
 
+
 def plot_liftdrag_curve(coef_dict, aerodynamics_dict):
-    plot_range_deg=[-180, 180]
-    aoa_deg = np.linspace(plot_range_deg[0], plot_range_deg[1], num=(plot_range_deg[1] - plot_range_deg[0] + 1))
+    plot_range_deg = [-180, 180]
+    aoa_deg = np.linspace(plot_range_deg[0], plot_range_deg[1], num=(
+        plot_range_deg[1] - plot_range_deg[0] + 1))
     aoa_rad = aoa_deg * math.pi/180
     cl_0 = coef_dict["c_l_wing_xz_offset"]
     cl_alpha = coef_dict["c_l_wing_xz_lin"]
