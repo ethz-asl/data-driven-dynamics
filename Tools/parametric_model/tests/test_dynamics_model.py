@@ -32,6 +32,10 @@
  *
 """
 
+__author__ = "Manuel Yves Galliker"
+__maintainer__ = "Manuel Yves Galliker"
+__license__ = "BSD 3"
+
 from _pytest.python import Class
 import pytest
 from src.models import DynamicsModel

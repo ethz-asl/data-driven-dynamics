@@ -30,13 +30,13 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  *
-"""
 
-""" The model class contains properties shared between all models and shgall simplyfy automated checks and the later
+The model class contains properties shared between all models and shgall simplyfy automated checks and the later
 export to a sitl gazebo model by providing a unified interface for all models. """
 
-
-
+__author__ = "Manuel Yves Galliker"
+__maintainer__ = "Manuel Yves Galliker"
+__license__ = "BSD 3"
 
 from progress.bar import Bar
 import pandas as pd
@@ -50,6 +50,8 @@ from src.models.model_config import ModelConfig
 from src.tools.ulog_tools import load_ulog, pandas_from_topic
 from src.tools.dataframe_tools import compute_flight_time, resample_dataframe_list
 from src.tools.quat_utils import quaternion_to_rotation_matrix
+
+
 class DataHandler(object):
 
     visual_dataframe_selector_config_dict = {

@@ -32,6 +32,10 @@
  *
 """
 
+__author__ = "Manuel Yves Galliker"
+__maintainer__ = "Manuel Yves Galliker"
+__license__ = "BSD 3"
+
 import numpy as np
 import pandas as pd
 from src.tools.ulog_tools import pandas_from_topic
