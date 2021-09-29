@@ -6,6 +6,13 @@
 
 This repository allows a data-driven dynamics model for PX4 SITL(Software-In-The-Loop) simulations.
 
+You can get an overview of the pipeline and its functionalities in the following video presentation:
+
+[![Watch the video](https://img.youtube.com/vi/kAsfptZU4uk/maxresdefault.jpg)](https://www.youtube.com/watch?v=kAsfptZU4uk)
+
+
+More detailed information can be found in the student paper [Data-Driven Dynamics Modelling Using Flight Logs](https://www.research-collection.ethz.ch/handle/20.500.11850/507495). 
+
 ## Setting up the environment
 
 This plugin depends on [PX4 SITL](https://github.com/PX4/PX4-SITL_gazebo). Therefore custom messages of PX4 SITL needs to be linked. Therefore, prior to building this package, PX4 and corresponding SITL package needs to be built.
@@ -30,7 +37,7 @@ source ~/.bashrc
 
 The use the parametric model structure you need to install python 3.8 and the needed python libraries. It is strongly advised to install the pip packages in a [virtual enviroment](https://docs.python.org/3/tutorial/venv.html) setup for this project.
 
-Update submodules:
+Update and initialize submodules:
 
 ```
 make submodulesupdate
@@ -42,6 +49,14 @@ Install the dependencies from the project folder:
 make install-dependencies
 ```
 
+Or install the dependencies including submodule dependencies:
+
+```
+install-full-depdencies
+```
+
+
+
 ## Build
 
 After the environment has been setup as described in the previous section, build the package as the following.
@@ -51,15 +66,6 @@ mkdir build
 cd build
 cmake ..
 make
-```
-
-## Running the Simulation
-
-To run the simulation,
-
-```
-source setup.bash
-Tools/sitl_run.sh -m iris -s iris_aerodynamics
 ```
 
 ## Generating a Parametric Model from Log File
@@ -109,10 +115,21 @@ As an example to get started you estimate the parameters of a quadrotor model wi
 make estimate-model model=quadrotor_model log=resources/quadrotor_model.ulg
 ```
 
-## Testing the functionality of Parametric model
+### Testing the functionality of Parametric model
 
 To ensure that the parametric model works as expected you can perform a set of pytests, which are stored in `Tools/parametric_model/tests`. To start the tests you have to run the shell script:
 
 `Tools/parametric_model/test_parametric_model.sh`
 
 Currently only the transformation from body to intertial frame and vise versa are checked. This should be expanded in the future.
+
+## Running the Simulation
+
+To run the simulation, 
+
+```
+source setup.bash
+Tools/sitl_run.sh -m iris -s iris_aerodynamics
+```
+
+The custom Gazebo quadrotor model will always read the model parameters from the file `model_results/quadrotor_model.yaml`. You can simply rename your desired model results file to fly your estimated model in Gazebo. 
