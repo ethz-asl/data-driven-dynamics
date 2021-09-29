@@ -9,7 +9,6 @@ data_selection?=False
 
 submodulesupdate:
 	git submodule update --init --recursive
-	pip3 install -r Tools/parametric_model/visual_dataframe_selector/requirements.txt
 
 install-dependencies:
 	pip3 install -r Tools/parametric_model/requirements.txt
