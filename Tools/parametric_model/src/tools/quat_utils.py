@@ -32,6 +32,10 @@
  *
 """
 
+__author__ = "Manuel Yves Galliker, Nicholas Lawrance"
+__maintainer__ = "Manuel Yves Galliker"
+__license__ = "BSD 3"
+
 import numpy as np
 import csv
 import h5py

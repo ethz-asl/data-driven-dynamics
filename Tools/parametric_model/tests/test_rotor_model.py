@@ -32,6 +32,10 @@
  *
 """
 
+__author__ = "Manuel Yves Galliker"
+__maintainer__ = "Manuel Yves Galliker"
+__license__ = "BSD 3"
+
 from src.models.rotor_models import RotorModel
 import os
 import numpy as np

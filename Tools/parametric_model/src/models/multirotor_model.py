@@ -30,9 +30,8 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  *
-"""
 
-""" The model in this file estimates a simple force motor model for a multirotor.
+The model in this file estimates a simple force motor model for a multirotor.
 
 Model Parameters:
 u                    : normalized actuator output scaled between 0 and 1
@@ -51,18 +50,21 @@ F_thrust_tot = - mot_const * \
 Note that the forces are calculated in the NED body frame and are therefore negative.
 """
 
+__author__ = "Manuel Yves Galliker"
+__maintainer__ = "Manuel Yves Galliker"
+__license__ = "BSD 3"
 
-
-
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-import math
 from sklearn.linear_model import LinearRegression
 from .dynamics_model import DynamicsModel
 from .rotor_models import RotorModel
 from .aerodynamic_models import FuselageDragModel
 from .model_config import ModelConfig
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import math
+
+
 class MultiRotorModel(DynamicsModel):
     def __init__(self, config_file, model_name="multirotor_model"):
         self.config = ModelConfig(config_file)

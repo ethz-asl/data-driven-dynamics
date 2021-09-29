@@ -32,6 +32,10 @@
  *
 """
 
+__author__ = "Manuel Yves Galliker, Jaeyoung Lim"
+__maintainer__ = "Manuel Yves Galliker"
+__license__ = "BSD 3"
+
 import os
 import src.models as models
 from src.tools import DataHandler

@@ -32,6 +32,10 @@
  *
 """
 
+__author__ = "Manuel Yves Galliker"
+__maintainer__ = "Manuel Yves Galliker"
+__license__ = "BSD 3"
+
 import os
 import yaml
 from pathlib import Path
