@@ -9,6 +9,7 @@ from progress.bar import Bar
 import pandas as pd
 import math
 import time
+import warnings
 import yaml
 import numpy as np
 from sklearn.linear_model import LinearRegression
@@ -473,8 +474,8 @@ class DynamicsModel():
             information_matrix_f += fisher_information_matrix_f
             information_matrix_m += fisher_information_matrix_m
 
-            fisher_information_f_mat[i]= np.trace(fisher_information_matrix_f)
-            fisher_information_m_mat[i]= np.trace(fisher_information_matrix_m)
+            fisher_information_f_mat[i]= min(np.abs(np.linalg.eigvals(fisher_information_matrix_f)))
+            fisher_information_m_mat[i]= min(np.abs(np.linalg.eigvals(fisher_information_matrix_m)))
 
         fisher_information_f_df = pd.DataFrame(fisher_information_f_mat, columns=["fisher_information_force"])
         fisher_information_m_df = pd.DataFrame(fisher_information_m_mat, columns=["fisher_information_rot"])
@@ -486,44 +487,50 @@ class DynamicsModel():
 
         try:
             error_covariance_matrix_f = np.linalg.inv(information_matrix_f)
-            cramer_rao_bounds_f = fudge_factor * np.sqrt(np.diag(error_covariance_matrix_f))
-
-            forces_dict = self.rotor_forces_coef_list
-            if hasattr(self, 'aero_forces_coef_list'):
-                forces_dict = forces_dict + self.aero_forces_coef_list
-            metric_dict = dict(zip(forces_dict, cramer_rao_bounds_f))
-            print("Cramer-Rao Bounds for force parameters:") 
-            for key, value in metric_dict.items():
-                print(key,'\t',value)
         except np.linalg.LinAlgError:
-            raise RuntimeError("Unable to estimate the force matrices: Unobservable paramteres")
+            warnings.warn("FIM matrix singular: applying regularization, invalid parameters show Cramer-Rao Bound of 500.0", RuntimeWarning)
+            information_matrix_f += 0.0001*np.eye(information_matrix_f.shape[0])
+            error_covariance_matrix_f = np.linalg.inv(information_matrix_f)
+
+        cramer_rao_bounds_f = fudge_factor * np.sqrt(np.diag(error_covariance_matrix_f))
+
+        forces_dict = self.rotor_forces_coef_list
+        if hasattr(self, 'aero_forces_coef_list'):
+            forces_dict = forces_dict + self.aero_forces_coef_list
+        metric_dict = dict(zip(forces_dict, cramer_rao_bounds_f))
+        print("Cramer-Rao Bounds for force parameters:") 
+        for key, value in metric_dict.items():
+            print(key,'\t',value)
         
         self.cramer_rao_bounds_f = cramer_rao_bounds_f
         try:
             error_covariance_matrix_m = np.linalg.inv(information_matrix_m)
-            cramer_rao_bounds_m = fudge_factor * np.sqrt(np.diag(error_covariance_matrix_m))
-
-            moments_dict = self.rotor_moments_coef_list
-            if hasattr(self, 'aero_moments_coef_list'):
-                moments_dict = moments_dict + self.aero_moments_coef_list
-
-            metric_dict = dict(zip(moments_dict, cramer_rao_bounds_m))
-            print("Cramer-Rao Bounds for moment parameters:") 
-            for key, value in metric_dict.items():
-                print(key,'\t',value)
         except np.linalg.LinAlgError:
-            raise RuntimeError("Unable to estimate the moment matrices: Unobservable paramteres")
+            warnings.warn("FIM matrix singular: applying regularization, invalid parameters show Cramer-Rao Bound of 500.0", RuntimeWarning)
+            information_matrix_m += 0.0001*np.eye(information_matrix_m.shape[0])
+            error_covariance_matrix_m = np.linalg.inv(information_matrix_m)
+
+        cramer_rao_bounds_m = fudge_factor * np.sqrt(np.diag(error_covariance_matrix_m))
+
+        moments_dict = self.rotor_moments_coef_list
+        if hasattr(self, 'aero_moments_coef_list'):
+            moments_dict = moments_dict + self.aero_moments_coef_list
+
+        metric_dict = dict(zip(moments_dict, cramer_rao_bounds_m))
+        print("Cramer-Rao Bounds for moment parameters:") 
+        for key, value in metric_dict.items():
+            print(key,'\t',value)
 
         self.cramer_rao_bounds_m = cramer_rao_bounds_m
 
         fig2 = plt.figure("Fisher Information")
         fax1 = fig2.add_subplot(1, 2, 1)
-        fax1.hist(self.data_df["fisher_information_force"], bins=range(0, 500, 1))
+        fax1.hist(self.data_df["fisher_information_force"])
         fax1.set_title("Fisher Information Force")
         # fax1.set_xlim(0.0, 500.0)
         # fax1.set_ylim(0, 900)
         fax2 = fig2.add_subplot(1, 2, 2)
-        fax2.hist(self.data_df["fisher_information_rot"], bins=np.arange(-0.5, 10, 0.1))
+        fax2.hist(self.data_df["fisher_information_rot"])
         fax2.set_title("Fisher Information Moments")
         # fax2.set_xlim(-0.5, 10.0)
         # fax2.set_ylim(0, 6000)
