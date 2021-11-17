@@ -67,6 +67,7 @@ class DynamicsModel():
             self.X = block_diag(self.X_forces, self.X_moments)
             self.y = np.hstack((self.y_forces, self.y_moments))
 
+
         elif (self.estimate_forces):
             self.prepare_force_regression_matrices()
 
@@ -321,6 +322,7 @@ class DynamicsModel():
         with open(file_path, 'w') as outfile:
             print(yaml.dump(self.result_dict, default_flow_style=False))
             yaml.dump(self.result_dict, outfile, default_flow_style=False)
+            yaml.dump(self.fisher_metric, outfile, default_flow_style=False)
 
     def load_dataframes(self, data_frames):
         self.data_df = data_frames
@@ -335,13 +337,12 @@ class DynamicsModel():
         print(self.data_df.columns)
         self.data_df_len = self.data_df.shape[0]
         print("resampled data contains ", self.data_df_len, "timestamps.")
-        X, y = self.prepare_regression_matrices()
 
         self.reg = LinearRegression(fit_intercept=False)
-        self.reg.fit(X, y)
+        self.reg.fit(self.X, self.y)
 
         print("regression complete")
-        metrics_dict = {"R2": float(self.reg.score(X, y))}
+        metrics_dict = {"R2": float(self.reg.score(self.X, self.y))}
         self.coef_name_list.extend(["intercept"])
         coef_list = list(self.reg.coef_) + [self.reg.intercept_]
         model_dict = {}
@@ -436,101 +437,178 @@ class DynamicsModel():
             coef_dict = dict(zip(self.coef_name_list, coef_list))
             aerodynamics_plots.plot_liftdrag_curve(coef_dict, self.aerodynamics_dict)
 
-        fig = plt.figure("Fisher Information")
-        model_plots.plot_fisher_information(self.data_df["fisher_information_force"], self.data_df["fisher_information_rot"], self.data_df["timestamp"])
+        #fig = plt.figure("Fisher Information")
+        #model_plots.plot_fisher_information(self.data_df["fisher_information_force"], self.data_df["fisher_information_rot"], self.data_df["timestamp"])
 
         plt.show()
         return
 
 
     def compute_fisher_information(self):
-
-        X_forces_x = self.X_forces[0:self.X_forces.shape[0]:3, :]
-        X_forces_y = self.X_forces[1:self.X_forces.shape[0]:3, :]
-        X_forces_z = self.X_forces[2:self.X_forces.shape[0]:3, :]
-
-        X_moments_x = self.X_moments[0:self.X_moments.shape[0]:3, :]
-        X_moments_y = self.X_moments[1:self.X_moments.shape[0]:3, :]
-        X_moments_z = self.X_moments[2:self.X_moments.shape[0]:3, :]
-
-
-        fisher_information_f_mat = np.zeros(shape=(X_forces_x.shape[0],1))
-        fisher_information_m_mat = np.zeros(shape=(X_moments_x.shape[0],1))
         
-        information_matrix_f = np.zeros(shape=(X_forces_x.shape[1],X_forces_x.shape[1]))
-        information_matrix_m = np.zeros(shape=(X_moments_x.shape[1],X_moments_x.shape[1]))
-
         ## TODO: Parse accelerometer noise characteristics
         R_acc = np.diag([0.004, 0.004, 0.004])
         R_gyro = np.diag([1.0, 1.0, 1.0])
         fudge_factor = 5.0
 
-        for i in range(X_forces_x.shape[0]):
-            jacobian_m = np.vstack((X_moments_x[i, :], X_moments_y[i, :], X_moments_z[i, :]))
-            jacobian_f = np.vstack((X_forces_x[i, :], X_forces_y[i, :], X_forces_z[i, :]))
-            fisher_information_matrix_f = np.transpose(jacobian_f) @ np.linalg.inv(R_acc) @ jacobian_f
-            fisher_information_matrix_m = np.transpose(jacobian_m) @ np.linalg.inv(R_gyro) @ jacobian_m
-            
-            information_matrix_f += fisher_information_matrix_f
-            information_matrix_m += fisher_information_matrix_m
+        self.fisher_metric = {}
 
-            fisher_information_f_mat[i]= min(np.abs(np.linalg.eigvals(fisher_information_matrix_f)))
-            fisher_information_m_mat[i]= min(np.abs(np.linalg.eigvals(fisher_information_matrix_m)))
+        if self.estimate_forces:
+            X_forces_x = self.X_forces[0:self.X_forces.shape[0]:3, :]
+            X_forces_y = self.X_forces[1:self.X_forces.shape[0]:3, :]
+            X_forces_z = self.X_forces[2:self.X_forces.shape[0]:3, :]
 
-        fisher_information_f_df = pd.DataFrame(fisher_information_f_mat, columns=["fisher_information_force"])
-        fisher_information_m_df = pd.DataFrame(fisher_information_m_mat, columns=["fisher_information_rot"])
+            fisher_information_f_mat = np.zeros(shape=(X_forces_x.shape[0],1))
+            information_matrix_f = np.zeros(shape=(X_forces_x.shape[1],X_forces_x.shape[1]))
+            queue_size = 50
+            queue = []
+            for i in range(X_forces_x.shape[0]):
+                jacobian_f = np.vstack((X_forces_x[i, :], X_forces_y[i, :], X_forces_z[i, :]))
+                fisher_information_matrix_f = np.transpose(jacobian_f) @ np.linalg.inv(R_acc) @ jacobian_f
+                information_matrix_f += fisher_information_matrix_f
+                queue.append(fisher_information_matrix_f)
+                if len(queue) > queue_size:
+                    queue.pop(0)
+                fisher_information_f_mat[i]= min(np.abs(np.linalg.eigvals(sum(queue))))
+                #fisher_information_f_mat[i]= np.linalg.det(sum(queue))
+                #fisher_information_f_mat[i]= np.trace(sum(queue))
+                # fisher_information_f_mat[i]= min(np.abs(np.linalg.eigvals(sum(queue)))) / \
+                #         max(np.abs(np.linalg.eigvals(sum(queue))))
 
-        self.data_df = pd.concat(
-            [self.data_df, fisher_information_f_df], axis=1, join="inner")
-        self.data_df = pd.concat(
-            [self.data_df, fisher_information_m_df], axis=1, join="inner")
+            fisher_information_f_df = pd.DataFrame(fisher_information_f_mat, columns=["fisher_information_force"])
+            self.data_df = pd.concat(
+                [self.data_df, fisher_information_f_df], axis=1, join="inner")
 
-        try:
-            error_covariance_matrix_f = np.linalg.inv(information_matrix_f)
-        except np.linalg.LinAlgError:
-            warnings.warn("FIM matrix singular: applying regularization, invalid parameters show Cramer-Rao Bound of 500.0", RuntimeWarning)
-            information_matrix_f += 0.0001*np.eye(information_matrix_f.shape[0])
-            error_covariance_matrix_f = np.linalg.inv(information_matrix_f)
+            try:
+                error_covariance_matrix_f = np.linalg.inv(information_matrix_f)
+            except np.linalg.LinAlgError:
+                warnings.warn("FIM matrix singular: applying regularization, invalid parameters show Cramer-Rao Bound of 500.0", RuntimeWarning)
+                information_matrix_f += 0.0001*np.eye(information_matrix_f.shape[0])
+                error_covariance_matrix_f = np.linalg.inv(information_matrix_f)
 
-        cramer_rao_bounds_f = fudge_factor * np.sqrt(np.diag(error_covariance_matrix_f))
+            cramer_rao_bounds_f = fudge_factor * np.sqrt(np.diag(error_covariance_matrix_f))
 
-        forces_dict = self.rotor_forces_coef_list
-        if hasattr(self, 'aero_forces_coef_list'):
-            forces_dict = forces_dict + self.aero_forces_coef_list
-        metric_dict = dict(zip(forces_dict, cramer_rao_bounds_f))
-        print("Cramer-Rao Bounds for force parameters:") 
-        for key, value in metric_dict.items():
-            print(key,'\t',value)
+            forces_dict = self.rotor_forces_coef_list
+            if hasattr(self, 'aero_forces_coef_list'):
+                forces_dict = forces_dict + self.aero_forces_coef_list
+            metric_dict = dict(zip(forces_dict, cramer_rao_bounds_f.tolist()))
+            print("Cramer-Rao Bounds for force parameters:") 
+            for key, value in metric_dict.items():
+                print(key,'\t',value)
         
-        self.cramer_rao_bounds_f = cramer_rao_bounds_f
-        try:
-            error_covariance_matrix_m = np.linalg.inv(information_matrix_m)
-        except np.linalg.LinAlgError:
-            warnings.warn("FIM matrix singular: applying regularization, invalid parameters show Cramer-Rao Bound of 500.0", RuntimeWarning)
-            information_matrix_m += 0.0001*np.eye(information_matrix_m.shape[0])
-            error_covariance_matrix_m = np.linalg.inv(information_matrix_m)
+            self.cramer_rao_bounds_f = cramer_rao_bounds_f
+            self.fisher_metric.update(metric_dict)
 
-        cramer_rao_bounds_m = fudge_factor * np.sqrt(np.diag(error_covariance_matrix_m))
+        if self.estimate_moments:
+            X_moments_x = self.X_moments[0:self.X_moments.shape[0]:3, :]
+            X_moments_y = self.X_moments[1:self.X_moments.shape[0]:3, :]
+            X_moments_z = self.X_moments[2:self.X_moments.shape[0]:3, :]
 
-        moments_dict = self.rotor_moments_coef_list
-        if hasattr(self, 'aero_moments_coef_list'):
-            moments_dict = moments_dict + self.aero_moments_coef_list
+            fisher_information_m_mat = np.zeros(shape=(X_moments_x.shape[0],1))
+            information_matrix_m = np.zeros(shape=(X_moments_x.shape[1],X_moments_x.shape[1]))
 
-        metric_dict = dict(zip(moments_dict, cramer_rao_bounds_m))
-        print("Cramer-Rao Bounds for moment parameters:") 
-        for key, value in metric_dict.items():
-            print(key,'\t',value)
+            for i in range(X_moments_x.shape[0]):
+                jacobian_m = np.vstack((X_moments_x[i, :], X_moments_y[i, :], X_moments_z[i, :]))
+                fisher_information_matrix_m = np.transpose(jacobian_m) @ np.linalg.inv(R_gyro) @ jacobian_m
+                information_matrix_m += fisher_information_matrix_m
+                fisher_information_m_mat[i]= min(np.abs(np.linalg.eigvals(fisher_information_matrix_m)))
 
-        self.cramer_rao_bounds_m = cramer_rao_bounds_m
+            fisher_information_m_df = pd.DataFrame(fisher_information_m_mat, columns=["fisher_information_rot"])
+            self.data_df = pd.concat(
+                [self.data_df, fisher_information_m_df], axis=1, join="inner")
 
-        fig2 = plt.figure("Fisher Information")
-        fax1 = fig2.add_subplot(1, 2, 1)
-        fax1.hist(self.data_df["fisher_information_force"])
-        fax1.set_title("Fisher Information Force")
+            try:
+                error_covariance_matrix_m = np.linalg.inv(information_matrix_m)
+            except np.linalg.LinAlgError:
+                warnings.warn("FIM matrix singular: applying regularization, invalid parameters show Cramer-Rao Bound of 500.0", RuntimeWarning)
+                information_matrix_m += 1e-10*np.eye(information_matrix_m.shape[0])
+                error_covariance_matrix_m = np.linalg.inv(information_matrix_m)
+
+            cramer_rao_bounds_m = fudge_factor * np.sqrt(np.diag(error_covariance_matrix_m))
+
+            moments_dict = self.rotor_moments_coef_list
+            if hasattr(self, 'aero_moments_coef_list'):
+                moments_dict = moments_dict + self.aero_moments_coef_list
+
+            metric_dict = dict(zip(moments_dict, cramer_rao_bounds_m.tolist()))
+            print("Cramer-Rao Bounds for moment parameters:") 
+            for key, value in metric_dict.items():
+                print(key,'\t',value)
+
+            self.cramer_rao_bounds_m = cramer_rao_bounds_m
+            self.fisher_metric.update(metric_dict)
+
+           
+        self.fisher_metric = {"Cramer": self.fisher_metric}
+
+        if self.estimate_forces:
+            self.fisher_metric.update(
+            {"FIM":{
+                "lin":{
+                    "trace":float(np.trace(information_matrix_f)),
+                    "min_eig":float(min(np.abs(np.linalg.eigvals(information_matrix_f)))),
+                    "inv_cond":float(min(np.abs(np.linalg.eigvals(information_matrix_f))) / \
+                        max(np.abs(np.linalg.eigvals(information_matrix_f)))),
+                    "det":float(np.linalg.det(information_matrix_f))
+                }
+            }}
+            )
+
+        if self.estimate_moments:
+
+            self.fisher_metric.update(
+            {"FIM":{
+                "rot":{
+                    "trace":float(np.trace(information_matrix_m)),
+                    "min_eig":float(min(np.abs(np.linalg.eigvals(information_matrix_m)))),
+                    "inv_cond":float(min(np.abs(np.linalg.eigvals(information_matrix_m))) / \
+                        max(np.abs(np.linalg.eigvals(information_matrix_m)))),
+                    "det":float(np.linalg.det(information_matrix_m))
+                }
+            }}
+            )
+
+
+            ## min eigenvalue
+            # fisher_information_f_mat[i]= min(np.abs(np.linalg.eigvals(fisher_information_matrix_f)))
+            # fisher_information_m_mat[i]= min(np.abs(np.linalg.eigvals(fisher_information_matrix_m)))
+
+            ## trace
+            # fisher_information_f_mat[i]= np.trace(fisher_information_matrix_f)
+            # fisher_information_m_mat[i]= np.trace(fisher_information_matrix_m)
+
+            ## condition number
+            # fisher_information_f_mat[i]= min(np.abs(np.linalg.eigvals(fisher_information_matrix_f))) / \
+            # max(np.abs(np.linalg.eigvals(fisher_information_matrix_f)))
+            # fisher_information_m_mat[i]= min(np.abs(np.linalg.eigvals(fisher_information_matrix_m))) / \
+            # max(np.abs(np.linalg.eigvals(fisher_information_matrix_m)))
+        
+        
+        
+        
+
+        
+        
+
+        # fig2 = plt.figure("Fisher Information")
+        # fax1 = fig2.add_subplot(1, 2, 1)
+        # fax1.hist(self.data_df["fisher_information_force"])
+        # fax1.set_title("Fisher Information Force")
         # fax1.set_xlim(0.0, 500.0)
         # fax1.set_ylim(0, 900)
-        fax2 = fig2.add_subplot(1, 2, 2)
-        fax2.hist(self.data_df["fisher_information_rot"])
-        fax2.set_title("Fisher Information Moments")
+        # fax2 = fig2.add_subplot(1, 2, 2)
+        # fax2.hist(self.data_df["fisher_information_rot"])
+        # fax2.set_title("Fisher Information Moments")
         # fax2.set_xlim(-0.5, 10.0)
         # fax2.set_ylim(0, 6000)
+
+
+    def clear_features(self):
+        # self.X.clear()
+        # self.y.clear()
+        # self.X_forces.clear()
+        # self.y_forces.clear()
+        # self.X_moments.clear()
+        # self.y_moments.clear()
+        self.coef_name_list.clear()
+

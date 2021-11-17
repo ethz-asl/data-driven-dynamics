@@ -72,7 +72,7 @@ model_config:
 
 dynamics_model_config:
   estimate_forces: True
-  estimate_moments: True
+  estimate_moments: False
   resample_freq: 100.0
   data:
     required_ulog_topics:
@@ -136,14 +136,14 @@ dynamics_model_config:
           - "acc_b_x"
           - "acc_b_y"
           - "acc_b_z"
-      vehicle_angular_acceleration:
-        ulog_name:
-          - "timestamp"
-          - "xyz[0]"
-          - "xyz[1]"
-          - "xyz[2]"
-        dataframe_name:
-          - "timestamp"
-          - "ang_acc_b_x"
-          - "ang_acc_b_y"
-          - "ang_acc_b_z"
+      # vehicle_angular_acceleration:
+      #   ulog_name:
+      #     - "timestamp"
+      #     - "xyz[0]"
+      #     - "xyz[1]"
+      #     - "xyz[2]"
+      #   dataframe_name:
+      #     - "timestamp"
+      #     - "ang_acc_b_x"
+      #     - "ang_acc_b_y"
+      #     - "ang_acc_b_z"

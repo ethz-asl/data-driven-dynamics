@@ -53,10 +53,10 @@ class MultiRotorModel(DynamicsModel):
         airspeed_mat = self.data_df[["V_air_body_x",
                                      "V_air_body_y", "V_air_body_z"]].to_numpy()
         aero_model = FuselageDragModel()
-        X_aero, aero_coef_list = aero_model.compute_fuselage_features(
+        X_aero, self.aero_forces_coef_list = aero_model.compute_fuselage_features(
             airspeed_mat)
         self.coef_name_list.extend(
-            self.rotor_forces_coef_list + aero_coef_list)
+            self.rotor_forces_coef_list + self.aero_forces_coef_list)
         self.X_forces = np.hstack((self.X_rotor_forces, X_aero))
         print("datapoints for self.regression: ", self.data_df.shape[0])
 

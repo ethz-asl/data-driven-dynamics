@@ -6,6 +6,7 @@ model?=quadrotor_model
 log?=${root_dir}/resources/${model}.ulg
 config?=${root_dir}/Tools/parametric_model/configs/${model}.yaml
 data_selection?=False
+plot?=False
 
 submodulesupdate:
 	git submodule update --init --recursive
@@ -30,7 +31,9 @@ docker-run:
 	docker run -it --rm -e DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix ${registry}:${version} /bin/bash
 
 estimate-model:
-	python3 Tools/parametric_model/generate_parametric_model.py --config ${config} --data_selection ${data_selection} ${log}
+	python3 Tools/parametric_model/generate_parametric_model.py \
+	--config ${config} --data_selection ${data_selection} ${log} \
+	--plot ${plot}
 
 format:
 	Tools/fix_code_style.sh .
