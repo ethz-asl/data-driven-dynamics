@@ -158,6 +158,7 @@ class QPOptimizer(OptimizerBaseTemplate):
         # remove fixed coefficients from problem formulation
         self.X = X
         self.y = y
+        self.check_features()
         self.X_reduced, self.y_reduced = self.remove_fixed_coef_features(X, y)
         self.y = y
         c = cvxpy.Variable(self.n_opt_coef)

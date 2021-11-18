@@ -38,6 +38,8 @@ __license__ = "BSD 3"
 
 from abc import ABC, abstractmethod
 from typing import Dict, List
+import warnings
+import numpy as np
 
 
 class ParametersNotEstimatedError(Exception):
@@ -66,6 +68,15 @@ class OptimizerBaseTemplate(ABC):
             return
         else:
             raise self.parametersNotEstimatedError
+
+    def check_features(self):
+        for i in range(self.X.shape[1]):
+            if np.count_nonzero(self.X[:,i]) == 0:
+                warnings.warn("Feature detected that is only zero. " + \
+            "Parameter {} is probably wrong.".format(self.param_name_list[i]),
+            RuntimeWarning
+            )
+        return
 
     @abstractmethod
     def estimate_parameters(self) -> None:
