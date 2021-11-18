@@ -54,6 +54,7 @@ class LinearRegressor(OptimizerBaseTemplate):
         # Estimate parameters c such that X * c = y
         self.X = X
         self.y = y
+        self.check_features()
         self.reg.fit(self.X, self.y)
         self.estimation_completed = True
 
