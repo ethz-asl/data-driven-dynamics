@@ -92,6 +92,7 @@ def start_model_estimation(config, log_path, data_selection=False):
     model.prepare_regression_matrices()
     if data_selection:
         model.data_df = select_visual_data(model.data_df,visual_dataframe_selector_config_dict)
+        model.n_samples = model.data_df.shape[0]
     model.estimate_model()
     #model.compute_residuals()
     #model.plot_model_predicitons()
