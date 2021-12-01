@@ -64,11 +64,15 @@ class FuselageDragModel():
         angle_of_attack_vec: vector of size (n) with corresponding AoA values
         roll_commands = numpy array of dimension (n,3) with columns for [u_roll_1, u_roll_2, u_pitch_collective]
         """
-        X_aero = self.compute_single_fuselage_feature(v_airspeed_mat[0, :])
-
-        for i in range(1, v_airspeed_mat.shape[0]):
-            X_curr = self.compute_single_fuselage_feature(v_airspeed_mat[i, :])
-            X_aero = np.vstack((X_aero, X_curr))
-        fuselage_coef_list = ["c_d_fuselage_x",
+    
+        X_aero = -0.5*self.air_density * \
+            v_airspeed_mat * abs(v_airspeed_mat)
+        coef_dict = {
+            "c_d_fuselage_x": {"lin":{ "x": "c_d_fuselage_x","y": "0","z":"0"}},
+            "c_d_fuselage_y": {"lin":{ "x": "0","y": "c_d_fuselage_y","z":"0"}},
+            "c_d_fuselage_z": {"lin":{ "x": "0","y": "0","z":"c_d_fuselage_z"}},
+            }        
+        col_names = ["c_d_fuselage_x",
                               "c_d_fuselage_y", "c_d_fuselage_z"]
-        return X_aero, fuselage_coef_list
+                
+        return X_aero, coef_dict, col_names

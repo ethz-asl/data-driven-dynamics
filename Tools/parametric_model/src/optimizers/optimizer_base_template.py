@@ -57,16 +57,12 @@ class OptimizerBaseTemplate(ABC):
     abstract methods. 
     """
 
-    def __init__(self, optimizer_config, coefficient_config, dataframe):
+    def __init__(self, optimizer_config, param_name_list):
         self.estimation_completed = False
         self.parametersNotEstimatedError = ParametersNotEstimatedError()
         self.config = optimizer_config
-        self.coefficient_config = coefficient_config
-        self.dataframe = dataframe
-        self.coefficient_dict = {}
-        for i in coefficient_config:
-            for j in i:
-                self.coefficient_dict.append[{j:[]}]
+        self.param_name_list = param_name_list
+
 
 
     def check_estimation_completed(self):
@@ -83,19 +79,6 @@ class OptimizerBaseTemplate(ABC):
             RuntimeWarning
             )
         return
-
-    def estimate_all_parameters(self):
-        for i in self.coefficient_config:
-            y = self.estimate_parameters(
-                self.dataframe[i],
-                self.dataframe[coefficient_config[i]]
-                )
-            for j in self.coefficient_config[i]:
-                self.coefficient_dict[j] = y
-        
-        self.estimation_completed = True
-        return self.coefficient_config
-
 
     @abstractmethod
     def estimate_parameters(self) -> None:
