@@ -183,39 +183,79 @@ class RotorModel():
 
     def compute_actuator_force_matrix(self):
         print("Computing force features for rotor:", self.rotor_name)
-        X_forces = self.compute_actuator_force_features(0)
-        rotor_features_bar = Bar(
-            'Feature Computatiuon', max=self.actuator_input_vec.shape[0])
-        for index in range(1, self.n_timestamps):
-            X_force_curr = self.compute_actuator_force_features(index)
-            X_forces = np.vstack((X_forces, X_force_curr))
-            rotor_features_bar.next()
-        rotor_features_bar.finish()
-        coef_list_forces = ["rot_drag_lin", "rot_thrust_lin", "rot_thrust_quad"
-                            ]
-        self.X_forces = X_forces
-        self.X_thrust = X_forces[:, 1:]
-        return X_forces, coef_list_forces
+        c = self.air_density * self.prop_diameter**3
+        X_drag = -(np.array(self.v_airspeed_perpendicular_to_rotor_axis).T * 
+            np.array(self.actuator_input_vec) *
+            (np.linalg.norm(self.v_airspeed_perpendicular_to_rotor_axis,axis=1) >= 0.05) # Masking 
+            ).T
+        if hasattr(self, "rotor_axis_mat"):
+            self.X_thrust_lin = (self.rotor_axis_mat.T * self.v_air_parallel_abs * self.actuator_input_vec).T*c
+            self.X_thrust_quad = (self.rotor_axis_mat.T * self.actuator_input_vec**2 ).T*(c*self.prop_diameter)
+        else:
+            self.X_thrust_lin = np.outer(self.v_air_parallel_abs * self.actuator_input_vec,self.rotor_axis)*c
+            self.X_thrust_quad = np.outer(self.actuator_input_vec**2 * self.prop_diameter,self.rotor_axis)*c
+
+        coef_dict = {
+            "rot_drag_lin": {"lin":{ "x": "rot_drag_lin_x","y": "rot_drag_lin_y","z":"rot_drag_lin_z"}},
+            "rot_thrust_lin": {"lin":{ "x": "rot_thrust_lin_x","y": "rot_thrust_lin_y","z":"rot_thrust_lin_z"}},
+            "rot_thrust_quad": {"lin":{ "x": "rot_thrust_quad_x","y": "rot_thrust_quad_y","z":"rot_thrust_quad_z"}},
+            }
+        col_names = [
+            "rot_drag_lin_x","rot_drag_lin_y", "rot_drag_lin_z",
+            "rot_thrust_lin_x","rot_thrust_lin_y","rot_thrust_lin_z",
+            "rot_thrust_quad_x","rot_thrust_quad_y", "rot_thrust_quad_z" 
+            ]
+        self.X_forces = np.hstack((X_drag,self.X_thrust_lin,self.X_thrust_quad))
+        return self.X_forces, coef_dict, col_names
 
     def compute_actuator_moment_matrix(self):
         print("Computing moment features for rotor:", self.rotor_name)
-        X_moments = self.compute_actuator_moment_features(0)
-        rotor_features_bar = Bar(
-            'Feature Computatiuon', max=self.actuator_input_vec.shape[0])
-        for index in range(1, self.n_timestamps):
-            X_moment_curr = self.compute_actuator_moment_features(index)
-            X_moments = np.vstack((X_moments, X_moment_curr))
-            rotor_features_bar.next()
-        rotor_features_bar.finish()
+        if hasattr(self, "rotor_axis_mat"):
+            leaver_moment_vec = 0
+        else:
+            leaver_moment_vec = np.cross(
+                self.rotor_position.flatten(),self.rotor_axis.flatten())
+            leaver_moment_vec = np.outer(leaver_moment_vec,np.ones(self.n_timestamps))
+
+        X_leaver_quad = (leaver_moment_vec * self.actuator_input_vec**2 * \
+            self.air_density * self.prop_diameter**4).T
+
+        X_leaver_lin = (leaver_moment_vec * self.actuator_input_vec * \
+            self.air_density * self.prop_diameter**3).T
+
+        X_drag_quad = - np.outer(self.turning_direction * \
+            self.actuator_input_vec**2 * self.air_density * self.prop_diameter**5,[0,0,1])
+
+        X_drag_lin = - np.outer(self.turning_direction * \
+            self.actuator_input_vec * self.v_air_parallel_abs * 
+            self.air_density * self.prop_diameter**5 ,[0,0,1])
+
+        X_rolling = - (self.v_airspeed_perpendicular_to_rotor_axis.T * \
+            self.turning_direction * self.actuator_input_vec).T
+
+
         coef_list_moments = ["c_m_leaver_quad", "c_m_leaver_lin",
                              "c_m_drag_z_quad", "c_m_drag_z_lin", "c_m_rolling"]
-        return X_moments, coef_list_moments
+
+        coef_dict = {
+            "c_m_leaver_quad": {"rot":{ "x": "c_m_leaver_quad_x","y": "c_m_leaver_quad_y","z":"c_m_leaver_quad_z"}},
+            "c_m_leaver_lin": {"rot":{ "x": "c_m_leaver_lin_x","y": "c_m_leaver_lin_y","z":"c_m_leaver_lin_z"}},
+            "c_m_drag_z_quad": {"rot":{ "x": "c_m_drag_z_quad_x","y": "c_m_drag_z_quad_y","z":"c_m_drag_z_quad_z"}},
+            "c_m_drag_z_lin": {"rot":{ "x": "c_m_drag_z_lin_x","y": "c_m_drag_z_lin_y","z":"c_m_drag_z_lin_z"}},
+            "c_m_rolling": {"rot":{ "x": "c_m_rolling_x","y": "c_m_rolling_y","z":"c_m_rolling_z"}},
+            }
+        col_names = [
+            "c_m_leaver_quad_x","c_m_leaver_quad_y", "c_m_leaver_quad_z",
+            "c_m_leaver_lin_x","c_m_leaver_lin_y","c_m_leaver_lin_z",
+            "c_m_drag_z_quad_x","c_m_drag_z_quad_y", "c_m_drag_z_quad_z",
+            "c_m_drag_z_lin_x","c_m_drag_z_lin_y", "c_m_drag_z_lin_z",
+            "c_m_rolling_x","c_m_rolling_y", "c_m_rolling_z",
+            ]
+        return np.hstack((X_leaver_quad,X_leaver_lin,X_drag_quad,X_drag_lin,X_rolling)), coef_dict, col_names
 
     def predict_thrust_force(self, thrust_coef_list):
         """
         Inputs: thrust_coef_list = ["rot_thrust_lin", "rot_thrust_quad"]
         """
-        thrust_coef = np.array(thrust_coef_list).reshape(2, 1)
-        stacked_force_vec = self.X_thrust @ thrust_coef
-        force_mat = stacked_force_vec.reshape((self.n_timestamps, 3))
+        force_mat = thrust_coef_list[0]*self.X_thrust_lin + thrust_coef_list[1]*self.X_thrust_quad
         return force_mat

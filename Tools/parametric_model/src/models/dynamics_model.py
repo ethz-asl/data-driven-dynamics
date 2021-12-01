@@ -79,6 +79,8 @@ class DynamicsModel():
 
         # used to generate a dict with the resulting coefficients later on.
         self.coef_name_list = []
+        self.y_dict = {}
+        self.coef_dict = {}
         self.result_dict = {}
 
     def prepare_regression_matrices(self):
@@ -95,31 +97,47 @@ class DynamicsModel():
             self.prepare_force_regression_matrices()
             self.prepare_moment_regression_matrices()
 
-            self.X = block_diag(self.X_forces, self.X_moments)
-            self.y = np.hstack((self.y_forces, self.y_moments))
-
         elif (self.estimate_forces):
             self.prepare_force_regression_matrices()
-
-            self.X = self.X_forces
-            self.y = self.y_forces
 
         elif (self.estimate_moments):
             self.prepare_moment_regression_matrices()
 
-            self.X = self.X_moments
-            self.y = self.y_moments
-
         else:
             raise ValueError("Neither Forces nor Moments estimation activated")
 
-        return self.X, self.y
+        return
 
     def prepare_force_regression_matrices(self):
         raise NotImplementedError()
 
     def prepare_moment_regression_matrices(self):
         raise NotImplementedError()
+
+    def assemble_regression_matrices(self):
+
+        measurements = list(self.y_dict.keys())
+        sizes = [len(self.y_dict[i].keys()) for i in self.y_dict.keys()]
+        y = np.empty(sum(sizes)*self.n_samples)
+        i = 0
+        for m in measurements:
+            for k in self.y_dict[m].keys():
+                y[i*self.n_samples:(i+1)*self.n_samples] = self.data_df[self.y_dict[m][k]]
+                i += 1
+
+        coef_list = list(self.coef_dict.keys())
+
+        X = np.zeros((len(measurements)*self.n_samples*3,len(self.coef_dict.keys())))
+        for coef_index, coef in enumerate(self.coef_dict.keys()):
+            for i_index, i in enumerate(measurements):
+                for j_index, j in enumerate(["x","y","z"]):
+                    try:
+                        pos = self.n_samples*(i_index*3+j_index)
+                        key = self.coef_dict[coef][i][j]
+                        X[pos:pos+self.n_samples,coef_index] = self.data_df[key]
+                    except: KeyError
+        
+        return X,y,coef_list
 
     def get_topic_list_from_topic_type(self, topic_type):
         topic_type_name_dict = self.req_topics_dict[topic_type]
@@ -257,50 +275,50 @@ class DynamicsModel():
             self.rotor_dict[rotor_group] = {}
             if (self.estimate_forces):
                 X_force_collector = np.zeros(
-                    (3*self.v_airspeed_mat.shape[0], 3))
+                    (self.n_samples, 3*3))
             if (self.estimate_moments):
                 X_moment_collector = np.zeros(
-                    (3*self.v_airspeed_mat.shape[0], 5))
+                    (self.n_samples, 3*5))
             for rotor_config_dict in rotor_group_list:
                 rotor = self.initialize_rotor_model(
                     rotor_config_dict, angular_vel_mat)
                 self.rotor_dict[rotor_group][rotor_config_dict["dataframe_name"]] = rotor
 
                 if (self.estimate_forces):
-                    X_force_curr, curr_rotor_forces_coef_list = rotor.compute_actuator_force_matrix()
+                    X_force_curr, coef_dict_force, col_names_force = rotor.compute_actuator_force_matrix()
                     X_force_collector = X_force_collector + X_force_curr
                     # Include rotor group name in coefficient names:
-                    for i in range(len(curr_rotor_forces_coef_list)):
-                        curr_rotor_forces_coef_list[i] = rotor_group + \
-                            curr_rotor_forces_coef_list[i]
+                    for i in range(len(col_names_force)):
+                        col_names_force[i] = rotor_group + \
+                            col_names_force[i]
+
+                    for key in list(coef_dict_force.keys()):
+
+                        coef_dict_force[rotor_group+key] = coef_dict_force.pop(key)
+                        for i in ["x","y","z"]:
+                            coef_dict_force[rotor_group+key]["lin"][i] = rotor_group + coef_dict_force[rotor_group+key]["lin"][i]
 
                 if (self.estimate_moments):
-                    X_moment_curr, curr_rotor_moments_coef_list = rotor.compute_actuator_moment_matrix()
+                    X_moment_curr, coef_dict_moment, col_names_moment = rotor.compute_actuator_moment_matrix()
                     X_moment_collector = X_moment_collector + X_moment_curr
                     # Include rotor group name in coefficient names:
-                    for i in range(len(curr_rotor_moments_coef_list)):
-                        curr_rotor_moments_coef_list[i] = rotor_group + \
-                            curr_rotor_moments_coef_list[i]
+                    for i in range(len(col_names_moment)):
+                        col_names_moment[i] = rotor_group + \
+                            col_names_moment[i]
+
+                    for key in list(coef_dict_moment.keys()):
+
+                        coef_dict_moment[rotor_group+key] = coef_dict_moment.pop(key)
+                        for i in ["x","y","z"]:
+                            coef_dict_moment[rotor_group+key]["rot"][i] = rotor_group + coef_dict_moment[rotor_group+key]["rot"][i]
 
             if (self.estimate_forces):
-                if 'X_rotor_forces' not in vars():
-                    X_rotor_forces = X_force_collector
-                    self.rotor_forces_coef_list = curr_rotor_forces_coef_list
-                else:
-                    X_rotor_forces = np.hstack(
-                        (X_rotor_forces, X_force_collector))
-                    self.rotor_forces_coef_list += curr_rotor_forces_coef_list
-                self.X_rotor_forces = X_rotor_forces
+                self.data_df[col_names_force] = X_force_collector
+                self.coef_dict.update(coef_dict_force)
 
             if (self.estimate_moments):
-                if 'X_rotor_moments' not in vars():
-                    X_rotor_moments = X_moment_collector
-                    self.rotor_moments_coef_list = curr_rotor_moments_coef_list
-                else:
-                    X_rotor_moments = np.hstack(
-                        (X_rotor_moments, X_moment_collector))
-                    self.rotor_moments_coef_list += curr_rotor_moments_coef_list
-                self.X_rotor_moments = X_rotor_moments
+                self.data_df[col_names_moment] = X_moment_collector
+                self.coef_dict.update(coef_dict_moment)
 
         return
 
@@ -365,7 +383,7 @@ class DynamicsModel():
         print("-------------------------------------------------------------------------------")
         print("Initialized dataframe with the following columns: ")
         print(list(self.data_df.columns))
-        print("Data contains ", self.data_df.shape[0], "timestamps.")
+        print("Data contains ", self.n_samples, "timestamps.")
 
     def predict_model(self, opt_coefs_dict):
         print("===============================================================================")
@@ -385,9 +403,9 @@ class DynamicsModel():
         print("===============================================================================")
         print("                        Preparing Model Features                               ")
         print("===============================================================================")
-        X, y = self.prepare_regression_matrices()
+        self.X, self.y, self.coef_name_list = self.assemble_regression_matrices()
         self.initialize_optimizer()
-        self.optimizer.estimate_parameters(X, y)
+        self.optimizer.estimate_parameters(self.X, self.y)
         self.generate_optimization_results()
 
         return

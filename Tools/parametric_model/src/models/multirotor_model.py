@@ -90,17 +90,16 @@ class MultiRotorModel(DynamicsModel):
         airspeed_mat = self.data_df[["V_air_body_x",
                                      "V_air_body_y", "V_air_body_z"]].to_numpy()
         aero_model = FuselageDragModel()
-        X_aero, aero_coef_list = aero_model.compute_fuselage_features(
+        X_aero, coef_dict_aero, col_names_aero = aero_model.compute_fuselage_features(
             airspeed_mat)
-        self.coef_name_list.extend(
-            self.rotor_forces_coef_list + aero_coef_list)
-        self.X_forces = np.hstack((self.X_rotor_forces, X_aero))
+        self.data_df[col_names_aero] = X_aero
+        self.coef_dict.update(coef_dict_aero)
+        self.y_dict.update({"lin":{"x":"measured_force_x","y":"measured_force_y","z":"measured_force_z"}})
 
     def prepare_moment_regression_matrices(self):
         moment_mat = np.matmul(self.data_df[[
             "ang_acc_b_x", "ang_acc_b_y", "ang_acc_b_z"]].to_numpy(), self.moment_of_inertia)
         self.data_df[["measured_moment_x", "measured_moment_y",
                      "measured_moment_z"]] = moment_mat
-        self.y_moments = moment_mat.flatten()
-        self.X_moments = self.X_rotor_moments
-        self.coef_name_list.extend(self.rotor_moments_coef_list)
+        
+        self.y_dict.update({"rot":{"x":"measured_moment_x","y":"measured_moment_y","z":"measured_moment_z"}})
