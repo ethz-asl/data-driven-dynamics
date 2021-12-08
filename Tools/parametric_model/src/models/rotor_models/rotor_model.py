@@ -221,7 +221,7 @@ class RotorModel():
             self.air_density * self.prop_diameter**4).T
 
         X_leaver_lin = (leaver_moment_vec * self.actuator_input_vec * \
-            self.air_density * self.prop_diameter**3).T
+            self.v_air_parallel_abs * self.air_density * self.prop_diameter**3).T
 
         X_drag_quad = - np.outer(self.turning_direction * \
             self.actuator_input_vec**2 * self.air_density * self.prop_diameter**5,[0,0,1])
