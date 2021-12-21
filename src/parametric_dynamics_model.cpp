@@ -83,7 +83,7 @@ Eigen::Vector3d ParametricDynamicsModel::computeRotorForce(const Eigen::Vector3d
   if (v_airspeed_vertical_to_rotor_axis.norm() >= 0.05) {
     rotor_drag = v_airspeed_vertical_to_rotor_axis * (-1.0) * drag_lin * actuator_input;
   }
-
+  
   return rotor_thrust + rotor_drag;
 }
 
