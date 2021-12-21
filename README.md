@@ -142,3 +142,15 @@ Tools/sitl_run.sh -m iris -s iris_aerodynamics
 ```
 
 The custom Gazebo quadrotor model will always read the model parameters from the file `model_results/quadrotor_model.yaml`. You can simply rename your desired model results file to fly your estimated model in Gazebo. 
+
+## Credits
+This project was done in collaboration between the [Autonomous Systems Lab, ETH Zurich](https://asl.ethz.ch/) and [Auterion AG](https://auterion.com/)
+
+To cite this work in a academic context:
+```
+@article{galliker2021data,
+  title={Data-Driven Dynamics Modelling Using Flight Logs},
+  author={Galliker, Manuel Yves},
+  year={2021}
+}
+```
