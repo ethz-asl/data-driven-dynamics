@@ -85,7 +85,7 @@ def test_rotor_thrust_prediction():
                                          [0,       0,  -6.125]])
 
     rotor = RotorModel(rotor_config_dict, actuator_input_vec, v_airspeed_mat)
-    X_moments, coef_list_moments = rotor.compute_actuator_force_matrix()
+    X_forces, coef_dict, col_names = rotor.compute_actuator_force_matrix()
     print(rotor.predict_thrust_force(
         thrust_coef_list))
     assert (np.linalg.norm(rotor.predict_thrust_force(

@@ -67,7 +67,7 @@ def test_rotor_thrust_prediction():
                                          [12.25,        0,            0],
                                          [8.66205807,   0,  -8.66205807],
                                          [0,            0,       -12.25]])
-    X_moments, coef_list_moments = rotor.compute_actuator_force_matrix()
+    X_forces, coef_dict, col_names = rotor.compute_actuator_force_matrix()
     print(np.linalg.norm(rotor.predict_thrust_force(
         thrust_coef_list) - correct_force_prediction))
     assert (np.linalg.norm(rotor.predict_thrust_force(
