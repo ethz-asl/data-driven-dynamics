@@ -374,6 +374,7 @@ class DynamicsModel():
 
         with open(file_path, 'w') as outfile:
             yaml.dump(self.result_dict, outfile, default_flow_style=False)
+            yaml.dump(self.fisher_metric, outfile, default_flow_style=False)
         print("-------------------------------------------------------------------------------")
         print("Complete results saved to: ")
         print(file_path)
@@ -680,9 +681,11 @@ class DynamicsModel():
            
         self.fisher_metric = {"Cramer": self.fisher_metric}
 
+        self.fisher_metric["FIM"] = {}
+
         if self.estimate_forces:
-            self.fisher_metric.update(
-            {"FIM":{
+            self.fisher_metric["FIM"].update(
+            {
                 "lin":{
                     "trace":float(np.trace(information_matrix_f)),
                     "min_eig":float(min(np.abs(np.linalg.eigvals(information_matrix_f)))),
@@ -690,13 +693,13 @@ class DynamicsModel():
                         max(np.abs(np.linalg.eigvals(information_matrix_f)))),
                     "det":float(np.linalg.det(information_matrix_f))
                 }
-            }}
+            }
             )
 
         if self.estimate_moments:
 
-            self.fisher_metric.update(
-            {"FIM":{
+            self.fisher_metric["FIM"].update(
+            {
                 "rot":{
                     "trace":float(np.trace(information_matrix_m)),
                     "min_eig":float(min(np.abs(np.linalg.eigvals(information_matrix_m)))),
@@ -704,7 +707,7 @@ class DynamicsModel():
                         max(np.abs(np.linalg.eigvals(information_matrix_m)))),
                     "det":float(np.linalg.det(information_matrix_m))
                 }
-            }}
+            }
             )
 
 
