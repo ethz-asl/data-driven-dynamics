@@ -39,7 +39,6 @@ __license__ = "BSD 3"
 import os
 import src.models as models
 from src.tools import DataHandler
-from visual_dataframe_selector.data_selector import select_visual_data
 import argparse
 
 
@@ -92,6 +91,7 @@ def start_model_estimation(config, log_path, data_selection=False, plot=False):
     model.prepare_regression_matrices()
     model.compute_fisher_information()
     if data_selection:
+        from visual_dataframe_selector.data_selector import select_visual_data
         model.data_df = select_visual_data(model.data_df,visual_dataframe_selector_config_dict)
         model.n_samples = model.data_df.shape[0]
     model.estimate_model()
