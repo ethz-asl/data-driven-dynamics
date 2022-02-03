@@ -99,6 +99,7 @@ class MultiRotorModel(DynamicsModel):
     def prepare_moment_regression_matrices(self):
         moment_mat = np.matmul(self.data_df[[
             "ang_acc_b_x", "ang_acc_b_y", "ang_acc_b_z"]].to_numpy(), self.moment_of_inertia)
+        self.y_moments = (moment_mat).flatten()
         self.data_df[["measured_moment_x", "measured_moment_y",
                      "measured_moment_z"]] = moment_mat
         
