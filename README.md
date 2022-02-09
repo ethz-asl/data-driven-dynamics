@@ -79,7 +79,7 @@ source setup.bash
 Generate the parametric model using a log file (ulog or csv):
 
 ```
-make estimate-model [model=<modeltype>] [config=<config_file_path>] [data_selection=<True/False>] log=<log_file_path>
+make estimate-model [model=<modeltype>] [config=<config_file_path>] [data_selection=<True/False>] [plot=<True/False>] log=<log_file_path>
 ```
 
 ### Pipeline Arguments

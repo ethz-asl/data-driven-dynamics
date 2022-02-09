@@ -6,7 +6,7 @@ model?=quadrotor_model
 log?=${root_dir}/resources/${model}.ulg
 config?=${root_dir}/Tools/parametric_model/configs/${model}.yaml
 data_selection?=False
-plot?=False
+plot?=True
 
 submodulesupdate:
 	git submodule update --init --recursive
