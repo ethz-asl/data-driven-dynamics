@@ -2,7 +2,7 @@
 
 # data-driven-dynamics
 
-[![Build Tests](https://github.com/ethz-asl/data-driven-dynamics/actions/workflows/build_test.yml/badge.svg)](https://github.com/ethz-asl/data-driven-dynamics/actions/workflows/build_test.yml)
+[![SysID Pipeline Test](https://github.com/ethz-asl/data-driven-dynamics/actions/workflows/sysid_test.yml/badge.svg)](https://github.com/ethz-asl/data-driven-dynamics/actions/workflows/sysid_test.yml)
 
 This repository allows a data-driven dynamics model for PX4 SITL(Software-In-The-Loop) simulations.
 
@@ -79,7 +79,7 @@ source setup.bash
 Generate the parametric model using a log file (ulog or csv):
 
 ```
-make estimate-model [model=<modeltype>] [config=<config_file_path>] [data_selection=<True/False>] log=<log_file_path>
+make estimate-model [model=<modeltype>] [config=<config_file_path>] [data_selection=<True/False>] [plot=<True/False>] log=<log_file_path>
 ```
 
 ### Pipeline Arguments
@@ -142,3 +142,15 @@ Tools/sitl_run.sh -m iris -s iris_aerodynamics
 ```
 
 The custom Gazebo quadrotor model will always read the model parameters from the file `model_results/quadrotor_model.yaml`. You can simply rename your desired model results file to fly your estimated model in Gazebo. 
+
+## Credits
+This project was done in collaboration between the [Autonomous Systems Lab, ETH Zurich](https://asl.ethz.ch/) and [Auterion AG](https://auterion.com/)
+
+To cite this work in a academic context:
+```
+@article{galliker2021data,
+  title={Data-Driven Dynamics Modelling Using Flight Logs},
+  author={Galliker, Manuel Yves},
+  year={2021}
+}
+```

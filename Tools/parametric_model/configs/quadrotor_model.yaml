@@ -25,7 +25,7 @@ model_config:
           position:
             - 0.13
             - 0.22
-            - 0.023
+            - -0.023
 
         - rotor_1:
           description: "back left rotor"
@@ -39,7 +39,7 @@ model_config:
           position:
             - -0.13
             - -0.2
-            - 0.023
+            - -0.023
 
         - rotor_2:
           description: "front left rotor"
@@ -53,7 +53,7 @@ model_config:
           position:
             - 0.13
             - -0.2
-            - 0.023
+            - -0.023
 
         - rotor_3:
           description: "back right rotor"
@@ -67,7 +67,7 @@ model_config:
           position:
             - -0.13
             - 0.2
-            - 0.023
+            - -0.023
 
 dynamics_model_config:
   optimizer_config:

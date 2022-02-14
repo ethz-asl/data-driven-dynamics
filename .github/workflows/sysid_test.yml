@@ -27,6 +27,6 @@ jobs:
       - name: Run subsystem level tests on parametric model
         run: Tools/parametric_model/test_parametric_model.sh
       - name: Run multirotor_model estimation for system level test using resource ulog
-        run: make estimate-model model=quadrotor_model
+        run: make estimate-model model=quadrotor_model plot=False
       - name: Run multirotor_model estimation for system level test using resource csv
-        run: make estimate-model model=quadrotor_model log=resources/quadrotor_model.csv
+        run: make estimate-model model=quadrotor_model log=resources/quadrotor_model.csv plot=False

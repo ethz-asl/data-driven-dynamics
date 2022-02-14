@@ -75,37 +75,3 @@ class ChangingAxisRotorModel(RotorModel):
         for i in range(self.n_timestamps):
             # Active vector rotation around tilt axis:
             self.rotor_axis_mat[i, :] = self.rotor_axis.flatten
-
-    def compute_actuator_force_matrix(self):
-        print("Computing force features for rotor:", self.rotor_name)
-        X_forces = self.compute_actuator_force_features(
-            0, self.rotor_axis_mat[0, :].reshape((3, 1)))
-        rotor_features_bar = Bar(
-            'Feature Computatiuon', max=self.actuator_input_vec.shape[0])
-        for index in range(1, self.n_timestamps):
-            X_force_curr = self.compute_actuator_force_features(
-                index, self.rotor_axis_mat[index, :].reshape((3, 1)))
-            X_forces = np.vstack((X_forces, X_force_curr))
-            rotor_features_bar.next()
-        rotor_features_bar.finish()
-        coef_list_forces = ["rot_drag_lin", "rot_thrust_lin", "rot_thrust_quad",
-                            ]
-        self.X_forces = X_forces
-        self.X_thrust = X_forces[:, 1:]
-        return X_forces, coef_list_forces
-
-    def compute_actuator_moment_matrix(self):
-        print("Computing moment features for rotor:", self.rotor_name)
-        X_moments = self.compute_actuator_moment_features(
-            0, self.rotor_axis_mat[0, :].reshape((3, 1)))
-        rotor_features_bar = Bar(
-            'Feature Computatiuon', max=self.actuator_input_vec.shape[0])
-        for index in range(1, self.n_timestamps):
-            X_moment_curr = self.compute_actuator_moment_features(
-                index, self.rotor_axis_mat[index, :].reshape((3, 1)))
-            X_moments = np.vstack((X_moments, X_moment_curr))
-            rotor_features_bar.next()
-        rotor_features_bar.finish()
-        coef_list_moments = ["c_m_leaver_quad", "c_m_leaver_lin",
-                             "c_m_drag_z_quad", "c_m_drag_z_lin", "c_m_rolling"]
-        return X_moments, coef_list_moments

@@ -409,9 +409,9 @@ class DynamicsModel():
         print("===============================================================================")
         print("                        Preparing Model Features                               ")
         print("===============================================================================")
-        X, y, self.coef_name_list = self.assemble_regression_matrices(["lin","rot"])
+        self.X, self.y, self.coef_name_list = self.assemble_regression_matrices(["lin","rot"])
         self.initialize_optimizer()
-        self.optimizer.estimate_parameters(X, y)
+        self.optimizer.estimate_parameters(self.X, self.y)
         self.generate_optimization_results()
 
         return
@@ -480,37 +480,36 @@ class DynamicsModel():
 
     def compute_residuals(self):
 
-        X_moments,y_moments,_ = self.assemble_regression_matrices(["rot"])
-        X_forces,y_forces,_ = self.assemble_regression_matrices(["lin"])
-        X,y,_ = self.assemble_regression_matrices(["lin","rot"])
+        y_pred = self.optimizer.predict(self.X)
 
-        y_pred = self.optimizer.predict(X)
+        y_forces_pred = np.zeros(self.y_forces.shape)
+        y_forces_pred[0::3] = y_pred[0:int(self.y_forces.shape[0]/3)]
+        y_forces_pred[1::3] = y_pred[int(self.y_forces.shape[0]/3):int(2*self.y_forces.shape[0]/3)]
+        y_forces_pred[2::3] = y_pred[int(2*self.y_forces.shape[0]/3):self.y_forces.shape[0]]
 
-        y_forces_pred = y_pred[0:3*self.n_samples]
-        y_moments_pred = y_pred[3*self.n_samples:]
+        y_moments_pred = np.zeros(self.y_moments.shape)
+        y_moments_pred[0::3] = y_pred[self.y_moments.shape[0]:int(4*self.y_moments.shape[0]/3)]
+        y_moments_pred[1::3] = y_pred[int(4*self.y_moments.shape[0]/3):int(5*self.y_moments.shape[0]/3)]
+        y_moments_pred[2::3] = y_pred[int(5*self.y_moments.shape[0]/3):]
 
-        error_y_forces = y_forces_pred - y_forces
-        error_y_moments = y_moments_pred - y_moments
+        error_y_forces = y_forces_pred - self.y_forces
+        error_y_moments = y_moments_pred - self.y_moments
 
         stacked_error_y_forces = np.array(error_y_forces)
-        acc_mat = stacked_error_y_forces.reshape((-1, 3),order='F')
+        acc_mat = stacked_error_y_forces.reshape((-1, 3))
         residual_force_df = pd.DataFrame(acc_mat, columns=[
             "residual_force_x", "residual_force_y", "residual_force_z"])
         self.data_df = pd.concat(
             [self.data_df, residual_force_df], axis=1, join="inner")
 
         stacked_error_y_moments = np.array(error_y_moments)
-        mom_mat = stacked_error_y_moments.reshape((-1, 3),order='F')
+        mom_mat = stacked_error_y_moments.reshape((-1, 3))
         residual_moment_df = pd.DataFrame(mom_mat, columns=[
             "residual_moment_x", "residual_moment_y", "residual_moment_z"])
         self.data_df = pd.concat(
             [self.data_df, residual_moment_df], axis=1, join="inner")
 
     def plot_model_predicitons(self):
-
-        X_moments,y_moments,_ = self.assemble_regression_matrices(["rot"])
-        X_forces,y_forces,_ = self.assemble_regression_matrices(["lin"])
-        X,y,coef_name_list = self.assemble_regression_matrices(["lin","rot"])
 
         def plot_scatter(ax, title, dataframe_x, dataframe_y, dataframe_z, color='blue'):
             ax.scatter(self.data_df[dataframe_x], self.data_df[dataframe_y],
@@ -520,53 +519,61 @@ class DynamicsModel():
             ax.set_ylabel(dataframe_y)
             ax.set_zlabel(dataframe_z)
 
-        y_pred = self.optimizer.predict(X)
+        y_pred = self.optimizer.predict(self.X)
 
-        # if (self.estimate_forces and self.estimate_moments):
-        #     y_forces_pred = y_pred[0:self.y_forces.shape[0]]
-        #     y_moments_pred = y_pred[self.y_forces.shape[0]:]
-        #     model_plots.plot_force_predictions(
-        #         y_forces, y_forces_pred, self.data_df["timestamp"])
-        #     model_plots.plot_moment_predictions(
-        #         y_moments, y_moments_pred, self.data_df["timestamp"])
-        #     model_plots.plot_airspeed_and_AoA(
-        #         self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "angle_of_attack"]], self.data_df["timestamp"])
+        if (self.estimate_forces and self.estimate_moments):
+            y_forces_pred = np.zeros(self.y_forces.shape)
+            y_forces_pred[0::3] = y_pred[0:int(self.y_forces.shape[0]/3)]
+            y_forces_pred[1::3] = y_pred[int(self.y_forces.shape[0]/3):int(2*self.y_forces.shape[0]/3)]
+            y_forces_pred[2::3] = y_pred[int(2*self.y_forces.shape[0]/3):self.y_forces.shape[0]]
 
-        # elif (self.estimate_forces):
-        #     y_forces_pred = y_pred
-        #     model_plots.plot_force_predictions(
-        #         self.y_forces, y_forces_pred, self.data_df["timestamp"])
-        #     model_plots.plot_airspeed_and_AoA(
-        #         self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "angle_of_attack"]], self.data_df["timestamp"])
+            y_moments_pred = np.zeros(self.y_moments.shape)
+            y_moments_pred[0::3] = y_pred[self.y_moments.shape[0]:int(4*self.y_moments.shape[0]/3)]
+            y_moments_pred[1::3] = y_pred[int(4*self.y_moments.shape[0]/3):int(5*self.y_moments.shape[0]/3)]
+            y_moments_pred[2::3] = y_pred[int(5*self.y_moments.shape[0]/3):]
 
-        # elif (self.estimate_moments):
-        #     y_moments_pred = y_pred
-        #     model_plots.plot_moment_predictions(
-        #         self.y_moments, y_moments_pred, self.data_df["timestamp"])
-        #     model_plots.plot_airspeed_and_AoA(
-        #         self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "angle_of_attack"]], self.data_df["timestamp"])
+            model_plots.plot_force_predictions(
+                self.y_forces, y_forces_pred, self.data_df["timestamp"])
+            model_plots.plot_moment_predictions(
+                self.y_moments, y_moments_pred, self.data_df["timestamp"])
+            model_plots.plot_airspeed_and_AoA(
+                self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "angle_of_attack"]], self.data_df["timestamp"])
 
-        # fig = plt.figure("Residual Visualization")
-        # ax1 = fig.add_subplot(2, 2, 1, projection='3d')
-        # plot_scatter(ax1, "Residual forces [N]", "residual_force_x",
-        #              "residual_force_y", "residual_force_z", 'blue')
+        elif (self.estimate_forces):
+            y_forces_pred = y_pred
+            model_plots.plot_force_predictions(
+                self.y_forces, y_forces_pred, self.data_df["timestamp"])
+            model_plots.plot_airspeed_and_AoA(
+                self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "angle_of_attack"]], self.data_df["timestamp"])
 
-        # ax2 = fig.add_subplot(2, 2, 2, projection='3d')
+        elif (self.estimate_moments):
+            y_moments_pred = y_pred
+            model_plots.plot_moment_predictions(
+                self.y_moments, y_moments_pred, self.data_df["timestamp"])
+            model_plots.plot_airspeed_and_AoA(
+                self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "angle_of_attack"]], self.data_df["timestamp"])
 
-        # plot_scatter(ax2, "Residual Moments [Nm]", "residual_moment_x",
-        #              "residual_moment_y", "residual_moment_z", 'blue')
+        fig = plt.figure("Residual Visualization")
+        ax1 = fig.add_subplot(2, 2, 1, projection='3d')
+        plot_scatter(ax1, "Residual forces [N]", "residual_force_x",
+                     "residual_force_y", "residual_force_z", 'blue')
 
-        # ax3 = fig.add_subplot(2, 2, 3, projection='3d')
+        ax2 = fig.add_subplot(2, 2, 2, projection='3d')
 
-        # plot_scatter(ax3, "Measured Forces [N]",
-        #              "measured_force_x", "measured_force_y", "measured_force_z", 'blue')
+        plot_scatter(ax2, "Residual Moments [Nm]", "residual_moment_x",
+                     "residual_moment_y", "residual_moment_z", 'blue')
 
-        # ax4 = fig.add_subplot(2, 2, 4, projection='3d')
+        ax3 = fig.add_subplot(2, 2, 3, projection='3d')
 
-        # plot_scatter(ax4, "Measured Moments [Nm]",
-        #              "measured_moment_x", "measured_moment_y", "measured_moment_z", 'blue')
+        plot_scatter(ax3, "Measured Forces [N]",
+                     "measured_force_x", "measured_force_y", "measured_force_z", 'blue')
 
-        linear_model_plots.plot_covariance_mat(X, coef_name_list)
+        ax4 = fig.add_subplot(2, 2, 4, projection='3d')
+
+        plot_scatter(ax4, "Measured Moments [Nm]",
+                     "measured_moment_x", "measured_moment_y", "measured_moment_z", 'blue')
+
+        linear_model_plots.plot_covariance_mat(self.X, self.coef_name_list)
 
         if hasattr(self, 'aero_config_dict'):
             coef_list = self.optimizer.get_optimization_parameters()
