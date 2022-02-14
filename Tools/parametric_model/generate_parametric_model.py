@@ -41,6 +41,7 @@ import src.models as models
 from src.tools import DataHandler
 from visual_dataframe_selector.data_selector import select_visual_data
 import argparse
+import pandas as pd
 
 
 def str2bool(v):
@@ -58,6 +59,8 @@ def str2bool(v):
 
 def start_model_estimation(config, log_path, data_selection=False, plot=False):
     print("Visual Data selection enabled: ", data_selection)
+
+    auto_data_selection=False
 
     data_handler = DataHandler(config)
     data_handler.loadLogs(log_path)
@@ -93,6 +96,26 @@ def start_model_estimation(config, log_path, data_selection=False, plot=False):
     model.compute_fisher_information()
     if data_selection:
         model.data_df = select_visual_data(model.data_df,visual_dataframe_selector_config_dict)
+        model.n_samples = model.data_df.shape[0]
+    if auto_data_selection:
+
+        idx = model.data_df.sort_values(by=["fisher_information_force"],ascending=False).index[0:model.data_df.shape[0]*10//100]
+        idx = idx.append(model.data_df.sort_values(by=["fisher_information_force"]).index[0:model.data_df.shape[0]*10//100])
+        idx = idx.append(model.data_df.sort_values(by=["fisher_information_rot"],ascending=False).index[0:model.data_df.shape[0]*10//100])
+        idx = idx.append(model.data_df.sort_values(by=["fisher_information_rot"]).index[0:model.data_df.shape[0]*10//100])
+        # idx = pd.Index([])
+        # infos = model.data_df.filter(regex="_fim$").columns
+        
+        # for i in infos:
+        #     print(i)
+        #     idx = idx.append(model.data_df.sort_values(by=[i],ascending=False).index[0:model.data_df.shape[0]*1//100])
+        #     idx = idx.append(model.data_df.sort_values(by=[i]).index[0:model.data_df.shape[0]*0//200])
+
+        idx = idx.unique()
+        idx = idx.sort_values()
+        print(idx)
+        model.data_df = model.data_df.loc[idx]
+        model.data_df.reset_index(drop=True)
         model.n_samples = model.data_df.shape[0]
     model.estimate_model()
     if plot:
