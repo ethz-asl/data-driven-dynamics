@@ -602,29 +602,27 @@ class DynamicsModel():
             fisher_information_f_mat = np.zeros(shape=(X_forces_x.shape[0],1))
             fisher_information_f_individual = np.zeros(shape=(X_forces_x.shape[0],X_forces_x.shape[1]))
             information_matrix_f = np.zeros(shape=(X_forces_x.shape[1],X_forces_x.shape[1]))
-            queue_size = 50
+            information_matrix_sum = np.zeros(shape=(X_forces_x.shape[1],X_forces_x.shape[1]))
+
+            queue_size = 1000
             queue = []
+            
             for i in range(X_forces_x.shape[0]):
                 jacobian_f = np.vstack((X_forces_x[i, :], X_forces_y[i, :], X_forces_z[i, :]))
                 fisher_information_matrix_f = np.transpose(jacobian_f) @ np.linalg.inv(R_acc) @ jacobian_f
                 information_matrix_f += fisher_information_matrix_f
                 queue.append(fisher_information_matrix_f)
+                information_matrix_sum += fisher_information_matrix_f
                 if len(queue) > queue_size:
-                    queue.pop(0)
-                fisher_information_f_mat[i]= min(np.abs(np.linalg.eigvals(sum(queue))))
+                    information_matrix_sum -= queue.pop(0)
+                fisher_information_f_mat[i]= min(np.abs(np.linalg.eigvals(information_matrix_sum)))
                 #fisher_information_f_mat[i]= np.linalg.det(sum(queue))
                 #fisher_information_f_mat[i]= np.trace(sum(queue))
                 #fisher_information_f_mat[i]= min(np.abs(np.linalg.eigvals(sum(queue)))) / \
                 #         max(np.abs(np.linalg.eigvals(sum(queue))))
 
-                eig, vec = np.linalg.eig(sum(queue))
-                fisher_information_f_individual[i,:]= (np.abs(vec @ eig))
+                fisher_information_f_individual[i,:]= np.diag(fisher_information_matrix_f)
 
-            # for i in range(X_forces_x.shape[1]):
-            #     plt.plot(self.data_df["timestamp"],fisher_information_f_mat[:,i],label=coef_force[i])
-
-            # plt.legend()
-            # plt.show()
 
             self.data_df[["fisher_information_force"]] = fisher_information_f_mat / np.max(fisher_information_f_mat)
             self.data_df[[coef + "_fim" for coef in coef_force]] = fisher_information_f_individual
@@ -655,7 +653,9 @@ class DynamicsModel():
             fisher_information_m_mat = np.zeros(shape=(X_moments_x.shape[0],1))
             information_matrix_m = np.zeros(shape=(X_moments_x.shape[1],X_moments_x.shape[1]))
             fisher_information_m_individual = np.zeros(shape=(X_moments_x.shape[0],X_moments_x.shape[1]))
-            queue_size = 50
+            information_matrix_sum = np.zeros(shape=(X_moments_x.shape[1],X_moments_x.shape[1]))
+
+            queue_size = 1000
             queue = []
 
             for i in range(X_moments_x.shape[0]):
@@ -663,23 +663,17 @@ class DynamicsModel():
                 fisher_information_matrix_m = np.transpose(jacobian_m) @ np.linalg.inv(R_gyro) @ jacobian_m
                 information_matrix_m += fisher_information_matrix_m
                 queue.append(fisher_information_matrix_m)
+                information_matrix_sum += fisher_information_matrix_m
                 if len(queue) > queue_size:
-                    queue.pop(0)
-                fisher_information_m_mat[i]= min(np.abs(np.linalg.eigvals(sum(queue))))
+                    information_matrix_sum -= queue.pop(0)
+                fisher_information_m_mat[i]= min(np.abs(np.linalg.eigvals(information_matrix_sum)))
                 #fisher_information_m_mat[i]= np.linalg.det(sum(queue))
                 #fisher_information_m_mat[i]= np.trace(sum(queue))
                 # fisher_information_m_mat[i]= min(np.abs(np.linalg.eigvals(sum(queue)))) / \
                 #         max(np.abs(np.linalg.eigvals(sum(queue))))
 
-                #fisher_information_m_mat[i]= min(np.abs(np.linalg.eigvals(fisher_information_matrix_m)))
-                eig, vec = np.linalg.eig(sum(queue))
-                fisher_information_m_individual[i,:]= (np.abs(vec @ eig))
+                fisher_information_m_individual[i,:]= (np.diag(fisher_information_matrix_m))
 
-            # for i in range(X_moments_x.shape[1]):
-            #     plt.plot(self.data_df["timestamp"],fisher_information_m_mat[:,i],label=coef_moment[i])
-
-            # plt.legend()
-            # plt.show()
 
             self.data_df["fisher_information_rot"] = fisher_information_m_mat / np.max(fisher_information_m_mat)
             self.data_df[[coef + "_fim" for coef in coef_moment]] = fisher_information_m_individual
