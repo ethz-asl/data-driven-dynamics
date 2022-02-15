@@ -19,6 +19,11 @@ This plugin depends on [PX4 SITL](https://github.com/PX4/PX4-SITL_gazebo). There
 
 In case you have not cloned the firmware repository
 
+
+```
+git clone --recursive https://github.com/PX4/PX4-Autopilot.git ~/src/PX4-Autopilot
+```
+For internal use, our internal firmware repository is as the following.
 ```
 git clone --recursive https://github.com/ethz-asl/ethzasl_fw_px4.git ~/src/PX4-Autopilot
 ```
