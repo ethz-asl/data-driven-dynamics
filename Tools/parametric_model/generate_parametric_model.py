@@ -59,7 +59,8 @@ def str2bool(v):
 def start_model_estimation(config, log_path, data_selection=False, plot=False):
     print("Visual Data selection enabled: ", data_selection)
 
-    auto_data_selection=False
+    # Flag for enabling automatic data selection.
+    auto_data_selection=True
 
     data_handler = DataHandler(config)
     data_handler.loadLogs(log_path)
@@ -97,12 +98,17 @@ def start_model_estimation(config, log_path, data_selection=False, plot=False):
         from visual_dataframe_selector.data_selector import select_visual_data
         model.data_df = select_visual_data(model.data_df,visual_dataframe_selector_config_dict)
         model.n_samples = model.data_df.shape[0]
-    if auto_data_selection:
 
+    # Automatic data selection draft
+    if auto_data_selection:
+        # The goal is to identify automatically the most relevant parts of a log.
+        # Currently the draft is designed to choose the most informative 10% of the logs with regards to
+        # force and moment parameters. This threshold is currently not validated at all and the percentage
+        # can vary drastically from log to log. 
         idx = model.data_df.sort_values(by=["fisher_information_force"],ascending=False).index[0:model.data_df.shape[0]*10//100]
-        idx = idx.append(model.data_df.sort_values(by=["fisher_information_force"]).index[0:model.data_df.shape[0]*10//100])
+        #idx = idx.append(model.data_df.sort_values(by=["fisher_information_force"]).index[0:model.data_df.shape[0]*10//100])
         idx = idx.append(model.data_df.sort_values(by=["fisher_information_rot"],ascending=False).index[0:model.data_df.shape[0]*10//100])
-        idx = idx.append(model.data_df.sort_values(by=["fisher_information_rot"]).index[0:model.data_df.shape[0]*10//100])
+        #idx = idx.append(model.data_df.sort_values(by=["fisher_information_rot"]).index[0:model.data_df.shape[0]*10//100])
         # idx = pd.Index([])
         # infos = model.data_df.filter(regex="_fim$").columns
         

@@ -71,7 +71,7 @@ model_config:
 
 dynamics_model_config:
   optimizer_config:
-    optimizer_class: "LinearRegressor"
+    optimizer_class: "QPOptimizer"
     optimzation_parameters:
     parameter_bounds:
       c_d_fuselage_x: !!python/tuple [0.0, 2.0]
