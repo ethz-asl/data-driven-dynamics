@@ -62,7 +62,7 @@ void DataDrivenDynamicsPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _s
   if (_sdf->HasElement("aeroParamsYAML")) {
     std::string aero_params_yaml = _sdf->GetElement("aeroParamsYAML")->Get<std::string>();
     if (aero_params_yaml.at(0) != '/') {
-      const char* root_dir = std::getenv("DATA_DRIVEN_DYNAMICS_ROOT");
+      const char *root_dir = std::getenv("DATA_DRIVEN_DYNAMICS_ROOT");
       aero_params_yaml = std::string(root_dir) + "/" + aero_params_yaml;
       gzmsg << "Using relative path for model config: " << aero_params_yaml << std::endl;
     } else {
@@ -70,7 +70,8 @@ void DataDrivenDynamicsPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _s
     }
     parametric_model_->LoadAeroParams(aero_params_yaml);
   } else {
-    gzwarn << "[gazebo_data_driven_dynamics_plugin] No aerodynamic paramaters YAML file"
+    gzwarn << "[gazebo_data_driven_dynamics_plugin] No aerodynamic paramaters "
+              "YAML file"
            << " specified, using default Techpod parameters.\n";
   }
 
@@ -89,7 +90,7 @@ void DataDrivenDynamicsPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _s
       event::Events::ConnectWorldUpdateBegin(boost::bind(&DataDrivenDynamicsPlugin::OnUpdate, this, _1));
 }
 
-void DataDrivenDynamicsPlugin::OnUpdate(const common::UpdateInfo& _info) {
+void DataDrivenDynamicsPlugin::OnUpdate(const common::UpdateInfo &_info) {
   Eigen::Vector3d forces, moments;
 
   UpdateForcesAndMoments(forces, moments);
@@ -101,7 +102,7 @@ void DataDrivenDynamicsPlugin::OnUpdate(const common::UpdateInfo& _info) {
   link_->AddRelativeTorque(moments_msg);
 }
 
-void DataDrivenDynamicsPlugin::UpdateForcesAndMoments(Eigen::Vector3d& forces, Eigen::Vector3d& moments) {
+void DataDrivenDynamicsPlugin::UpdateForcesAndMoments(Eigen::Vector3d &forces, Eigen::Vector3d &moments) {
   // Express the air speed and angular velocity in the body frame.
   // B denotes body frame and W world frame ... e.g., W_rot_W_B denotes
   // rotation of B wrt. W expressed in W.
@@ -127,18 +128,18 @@ void DataDrivenDynamicsPlugin::UpdateForcesAndMoments(Eigen::Vector3d& forces, E
   moments << moments_B[0], -moments_B[1], -moments_B[2];
 }
 
-double DataDrivenDynamicsPlugin::NormalizedInputToAngle(const ControlSurface& surface, double input) {
+double DataDrivenDynamicsPlugin::NormalizedInputToAngle(const ControlSurface &surface, double input) {
   return (surface.deflection_max + surface.deflection_min) * 0.5 +
          (surface.deflection_max - surface.deflection_min) * 0.5 * input;
 }
 
-void DataDrivenDynamicsPlugin::ActuatorsCallback(CommandMotorSpeedPtr& actuators_msg) {
+void DataDrivenDynamicsPlugin::ActuatorsCallback(CommandMotorSpeedPtr &actuators_msg) {
   for (size_t i = 0; i < actuator_inputs_.size(); i++) {
     actuator_inputs_(i) = static_cast<double>(actuators_msg->motor_speed(i));
   }
 }
 
-void DataDrivenDynamicsPlugin::WindVelocityCallback(WindPtr& msg) {
+void DataDrivenDynamicsPlugin::WindVelocityCallback(WindPtr &msg) {
   ignition::math::Vector3d wind_vel_ =
       ignition::math::Vector3d(msg->velocity().x(), msg->velocity().y(), msg->velocity().z());
 }

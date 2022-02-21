@@ -15,6 +15,7 @@
  */
 
 #include "parametric_dynamics_model.h"
+
 #include <iostream>
 
 namespace gazebo {
@@ -108,7 +109,7 @@ Eigen::Vector3d ParametricDynamicsModel::computeRotorMoment(const Eigen::Vector3
   const Eigen::Vector3d leaver_moment_vec = rotor_position.cross(rotor_axis);
 
   Eigen::Vector3d moment_leaver{Eigen::Vector3d::Zero()};
-  moment_leaver = (c_m_leaver_quad * std::pow(actuator_input, 2) +
+  moment_leaver = (c_m_leaver_quad * std::pow(actuator_input, 2) * prop_diameter +
                    c_m_leaver_lin * actuator_input * v_airspeed_vertical_to_rotor_axis.norm()) *
                   leaver_moment_vec * kAirDensity * std::pow(prop_diameter, 3);
 

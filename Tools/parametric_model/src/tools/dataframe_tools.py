@@ -42,7 +42,7 @@ from src.tools.ulog_tools import pandas_from_topic
 from src.tools.quat_utils import slerp
 
 # pre normalization thresholds
-PWM_THRESHOLD = 1500
+PWM_THRESHOLD = 1000
 ACTUATOR_CONTROLS_THRESHOLD = -0.2
 
 

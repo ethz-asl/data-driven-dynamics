@@ -40,6 +40,7 @@ import os
 import src.models as models
 from src.tools import DataHandler
 import argparse
+import pandas as pd
 
 
 def str2bool(v):
@@ -57,6 +58,9 @@ def str2bool(v):
 
 def start_model_estimation(config, log_path, data_selection=False, plot=False):
     print("Visual Data selection enabled: ", data_selection)
+
+    # Flag for enabling automatic data selection.
+    auto_data_selection=True
 
     data_handler = DataHandler(config)
     data_handler.loadLogs(log_path)
@@ -93,6 +97,31 @@ def start_model_estimation(config, log_path, data_selection=False, plot=False):
     if data_selection:
         from visual_dataframe_selector.data_selector import select_visual_data
         model.data_df = select_visual_data(model.data_df,visual_dataframe_selector_config_dict)
+        model.n_samples = model.data_df.shape[0]
+
+    # Automatic data selection draft
+    if auto_data_selection:
+        # The goal is to identify automatically the most relevant parts of a log.
+        # Currently the draft is designed to choose the most informative 10% of the logs with regards to
+        # force and moment parameters. This threshold is currently not validated at all and the percentage
+        # can vary drastically from log to log. 
+        idx = model.data_df.sort_values(by=["fisher_information_force"],ascending=False).index[0:model.data_df.shape[0]*10//100]
+        #idx = idx.append(model.data_df.sort_values(by=["fisher_information_force"]).index[0:model.data_df.shape[0]*10//100])
+        idx = idx.append(model.data_df.sort_values(by=["fisher_information_rot"],ascending=False).index[0:model.data_df.shape[0]*10//100])
+        #idx = idx.append(model.data_df.sort_values(by=["fisher_information_rot"]).index[0:model.data_df.shape[0]*10//100])
+        # idx = pd.Index([])
+        # infos = model.data_df.filter(regex="_fim$").columns
+        
+        # for i in infos:
+        #     print(i)
+        #     idx = idx.append(model.data_df.sort_values(by=[i],ascending=False).index[0:model.data_df.shape[0]*1//100])
+        #     idx = idx.append(model.data_df.sort_values(by=[i]).index[0:model.data_df.shape[0]*0//200])
+
+        idx = idx.unique()
+        idx = idx.sort_values()
+        print(idx)
+        model.data_df = model.data_df.loc[idx]
+        model.data_df.reset_index(drop=True)
         model.n_samples = model.data_df.shape[0]
     model.estimate_model()
     if plot:
