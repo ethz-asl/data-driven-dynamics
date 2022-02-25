@@ -60,7 +60,7 @@ def start_model_estimation(config, log_path, data_selection=False, plot=False):
     print("Visual Data selection enabled: ", data_selection)
 
     # Flag for enabling automatic data selection.
-    auto_data_selection=True
+    auto_data_selection=False
 
     data_handler = DataHandler(config)
     data_handler.loadLogs(log_path)
