@@ -115,7 +115,7 @@ class StandardWingModel():
         R_aero_to_body = Rotation.from_rotvec(
             [0, -angle_of_attack, 0]).as_matrix()
         X_wing_body_frame = R_aero_to_body @ X_wing_aero_frame
-
+        X_wing_body_frame = X_wing_body_frame.flatten()
         return X_wing_body_frame
 
     def compute_wing_moment_features(self, v_airspeed, angle_of_attack, angle_of_sideslip):
@@ -169,7 +169,7 @@ class StandardWingModel():
         R_aero_to_body = Rotation.from_rotvec(
             [0, -angle_of_attack, 0]).as_matrix()
         X_wing_body_frame = R_aero_to_body @ X_wing_aero_frame
-
+        X_wing_body_frame = X_wing_body_frame.flatten()
         return X_wing_body_frame
 
     def compute_aero_force_features(self, v_airspeed_mat, angle_of_attack_vec):
@@ -179,7 +179,6 @@ class StandardWingModel():
         v_airspeed_mat: numpy array of dimension (n,3) with columns for [v_a_x, v_a_y, v_a_z]
         angle_of_attack_vec: vector of size (n) with corresponding AoA values
         """
-        print("Starting computation of aero force features...")
         X_aero = self.compute_wing_force_features(
             v_airspeed_mat[0, :], angle_of_attack_vec[0])
         aero_features_bar = Bar(
@@ -190,10 +189,26 @@ class StandardWingModel():
             X_aero = np.vstack((X_aero, X_curr))
             aero_features_bar.next()
         aero_features_bar.finish()
-        wing_coef_list = ["c_d_wing_xz_offset", "c_d_wing_xz_lin", "c_d_wing_xz_quad",
-                          "c_d_wing_xz_fp_min", "c_d_wing_xz_fp_max",
-                          "c_l_wing_xz_offset", "c_l_wing_xz_lin", "c_l_wing_xz_fp"]
-        return X_aero, wing_coef_list
+        coef_dict = {
+            "c_d_wing_xz_offset": {"lin":{ "x": "c_d_wing_xz_offset_x","y": "c_d_wing_xz_offset_y","z":"c_d_wing_xz_offset_z"}},
+            "c_d_wing_xz_lin": {"lin":{ "x": "c_d_wing_xz_lin_x","y": "c_d_wing_xz_lin_y","z":"c_d_wing_xz_lin_z"}},
+            "c_d_wing_xz_quad": {"lin":{ "x": "c_d_wing_xz_quad_x","y": "c_d_wing_xz_quad_y","z":"c_d_wing_xz_quad_z"}},
+            "c_d_wing_xz_fp_min": {"lin":{ "x": "c_d_wing_xz_fp_min_x","y": "c_d_wing_xz_fp_min_y","z":"c_d_wing_xz_fp_min_z"}},
+            "c_d_wing_xz_fp_max": {"lin":{ "x": "c_d_wing_xz_fp_max_x","y": "c_d_wing_xz_fp_max_y","z":"c_d_wing_xz_fp_max_z"}},
+            "c_l_wing_xz_offset": {"lin":{ "x": "c_l_wing_xz_offset_x","y": "c_l_wing_xz_offset_y","z":"c_l_wing_xz_offset_z"}},
+            "c_l_wing_xz_lin": {"lin":{ "x": "c_l_wing_xz_lin_x","y": "c_l_wing_xz_lin_y","z":"c_l_wing_xz_lin_z"}},
+            "c_l_wing_xz_fp": {"lin":{ "x": "c_l_wing_xz_fp_x","y": "c_l_wing_xz_fp_y","z":"c_l_wing_xz_fp_z"}},
+        }
+        col_names = ["c_d_wing_xz_offset_x", "c_d_wing_xz_offset_y", "c_d_wing_xz_offset_z", 
+                    "c_d_wing_xz_lin_x", "c_d_wing_xz_lin_y", "c_d_wing_xz_lin_z",
+                    "c_d_wing_xz_quad_x", "c_d_wing_xz_quad_y", "c_d_wing_xz_quad_z",
+                    "c_d_wing_xz_fp_min_x", "c_d_wing_xz_fp_min_y", "c_d_wing_xz_fp_min_z",
+                    "c_d_wing_xz_fp_max_x", "c_d_wing_xz_fp_max_y", "c_d_wing_xz_fp_max_z",
+                    "c_l_wing_xz_offset_x", "c_l_wing_xz_offset_y", "c_l_wing_xz_offset_z",
+                    "c_l_wing_xz_lin_x", "c_l_wing_xz_lin_y", "c_l_wing_xz_lin_z", 
+                    "c_l_wing_xz_fp_x", "c_l_wing_xz_fp_y", "c_l_wing_xz_fp_z"]
+                
+        return X_aero, coef_dict, col_names
 
     def compute_aero_moment_features(self, v_airspeed_mat, angle_of_attack_vec, angle_of_sideslip_vec):
         """
@@ -213,7 +228,12 @@ class StandardWingModel():
             X_aero = np.vstack((X_aero, X_curr))
             aero_features_bar.next()
         aero_features_bar.finish()
-        wing_coef_list = ["c_m_x_wing_xz_offset",
-                          "c_m_x_wing_xz_lin", "c_m_z_wing_lin"]
-        aero_coef_list = wing_coef_list
-        return X_aero, aero_coef_list
+        coef_dict = {
+            "c_m_x_wing_xz_offset": {"rot":{ "x": "c_m_x_wing_xz_offset_x","y": "c_m_x_wing_xz_offset_y","z":"c_m_x_wing_xz_offset_z"}},
+            "c_m_x_wing_xz_lin": {"rot":{ "x": "c_m_x_wing_xz_lin_x","y": "c_m_x_wing_xz_lin_y","z":"c_m_x_wing_xz_lin_z"}},
+            "c_m_z_wing_lin": {"rot":{ "x": "c_m_z_wing_lin_x","y": "c_m_z_wing_lin_y","z":"c_m_z_wing_lin_z"}},
+        }
+        col_names = ["c_m_x_wing_xz_offset_x", "c_m_x_wing_xz_offset_y", "c_m_x_wing_xz_offset_z", 
+                    "c_m_x_wing_xz_lin_x", "c_m_x_wing_xz_lin_y", "c_m_x_wing_xz_lin_z",
+                    "c_m_z_wing_lin_x", "c_m_z_wing_lin_y", "c_m_z_wing_lin_z"]
+        return X_aero, coef_dict, col_names

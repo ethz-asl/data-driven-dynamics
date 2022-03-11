@@ -46,9 +46,9 @@ model_config:
           description: "rudder"
           dataframe_name: "u2"
 
-        - control_surface_4:
-          description: "flaps"
-          dataframe_name: "u3"
+        # - control_surface_4:
+        #   description: "flaps"
+        #   dataframe_name: "u3"
 
   aerodynamics:
     area: 1.2
@@ -57,7 +57,7 @@ model_config:
 
 dynamics_model_config:
   optimizer_config:
-    optimizer_class: "QPOptimizer"
+    optimizer_class: "LinearRegressor"
     optimzation_parameters:
     parameter_bounds:
       c_d_wing_xz_fp_max: !!python/tuple [1.8, 1.8]
@@ -114,7 +114,7 @@ dynamics_model_config:
         ulog_name:
           - "timestamp"
           - "output[2]" # Rudder
-          - "output[3]" # Flaps
+          # - "output[3]" # Flaps
           - "output[4]" # motor
           - "output[5]" # left aileron
           - "output[6]" # right aileron
@@ -122,7 +122,7 @@ dynamics_model_config:
         dataframe_name:
           - "timestamp"
           - "u2"
-          - "u3"
+          # - "u3"
           - "u4"
           - "u5"
           - "u6"
@@ -130,7 +130,7 @@ dynamics_model_config:
         actuator_type:
           - "timestamp"
           - "control_surface"
-          - "control_surface"
+          # - "control_surface"
           - "motor"
           - "control_surface"
           - "control_surface"
