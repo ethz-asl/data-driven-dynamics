@@ -604,7 +604,7 @@ class DynamicsModel():
             coef_dict = dict(zip(self.coef_name_list, coef_list))
             aerodynamics_plots.plot_liftdrag_curve(
                 coef_dict, self.aerodynamics_dict)
-
+        plt.tight_layout()
         plt.show()
         return
 
