@@ -100,8 +100,9 @@ class ControlSurfaceModel():
         X_roll_moment_body = R_aero_to_body @ X_roll_moment
         X_pitch_moment_body = R_aero_to_body @ X_pitch_moment
         X_yaw_moment_body = R_aero_to_body @ X_yaw_moment
-
-        return np.hstack((X_roll_moment_body, X_pitch_moment_body, X_yaw_moment_body))
+        X_moments = np.hstack((X_roll_moment_body, X_pitch_moment_body, X_yaw_moment_body))
+        X_moments = X_moments.flatten()
+        return X_moments
 
     def compute_actuator_force_matrix(self, v_airspeed_mat, angle_of_attack_vec):
         print("Computing force features for control surface:", self.name)
@@ -124,16 +125,22 @@ class ControlSurfaceModel():
     def compute_actuator_moment_matrix(self, v_airspeed_mat, angle_of_attack_vec):
         print("Computing moment features for control surface:", self.name)
 
-        X_moments = self.compute_actuator_moment_features(
+        X_aero = self.compute_actuator_moment_features(
             0, v_airspeed_mat[0, :], angle_of_attack_vec[0, :])
         rotor_features_bar = Bar(
             'Feature Computatiuon', max=self.actuator_input_vec.shape[0])
         for index in range(1, self.n_timestamps):
             X_moment_curr = self.compute_actuator_moment_features(
                 index, v_airspeed_mat[index, :], angle_of_attack_vec[index, :])
-            X_moments = np.vstack((X_moments, X_moment_curr))
+            X_aero = np.vstack((X_aero, X_moment_curr))
             rotor_features_bar.next()
         rotor_features_bar.finish()
-        coef_list_moments = ["c_m_x_delta", "c_m_y_pitch_delta", "c_m_z_delta"]
-        self.X_moments = X_moments
-        return X_moments, coef_list_moments
+        coef_dict = {
+            self.name + "c_m_x_delta": {"rot":{ "x": self.name+"c_m_x_delta_x","y": self.name+"c_m_x_delta_y","z":self.name+"c_m_x_delta_z"}},
+            self.name + "c_m_y_delta": {"rot":{ "x": self.name+"c_m_y_delta_x","y": self.name+"c_m_y_delta_y","z":self.name+"c_m_y_delta_z"}},
+            self.name + "c_m_z_delta": {"rot":{ "x": self.name+"c_m_z_delta_x","y": self.name+"c_m_z_delta_y","z":self.name+"c_m_z_delta_z"}},
+        }        
+        col_names = [self.name+"c_m_x_delta_x", self.name+"c_m_x_delta_y", self.name+"c_m_x_delta_z",
+                    self.name+"c_m_y_delta_x", self.name+"c_m_y_delta_y", self.name+"c_m_y_delta_z",
+                    self.name+"c_m_z_delta_x", self.name+"c_m_z_delta_y", self.name+"c_m_z_delta_z"]
+        return X_aero, coef_dict, col_names
