@@ -48,5 +48,5 @@ def plot_covariance_mat(X, coef_name_list):
     df = pd.DataFrame(X, columns=coef_name_list)
     corrMatrix = df.corr()
     fig, ax = plt.subplots(1)
-    ax = sns.heatmap(corrMatrix, annot=True)
+    ax = sns.heatmap(corrMatrix, annot=False)
     ax.set_title('Coefficient covariance')
