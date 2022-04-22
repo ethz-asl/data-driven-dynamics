@@ -117,7 +117,7 @@ The resulting parameters of the model estimation together with additional report
 As an example to get started you estimate the parameters of a quadrotor model with the reference log_files:
 
 ```
-make estimate-model model=quadrotor_model log=resources/quadrotor_model.ulg
+make estimate-model model=quadrotor_model log=resources/quadrotor_model.csv
 ```
 
 ## Generating a Model Prediction for Given Parameters and Log
