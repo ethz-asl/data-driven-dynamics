@@ -50,6 +50,7 @@ from src.models.model_config import ModelConfig
 from src.tools.ulog_tools import load_ulog, pandas_from_topic
 from src.tools.dataframe_tools import compute_flight_time, resample_dataframe_list
 from src.tools.quat_utils import quaternion_to_rotation_matrix
+from pathlib import Path
 
 
 class DataHandler(object):
@@ -99,7 +100,9 @@ class DataHandler(object):
 
         if (rel_data_path.endswith(".csv")):
             print("Loading CSV file: ", rel_data_path)
-            self.data_df = pd.read_csv(rel_data_path, index_col=0)
+            proj_path = Path(os.getcwd())
+            log_file_path = os.path.join(proj_path, rel_data_path)
+            self.data_df = pd.read_csv(log_file_path, index_col=0)
             print("Loading topics: ", self.req_dataframe_topic_list)
             for req_topic in self.req_dataframe_topic_list:
                 assert(
