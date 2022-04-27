@@ -1,0 +1,43 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+    
+
+        {
+            "name": "Python: Estimation",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/Tools/parametric_model/generate_parametric_model.py",
+            "console": "integratedTerminal",
+            "python.pythonPath": "${workspaceFolder}/bin/python3",
+            "cwd": "${workspaceFolder}",
+            "args": ["--config", "${workspaceFolder}/Tools/parametric_model/configs/quadrotor_model.yaml",
+            "${workspaceFolder}/resources/quadrotor_model.ulg",
+            "--data_selection=False"]
+        },
+        {
+            "name": "Python: Plane",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/Tools/parametric_model/generate_parametric_model.py",
+            "console": "integratedTerminal",
+            "python.pythonPath": "${workspaceFolder}/bin/python3",
+            "cwd": "${workspaceFolder}",
+            "args": ["--config", "${workspaceFolder}/Tools/parametric_model/configs/standardplane_model.yaml",
+            "${workspaceFolder}/resources/standardplane_model.ulg"]
+        },
+        {
+            "name": "Python: Generate Data",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/Tools/parametric_model/generate_data.py",
+            "console": "integratedTerminal",
+            "python.pythonPath": "${workspaceFolder}/bin/python3",
+            "cwd": "${workspaceFolder}/Tools/parametric_model",
+            "args": []
+        }
+    ]
+}
