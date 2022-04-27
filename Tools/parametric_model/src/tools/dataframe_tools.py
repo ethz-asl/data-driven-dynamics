@@ -46,7 +46,7 @@ PWM_THRESHOLD = 1000
 ACTUATOR_CONTROLS_THRESHOLD = -0.2
 
 
-def compute_flight_time(ulog, pwm_threshold=None, control_threshold=None):
+def compute_flight_time(act_df, pwm_threshold=None, control_threshold=None):
     """This function computes the flight time by a simple thresholding of actuator outputs or control values. 
     This works usually well for logs from the simulator or mission flights. But in some cases the assumption of an actuator output staying higher than the trsehhold for the hole flight might not be valid."""
 
@@ -56,25 +56,8 @@ def compute_flight_time(ulog, pwm_threshold=None, control_threshold=None):
     if control_threshold is None:
         control_threshold = ACTUATOR_CONTROLS_THRESHOLD
 
-    topic_type_list = []
-    for ulog_data_element in ulog._data_list:
-        topic_type_list.append(ulog_data_element.name)
+    act_df_crp = act_df[act_df.iloc[:, 4] > pwm_threshold]
 
-    if "actuator_outputs" in topic_type_list:
-        act_df = pandas_from_topic(ulog, ["actuator_outputs"])
-        # choose first actuator data
-        act_df_crp = act_df[act_df.iloc[:, 4] > pwm_threshold]
-
-    # special case for aero mini tilt wing for asl
-    elif "actuator_controls_0" in topic_type_list:
-        act_df = pandas_from_topic(ulog, ["actuator_controls_0"])
-        # choose first actuator data
-        act_df_crp = act_df[act_df.iloc[:, 4] > control_threshold]
-
-    else:
-        print("could not select flight time due to missing actuator topic")
-        exit(1)
-        # set start and end time of flight duration
     t_start = act_df_crp.iloc[1, 0]
     t_end = act_df_crp.iloc[(act_df_crp.shape[0]-1), 0]
     flight_time = {"t_start": t_start, "t_end": t_end}

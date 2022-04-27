@@ -38,7 +38,7 @@ __license__ = "BSD 3"
 
 from src.tools.math_tools import cropped_sym_sigmoid
 from src.tools.quat_utils import quaternion_to_rotation_matrix
-from src.tools.dataframe_tools import compute_flight_time, resample_dataframe_list
+from src.tools.dataframe_tools import resample_dataframe_list
 from src.tools.ulog_tools import load_ulog, pandas_from_topic
 from .model_plots import model_plots, aerodynamics_plots, linear_model_plots
 from .rotor_models import RotorModel, BiDirectionalRotorModel, TiltingRotorModel, ChangingAxisRotorModel

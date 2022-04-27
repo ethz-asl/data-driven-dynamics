@@ -104,6 +104,7 @@ dynamics_model_config:
       #     - "ang_acc_b_y"
       #     - "ang_acc_b_z"
       actuator_outputs:
+        id: 0
         ulog_name:
           - "timestamp"
           - "output[0]"
