@@ -43,6 +43,13 @@ dynamics_model_config:
   estimate_angular_acceleration: False
   data:
     required_ulog_topics:
+      actuator_outputs:
+        ulog_name:
+          - "timestamp"
+          - "output[0]"
+          - "output[1]"
+          - "output[2]"
+          - "output[3]"
       vehicle_local_position:
         ulog_name:
           - "timestamp"

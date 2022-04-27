@@ -159,6 +159,8 @@ class DataHandler(object):
             
             if topic_type == "actuator_outputs":
                 fts = compute_flight_time(curr_df)
+            elif topic_type == "actuator_controls_0":
+                fts = compute_flight_time(curr_df)
             
             curr_df = curr_df[topic_dict["ulog_name"]]
             if "dataframe_name" in topic_dict.keys():
