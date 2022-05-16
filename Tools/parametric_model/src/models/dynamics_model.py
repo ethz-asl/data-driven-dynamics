@@ -512,14 +512,14 @@ class DynamicsModel():
         residual_force_df = pd.DataFrame(acc_mat, columns=[
             "residual_force_x", "residual_force_y", "residual_force_z"])
         self.data_df = pd.concat(
-            [self.data_df, residual_force_df], axis=1, join="inner")
+            [self.data_df, residual_force_df], axis=1, join="inner").reindex(self.data_df.index)
 
         stacked_error_y_moments = np.array(error_y_moments)
         mom_mat = stacked_error_y_moments.reshape((-1, 3))
         residual_moment_df = pd.DataFrame(mom_mat, columns=[
             "residual_moment_x", "residual_moment_y", "residual_moment_z"])
         self.data_df = pd.concat(
-            [self.data_df, residual_moment_df], axis=1, join="inner")
+            [self.data_df, residual_moment_df], axis=1, join="inner").reindex(self.data_df.index)
 
     def plot_model_predicitons(self):
 
@@ -613,6 +613,7 @@ class DynamicsModel():
         ## TODO: Parse accelerometer noise characteristics
         R_acc = np.diag([250*0.00186, 250*0.00186, 250*0.00186])
         R_gyro = np.diag([250*0.0003394, 250*0.0003394, 250*0.0003394])
+        ## TODO: Compensate for bandlimited signals
         fudge_factor = 5.0
 
         self.fisher_metric = {}
