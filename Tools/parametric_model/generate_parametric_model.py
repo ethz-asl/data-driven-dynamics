@@ -56,12 +56,10 @@ def str2bool(v):
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
 
-def start_model_estimation(config, log_path, data_selection=False, plot=False):
+def start_model_estimation(config, log_path, data_selection="none", plot=False):
     print("Visual Data selection enabled: ", data_selection)
 
     # Flag for enabling automatic data selection.
-    # TODO: Unify data selection type with auto and manual
-    auto_data_selection=False
 
     data_handler = DataHandler(config)
     data_handler.loadLogs(log_path)
@@ -97,22 +95,20 @@ def start_model_estimation(config, log_path, data_selection=False, plot=False):
     model.compute_fisher_information()
 
     # Interactive data selection
-    if data_selection:
+    if data_selection=="interactive":
         from visual_dataframe_selector.data_selector import select_visual_data
         model.data_df = select_visual_data(model.data_df,visual_dataframe_selector_config_dict)
         model.n_samples = model.data_df.shape[0]
     # Automatic data selection (WIP)
-    elif auto_data_selection:
+    elif data_selection=="auto":
+        from active_dataframe_selector.data_selector import ActiveDataSelector
         # The goal is to identify automatically the most relevant parts of a log.
         # Currently the draft is designed to choose the most informative 10% of the logs with regards to
         # force and moment parameters. This threshold is currently not validated at all and the percentage
         # can vary drastically from log to log. 
-        idx = model.data_df.sort_values(by=["fisher_information_force"]).index[0:model.data_df.shape[0]*10//100]
-        idx = idx.append(model.data_df.sort_values(by=["fisher_information_rot"]).index[0:model.data_df.shape[0]*10//100])
-        idx = idx.unique()
-        idx = idx.sort_values()
-        model.data_df = model.data_df.loc[idx]
-        model.data_df.reset_index(drop=True)
+
+        data_selector = ActiveDataSelector(model.data_df)
+        model.data_df = data_selector.select_dataframes(10)
         model.n_samples = model.data_df.shape[0]
 
     model.estimate_model()
@@ -129,8 +125,8 @@ if __name__ == "__main__":
         description='Estimate dynamics model from flight log.')
     parser.add_argument('log_path', metavar='log_path', type=str,
                         help='The path of the log to process relative to the project directory.')
-    parser.add_argument('--data_selection', metavar='data_selection', type=str2bool, default=False,
-                        help='the path of the log to process relative to the project directory.')
+    parser.add_argument('--data_selection', metavar='data_selection', type=str, default="none",
+                        help='Data selection scheme none | interactive | auto (Beta)')
     parser.add_argument('--config', metavar='config', type=str, default='configs/quadrotor_model.yaml',
                         help='Configuration file path for pipeline configurations')
     parser.add_argument('--plot', metavar='plot', type=str2bool, default='True',
