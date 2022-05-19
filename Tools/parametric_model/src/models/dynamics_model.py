@@ -604,6 +604,28 @@ class DynamicsModel():
             coef_dict = dict(zip(self.coef_name_list, coef_list))
             aerodynamics_plots.plot_liftdrag_curve(
                 coef_dict, self.aerodynamics_dict)
+
+       # Plot residual psd
+        from scipy import signal
+        fig2 = plt.figure("Residual PSD")
+        ax21 = fig2.add_subplot(3, 1, 1)
+        freqs, psd = signal.welch(self.data_df["residual_force_x"].values.flatten(), 250)
+        ax21.semilogx(freqs, psd)
+        ax21.set_title("residual_force_x")
+        ax21.grid(True)
+
+        ax22 = fig2.add_subplot(3, 1, 2)
+        freqs, psd = signal.welch(self.data_df["residual_force_y"].values.flatten(), 250)
+        ax22.semilogx(freqs, psd)
+        ax22.set_title("residual_force_y")
+        ax22.grid(True)
+
+        ax23 = fig2.add_subplot(3, 1, 3)
+        freqs, psd = signal.welch(self.data_df["residual_force_y"].values.flatten(), 250)
+        ax23.semilogx(freqs, psd)
+        ax23.set_title("residual_force_z")
+        ax23.grid(True)
+
         plt.tight_layout()
         plt.show()
         return
