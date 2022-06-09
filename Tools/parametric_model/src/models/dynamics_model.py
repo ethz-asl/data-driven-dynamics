@@ -409,7 +409,12 @@ class DynamicsModel():
         print("===============================================================================")
         print("                        Preparing Model Features                               ")
         print("===============================================================================")
-        self.X, self.y, self.coef_name_list = self.assemble_regression_matrices(["lin","rot"])
+        configuration = []
+        if self.estimate_forces:
+            configuration.append("lin")
+        if self.estimate_moments:
+            configuration.append("rot")
+        self.X, self.y, self.coef_name_list = self.assemble_regression_matrices(configuration)
         self.initialize_optimizer()
         self.optimizer.estimate_parameters(self.X, self.y)
         self.generate_optimization_results()
@@ -462,7 +467,8 @@ class DynamicsModel():
         metrics_dict = self.optimizer.compute_optimization_metrics()
         coef_list = self.optimizer.get_optimization_parameters()
         model_dict = {}
-        model_dict.update(self.rotor_config_dict)
+        if hasattr(self, 'rotor_config_dict'):
+            model_dict.update(self.rotor_config_dict)
         if hasattr(self, 'aero_config_dict'):
             model_dict.update(self.aero_config_dict)
         self.generate_model_dict(coef_list, metrics_dict, model_dict)
@@ -481,45 +487,49 @@ class DynamicsModel():
     def compute_residuals(self):
 
         y_pred = self.optimizer.predict(self.X)
-        _,y_forces,_ = self.assemble_regression_matrices(["lin"])
-        _,y_moments,_ = self.assemble_regression_matrices(["rot"])
+        if self.estimate_forces:
+            _,y_forces,_ = self.assemble_regression_matrices(["lin"])
+            y_forces_measured = np.zeros(y_forces.shape)
+            y_forces_measured[0::3] = y_forces[0:int(y_forces.shape[0]/3)]
+            y_forces_measured[1::3] = y_forces[int(y_forces.shape[0]/3):int(2*y_forces.shape[0]/3)]
+            y_forces_measured[2::3] = y_forces[int(2*y_forces.shape[0]/3):y_forces.shape[0]]
 
-        y_forces_measured = np.zeros(y_forces.shape)
-        y_forces_measured[0::3] = y_forces[0:int(y_forces.shape[0]/3)]
-        y_forces_measured[1::3] = y_forces[int(y_forces.shape[0]/3):int(2*y_forces.shape[0]/3)]
-        y_forces_measured[2::3] = y_forces[int(2*y_forces.shape[0]/3):y_forces.shape[0]]
+            y_forces_pred = np.zeros(y_forces.shape)
+            y_forces_pred[0::3] = y_pred[0:int(y_forces.shape[0]/3)]
+            y_forces_pred[1::3] = y_pred[int(y_forces.shape[0]/3):int(2*y_forces.shape[0]/3)]
+            y_forces_pred[2::3] = y_pred[int(2*y_forces.shape[0]/3):y_forces.shape[0]]
 
-        y_forces_pred = np.zeros(y_forces.shape)
-        y_forces_pred[0::3] = y_pred[0:int(y_forces.shape[0]/3)]
-        y_forces_pred[1::3] = y_pred[int(y_forces.shape[0]/3):int(2*y_forces.shape[0]/3)]
-        y_forces_pred[2::3] = y_pred[int(2*y_forces.shape[0]/3):y_forces.shape[0]]
+            error_y_forces = y_forces_pred - y_forces_measured
 
-        y_moments_measured = np.zeros(y_moments.shape)
-        y_moments_measured[0::3] = y_moments[0:int(y_moments.shape[0]/3)]
-        y_moments_measured[1::3] = y_moments[int(y_moments.shape[0]/3):int(2*y_moments.shape[0]/3)]
-        y_moments_measured[2::3] = y_moments[int(2*y_moments.shape[0]/3):y_moments.shape[0]]
+            stacked_error_y_forces = np.array(error_y_forces)
+            acc_mat = stacked_error_y_forces.reshape((-1, 3))
+            residual_force_df = pd.DataFrame(acc_mat, columns=[
+                "residual_force_x", "residual_force_y", "residual_force_z"])
+            self.data_df = pd.concat(
+                [self.data_df, residual_force_df], axis=1, join="inner").reindex(self.data_df.index)
 
-        y_moments_pred = np.zeros(y_moments.shape)
-        y_moments_pred[0::3] = y_pred[y_moments.shape[0]:int(4*y_moments.shape[0]/3)]
-        y_moments_pred[1::3] = y_pred[int(4*y_moments.shape[0]/3):int(5*y_moments.shape[0]/3)]
-        y_moments_pred[2::3] = y_pred[int(5*y_moments.shape[0]/3):]
+        if self.estimate_moments:
+            _,y_moments,_ = self.assemble_regression_matrices(["rot"])
 
-        error_y_forces = y_forces_pred - y_forces_measured
-        error_y_moments = y_moments_pred - y_moments_measured
+            y_moments_measured = np.zeros(y_moments.shape)
+            y_moments_measured[0::3] = y_moments[0:int(y_moments.shape[0]/3)]
+            y_moments_measured[1::3] = y_moments[int(y_moments.shape[0]/3):int(2*y_moments.shape[0]/3)]
+            y_moments_measured[2::3] = y_moments[int(2*y_moments.shape[0]/3):y_moments.shape[0]]
 
-        stacked_error_y_forces = np.array(error_y_forces)
-        acc_mat = stacked_error_y_forces.reshape((-1, 3))
-        residual_force_df = pd.DataFrame(acc_mat, columns=[
-            "residual_force_x", "residual_force_y", "residual_force_z"])
-        self.data_df = pd.concat(
-            [self.data_df, residual_force_df], axis=1, join="inner").reindex(self.data_df.index)
+            y_moments_pred = np.zeros(y_moments.shape)
+            y_moments_pred[0::3] = y_pred[y_moments.shape[0]:int(4*y_moments.shape[0]/3)]
+            y_moments_pred[1::3] = y_pred[int(4*y_moments.shape[0]/3):int(5*y_moments.shape[0]/3)]
+            y_moments_pred[2::3] = y_pred[int(5*y_moments.shape[0]/3):]
 
-        stacked_error_y_moments = np.array(error_y_moments)
-        mom_mat = stacked_error_y_moments.reshape((-1, 3))
-        residual_moment_df = pd.DataFrame(mom_mat, columns=[
-            "residual_moment_x", "residual_moment_y", "residual_moment_z"])
-        self.data_df = pd.concat(
-            [self.data_df, residual_moment_df], axis=1, join="inner").reindex(self.data_df.index)
+            error_y_moments = y_moments_pred - y_moments_measured
+
+
+            stacked_error_y_moments = np.array(error_y_moments)
+            mom_mat = stacked_error_y_moments.reshape((-1, 3))
+            residual_moment_df = pd.DataFrame(mom_mat, columns=[
+                "residual_moment_x", "residual_moment_y", "residual_moment_z"])
+            self.data_df = pd.concat(
+                [self.data_df, residual_moment_df], axis=1, join="inner").reindex(self.data_df.index)
 
     def plot_model_predicitons(self):
 
@@ -533,9 +543,14 @@ class DynamicsModel():
 
         y_pred = self.optimizer.predict(self.X)
 
-        if (self.estimate_forces and self.estimate_moments):
+        fig = plt.figure("Residual Visualization")
+
+        model_plots.plot_airspeed_and_AoA(
+            self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "angle_of_attack"]], self.data_df["timestamp"])
+
+        if (self.estimate_forces):
             _,y_forces,_ = self.assemble_regression_matrices(["lin"])
-            _,y_moments,_ = self.assemble_regression_matrices(["rot"])
+
             y_forces_measured = np.zeros(y_forces.shape)
             y_forces_measured[0::3] = y_forces[0:int(y_forces.shape[0]/3)]
             y_forces_measured[1::3] = y_forces[int(y_forces.shape[0]/3):int(2*y_forces.shape[0]/3)]
@@ -545,6 +560,19 @@ class DynamicsModel():
             y_forces_pred[0::3] = y_pred[0:int(y_forces.shape[0]/3)]
             y_forces_pred[1::3] = y_pred[int(y_forces.shape[0]/3):int(2*y_forces.shape[0]/3)]
             y_forces_pred[2::3] = y_pred[int(2*y_forces.shape[0]/3):y_forces.shape[0]]
+
+            model_plots.plot_force_predictions(
+                y_forces_measured, y_forces_pred, self.data_df["timestamp"])
+
+            ax1 = fig.add_subplot(2, 2, 1, projection='3d')
+            plot_scatter(ax1, "Residual forces [N]", "residual_force_x",
+                        "residual_force_y", "residual_force_z", 'blue')
+            ax3 = fig.add_subplot(2, 2, 3, projection='3d')
+            plot_scatter(ax3, "Measured Forces [N]",
+                        "measured_force_x", "measured_force_y", "measured_force_z", 'blue')
+
+        if (self.estimate_moments):
+            _,y_moments,_ = self.assemble_regression_matrices(["rot"])
 
             y_moments_measured = np.zeros(y_moments.shape)
             y_moments_measured[0::3] = y_moments[0:int(y_moments.shape[0]/3)]
@@ -556,46 +584,18 @@ class DynamicsModel():
             y_moments_pred[1::3] = y_pred[int(4*y_moments.shape[0]/3):int(5*y_moments.shape[0]/3)]
             y_moments_pred[2::3] = y_pred[int(5*y_moments.shape[0]/3):]
 
-            model_plots.plot_force_predictions(
-                y_forces_measured, y_forces_pred, self.data_df["timestamp"])
             model_plots.plot_moment_predictions(
                 y_moments_measured, y_moments_pred, self.data_df["timestamp"])
-            model_plots.plot_airspeed_and_AoA(
-                self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "angle_of_attack"]], self.data_df["timestamp"])
 
-        elif (self.estimate_forces):
-            y_forces_pred = y_pred
-            model_plots.plot_force_predictions(
-                y_forces_measured, y_forces_pred, self.data_df["timestamp"])
-            model_plots.plot_airspeed_and_AoA(
-                self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "angle_of_attack"]], self.data_df["timestamp"])
+            ax2 = fig.add_subplot(2, 2, 2, projection='3d')
 
-        elif (self.estimate_moments):
-            y_moments_pred = y_pred
-            model_plots.plot_moment_predictions(
-                y_moments_measured, y_moments_pred, self.data_df["timestamp"])
-            model_plots.plot_airspeed_and_AoA(
-                self.data_df[["V_air_body_x", "V_air_body_y", "V_air_body_z", "angle_of_attack"]], self.data_df["timestamp"])
+            plot_scatter(ax2, "Residual Moments [Nm]", "residual_moment_x",
+                        "residual_moment_y", "residual_moment_z", 'blue')
 
-        fig = plt.figure("Residual Visualization")
-        ax1 = fig.add_subplot(2, 2, 1, projection='3d')
-        plot_scatter(ax1, "Residual forces [N]", "residual_force_x",
-                     "residual_force_y", "residual_force_z", 'blue')
+            ax4 = fig.add_subplot(2, 2, 4, projection='3d')
 
-        ax2 = fig.add_subplot(2, 2, 2, projection='3d')
-
-        plot_scatter(ax2, "Residual Moments [Nm]", "residual_moment_x",
-                     "residual_moment_y", "residual_moment_z", 'blue')
-
-        ax3 = fig.add_subplot(2, 2, 3, projection='3d')
-
-        plot_scatter(ax3, "Measured Forces [N]",
-                     "measured_force_x", "measured_force_y", "measured_force_z", 'blue')
-
-        ax4 = fig.add_subplot(2, 2, 4, projection='3d')
-
-        plot_scatter(ax4, "Measured Moments [Nm]",
-                     "measured_moment_x", "measured_moment_y", "measured_moment_z", 'blue')
+            plot_scatter(ax4, "Measured Moments [Nm]",
+                        "measured_moment_x", "measured_moment_y", "measured_moment_z", 'blue')
 
         linear_model_plots.plot_covariance_mat(self.X, self.coef_name_list)
 
