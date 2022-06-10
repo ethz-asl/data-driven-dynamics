@@ -5,7 +5,7 @@ __license__ = "BSD 3"
 import os
 import sys
 import inspect
-from src.models import MultiRotorModel, StandardPlaneModel, QuadPlaneModel
+from src.models import MultiRotorModel, StandardPlaneModel
 from src.models.model_config import ModelConfig
 import src.models as models
 from src.tools import DataHandler
@@ -46,7 +46,7 @@ def start_model_prediction(config, model_results, log_path, data_selection=False
     data_handler = DataHandler(config)
     data_handler.loadLogs(log_path)
 
-    if data_selection_enabled:
+    if data_selection_enabled=="interactive":
         data_handler.visually_select_data()
     data_handler.visualize_data()
 
@@ -64,8 +64,10 @@ def start_model_prediction(config, model_results, log_path, data_selection=False
         raise AttributeError(error_str)
 
     model.load_dataframes(data_df)
+    model.prepare_regression_matrices()
+    model.compute_fisher_information()
     model.predict_model(opt_coefs_dict)
-    model.compute_residuals()
+    # model.compute_residuals()
     model.plot_model_predicitons()
 
     return
@@ -76,8 +78,8 @@ if __name__ == "__main__":
         description='Estimate dynamics model from flight log.')
     parser.add_argument('log_path', metavar='log_path', type=str,
                         help='The path of the log to process relative to the project directory.')
-    parser.add_argument('--data_selection', metavar='data_selection', type=str2bool, default=False,
-                        help='the path of the log to process relative to the project directory.')
+    parser.add_argument('--data_selection', metavar='data_selection', type=str, default="none",
+                        help='Data selection scheme none | interactive | auto (Beta)')
     parser.add_argument('--config', metavar='config', type=str, default='configs/quadrotor_model.yaml',
                         help='Configuration file path for pipeline configurations')
     parser.add_argument('--model_results', metavar='model_results', type=str,

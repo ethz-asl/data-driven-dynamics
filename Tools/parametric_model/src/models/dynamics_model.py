@@ -395,15 +395,15 @@ class DynamicsModel():
         print("===============================================================================")
         print("                        Preparing Model Features                               ")
         print("===============================================================================")
-        X, y = self.prepare_regression_matrices()
+        self.X, self.y,_ = self.assemble_regression_matrices(["lin","rot"])
 
         c_opt_list = []
         for coef in self.coef_name_list:
             c_opt_list.append(opt_coefs_dict[coef])
 
         self.initialize_optimizer()
-        self.optimizer.set_optimal_coefficients(c_opt_list, X, y)
-        self.generate_optimization_results()
+        self.optimizer.set_optimal_coefficients(c_opt_list, self.X, self.y)
+        # self.generate_optimization_results()
 
     def estimate_model(self):
         print("===============================================================================")

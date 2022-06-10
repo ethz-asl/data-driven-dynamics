@@ -7,6 +7,7 @@ log?=${root_dir}/resources/${model}.ulg
 config?=${root_dir}/Tools/parametric_model/configs/${model}.yaml
 data_selection?=none
 plot?=True
+model_results?=
 
 submodulesupdate:
 	git submodule update --init --recursive
@@ -40,7 +41,7 @@ estimate-model:
 predict-model:
 	python3 Tools/parametric_model/predict_model.py --config ${config} \
 	--model_results ${model_results} \
-	--data_selection ${data_selection} \
+	--data_selection none \
 	${log}
 
 format:

@@ -1,0 +1,93 @@
+coefficients:
+  c_d_fuselage_x: -0.02152530013752127
+  c_d_fuselage_y: -0.06793224095331063
+  c_d_fuselage_z: 0.05238763929629368
+  vertical_c_m_drag_z_lin: -0.14419731063003036
+  vertical_c_m_drag_z_quad: 1.147605846586992
+  vertical_c_m_leaver_lin: 0.07455588754327885
+  vertical_c_m_leaver_quad: 2.0622628528015854
+  vertical_c_m_rolling: -0.016720176342379302
+  vertical_rot_drag_lin: 0.19951847862899996
+  vertical_rot_thrust_lin: -0.02502001988661979
+  vertical_rot_thrust_quad: 6.701488058998182
+metrics:
+  R2: 0.9495659522076303
+  RMSE: 1.3546344908813999
+model:
+  vertical_:
+  - dataframe_name: u0
+    description: front right rotor
+    position:
+    - 0.13
+    - 0.22
+    - 0.023
+    rotor_0: null
+    rotor_axis:
+    - 0
+    - 0
+    - -1
+    rotor_type: RotorModel
+    turning_direction: -1
+  - dataframe_name: u1
+    description: back left rotor
+    position:
+    - -0.13
+    - -0.2
+    - 0.023
+    rotor_1: null
+    rotor_axis:
+    - 0
+    - 0
+    - -1
+    rotor_type: RotorModel
+    turning_direction: -1
+  - dataframe_name: u2
+    description: front left rotor
+    position:
+    - 0.13
+    - -0.2
+    - 0.023
+    rotor_2: null
+    rotor_axis:
+    - 0
+    - 0
+    - -1
+    rotor_type: RotorModel
+    turning_direction: 1
+  - dataframe_name: u3
+    description: back right rotor
+    position:
+    - -0.13
+    - 0.2
+    - 0.023
+    rotor_3: null
+    rotor_axis:
+    - 0
+    - 0
+    - -1
+    rotor_type: RotorModel
+    turning_direction: 1
+numper of samples: 20557
+Cramer:
+  c_d_fuselage_x: 0.005989080440138917
+  c_d_fuselage_y: 0.0077284213962459
+  c_d_fuselage_z: 0.008023828720403142
+  vertical_c_m_drag_z_lin: 0.13600145293820928
+  vertical_c_m_drag_z_quad: 0.1858843602346377
+  vertical_c_m_leaver_lin: 0.09777373380318116
+  vertical_c_m_leaver_quad: 0.5130336300517737
+  vertical_c_m_rolling: 0.056859421803556805
+  vertical_rot_drag_lin: 0.006354277650325262
+  vertical_rot_thrust_lin: 0.006801445495499864
+  vertical_rot_thrust_quad: 0.016646980992045587
+FIM:
+  lin:
+    det: 2.7421295556580246e+35
+    inv_cond: 0.008289481561889597
+    min_eig: 81031.60015144761
+    trace: 14714990.931285724
+  rot:
+    det: 3912297732269041.0
+    inv_cond: 0.011995689298122057
+    min_eig: 94.73876740419837
+    trace: 14757.54692023842
