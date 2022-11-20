@@ -42,13 +42,6 @@ import numpy as np
 from scipy.spatial.transform import Rotation
 from progress.bar import Bar
 
-"""
-The standard wing model is conform to PX4's standard plane and models
- a wing with ailerons but without flaps. For reference see:
- 
-https://docs.px4.io/master/en/airframes/airframe_reference.html#standard-plane
- """
-
 
 class LinearWingModel():
     def __init__(self, config_dict, mass):
@@ -65,10 +58,10 @@ class LinearWingModel():
 
         Compute lift and drag forces in stability axis frame.
 
-        Lift force as a linear function of the angle of attack and the elevator input
+        Lift force is modeled as a linear function of the angle of attack and the elevator input (no stall effects)
         F_Lift = 0.5 * density * area * V_air_xz^2 * (c_L_0 + c_L_alpha * alpha + c_L_delta_e * delta_e)
 
-        Drag force as a quadratic function of the lift coefficient
+        Drag force is modeled as a quadratic function of the lift coefficient
         F_Drag = 0.5 * density * area * V_air_xz^2 * (c_D_0 + 1 / (pi * e * ar) * c_L^2)
 
         Coefficients for optimization:
@@ -83,9 +76,17 @@ class LinearWingModel():
         # compute dynamic pressure times wing area
         dyn_pressure = 0.5 * self.air_density * self.area * \
             (v_airspeed[0]**2 + v_airspeed[2]**2)
-        cL = 2 * self.mass * (self.gravity * np.cos(flight_path_angle) -
-                              angular_acceleration[2]) / (self.air_density * self.area * (v_airspeed[0]**2 + v_airspeed[2]**2))
         X_wing_aero_frame = np.zeros((3, 6))
+
+        # # features for drag coefficient computation
+        # cL = 2 * self.mass * (self.gravity * np.cos(flight_path_angle) -
+        #                       angular_acceleration[2]) / (self.air_density * self.area * (v_airspeed[0]**2 + v_airspeed[2]**2))
+        # X_wing_aero_frame[0, 3] = - dyn_pressure
+        # X_wing_aero_frame[0, 4] = - (1 / (np.pi * np.e)) * dyn_pressure * cL**2
+
+        # # TODO: integrate this offset into the y vector of the regression model
+        # # drag offset is a function of the flight path angle
+        # X_wing_aero_frame[0, 5] = self.mass * self.gravity * math.cos(flight_path_angle) + self.mass * angular_acceleration[1] * v_airspeed[0]
 
         # features for lift coefficient computation
         X_wing_aero_frame[2, 0] = - dyn_pressure
@@ -96,14 +97,6 @@ class LinearWingModel():
         # lift offset is a function of the flight path angle
         X_wing_aero_frame[2, 5] = - self.mass * self.gravity * math.sin(
             flight_path_angle) - self.mass * angular_acceleration[1] * v_airspeed[2]
-
-        # features for drag coefficient computation
-        X_wing_aero_frame[0, 3] = - dyn_pressure
-        X_wing_aero_frame[0, 4] = - (1 / (np.pi * np.e)) * dyn_pressure * cL**2
-
-        # TODO: integrate this offset into the y vector of the regression model
-        # drag offset is a function of the flight path angle
-        X_wing_aero_frame[0, 5] = self.mass * self.gravity * math.cos(flight_path_angle) + self.mass * angular_acceleration[1] * v_airspeed[0]
 
         # Transorm from stability axis frame to body FRD frame
         R_aero_to_body = Rotation.from_rotvec(
