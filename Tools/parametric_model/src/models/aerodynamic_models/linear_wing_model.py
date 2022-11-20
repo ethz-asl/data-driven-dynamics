@@ -39,7 +39,6 @@ __license__ = "BSD 3"
 import math
 import numpy as np
 
-from src.tools.math_tools import cropped_sym_sigmoid
 from scipy.spatial.transform import Rotation
 from progress.bar import Bar
 
@@ -58,8 +57,9 @@ class LinearWingModel():
         self.air_density = 1.225
         self.area = config_dict["area"]
         self.mass = mass
+        self.gravity = 9.81
 
-    def compute_wing_force_features(self, v_airspeed, angle_of_attack, elevator_input, flight_path_angle):
+    def compute_wing_force_features(self, v_airspeed, angle_of_attack, elevator_input, flight_path_angle, angular_acceleration):
         """
         Model description:
 
@@ -85,29 +85,16 @@ class LinearWingModel():
             (v_airspeed[0]**2 + v_airspeed[2]**2)
         X_wing_aero_frame = np.zeros((3, 6))
 
-        # compute lift force
+        # compute lift force coefficients
         X_wing_aero_frame[2, 0] = - dyn_pressure
         X_wing_aero_frame[2, 1] = - dyn_pressure * angle_of_attack
         X_wing_aero_frame[2, 2] = - dyn_pressure * elevator_input
 
         # lift offset is a function of the flight path angle
-        X_wing_aero_frame[2, 5] = - self.mass * 9.81 * math.sin(flight_path_angle)
+        X_wing_aero_frame[2, 5] = - self.mass * self.gravity * math.sin(
+            flight_path_angle) - self.mass * angular_acceleration[1] * v_airspeed[2]
 
-        # # Compute Drag force coeffiecients:
-        # X_wing_aero_frame[0, 0] = -flow_attached_region * q_x_A
-        # X_wing_aero_frame[0, 1] = - \
-        #     flow_attached_region * q_x_A * angle_of_attack
-        # X_wing_aero_frame[0, 2] = -flow_attached_region * \
-        #     q_x_A * angle_of_attack**2
-        # X_wing_aero_frame[0, 3] = -stall_region * \
-        #     (1 - math.sin(angle_of_attack)**2)*q_x_A
-        # X_wing_aero_frame[0, 4] = -stall_region * \
-        #     (math.sin(angle_of_attack)**2)*q_x_A
-        # # Compute Lift force coefficients:
-        # X_wing_aero_frame[2, 5] = -flow_attached_region*q_x_A
-        # X_wing_aero_frame[2, 6] = -flow_attached_region*q_x_A*angle_of_attack
-        # X_wing_aero_frame[2, 7] = -stall_region * \
-        #     q_x_A * math.sin(2*angle_of_attack)
+        # TODO: compute drag force coefficients
 
         # Transorm from stability axis frame to body FRD frame
         R_aero_to_body = Rotation.from_rotvec(
@@ -153,7 +140,7 @@ class LinearWingModel():
     #     X_wing_body_frame = X_wing_body_frame.flatten()
     #     return X_wing_body_frame
 
-    def compute_aero_force_features(self, v_airspeed_mat, angle_of_attack_vec, elevator_vec, gamma_vec):
+    def compute_aero_force_features(self, v_airspeed_mat, angle_of_attack_vec, elevator_vec, gamma_vec, ang_acc_mat):
         """
         Inputs:
         :param v_airspeed_mat: airspeed in m/s with format numpy array of dimension (n,3) with columns for [v_a_x, v_a_y, v_a_z]
@@ -163,12 +150,12 @@ class LinearWingModel():
         :return: regression matrix X for the estimation of x- and z-forces
         """
         X_aero = self.compute_wing_force_features(
-            v_airspeed_mat[0, :], angle_of_attack_vec[0], elevator_vec[0], gamma_vec[0])
+            v_airspeed_mat[0, :], angle_of_attack_vec[0], elevator_vec[0], gamma_vec[0], ang_acc_mat[0, :])
         aero_features_bar = Bar(
             'Feature Computatiuon', max=v_airspeed_mat.shape[0])
         for i in range(1, len(angle_of_attack_vec)):
             X_curr = self.compute_wing_force_features(
-                v_airspeed_mat[i, :], angle_of_attack_vec[i], elevator_vec[i], gamma_vec[i])
+                v_airspeed_mat[i, :], angle_of_attack_vec[i], elevator_vec[i], gamma_vec[i], ang_acc_mat[i, :])
             X_aero = np.vstack((X_aero, X_curr))
             aero_features_bar.next()
         aero_features_bar.finish()

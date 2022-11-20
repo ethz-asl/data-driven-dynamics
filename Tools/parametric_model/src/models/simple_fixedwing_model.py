@@ -1,22 +1,47 @@
-__author__ = "Manuel Galliker"
-__maintainer__ = "Manuel Galliker"
-__license__ = "BSD 3"
+"""
+ *
+ * Copyright (c) 2021 Manuel Yves Galliker
+ *               2021 Autonomous Systems Lab ETH Zurich
+ * All rights reserved.
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in
+ *    the documentation and/or other materials provided with the
+ *    distribution.
+ * 3. Neither the name Data Driven Dynamics nor the names of its contributors may be
+ *    used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
+ * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
+ * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+"""
 
-"""Model to estimate the system parameters of gazebos standart vtol quadplane:
-https://docs.px4.io/master/en/simulation/gazebo_vehicles.html#standard_vtol """
+__author__ = "Julius Schlapbach"
+__maintainer__ = "Julius Schlapbach"
+__license__ = "BSD 3"
 
 
 import numpy as np
-import math
 
 from .dynamics_model import DynamicsModel
-from .rotor_models import RotorModel
-from sklearn.linear_model import LinearRegression
 from .model_config import ModelConfig
 from .aerodynamic_models import LinearWingModel, ControlSurfaceModel
-
-
-"""This model estimates forces and moments for quad plane as for example the standard vtol in gazebo."""
 
 
 class FixedWingPlaneModel(DynamicsModel):
@@ -48,13 +73,16 @@ class FixedWingPlaneModel(DynamicsModel):
             "V_air_body_x", "V_air_body_y", "V_air_body_z"]].to_numpy()
         aoa_mat = self.data_df[["angle_of_attack"]].to_numpy()
         elevator_vec = self.data_df["u7"].to_numpy()
+        ang_acc_mat = self.data_df[["ang_acc_b_x",
+                                    "ang_acc_b_y", "ang_acc_b_z"]].to_numpy()
         gamma_vec = - np.arctan2(self.data_df['vz'], self.data_df['vx'])
         aero_model = LinearWingModel(self.aerodynamics_dict, self.mass)
         X_aero, coef_dict_aero, col_names_aero = aero_model.compute_aero_force_features(
-            airspeed_mat, aoa_mat, elevator_vec, gamma_vec)
+            airspeed_mat, aoa_mat, elevator_vec, gamma_vec, ang_acc_mat)
         self.data_df[col_names_aero] = X_aero
         self.coef_dict.update(coef_dict_aero)
-        self.y_dict.update({"lin":{"x":"measured_force_x","y":"measured_force_y","z":"measured_force_z"}})
+        self.y_dict.update({"lin": {"x": "measured_force_x",
+                           "y": "measured_force_y", "z": "measured_force_z"}})
 
     def prepare_moment_regression_matrices(self):
         # Angular acceleration
@@ -83,10 +111,12 @@ class FixedWingPlaneModel(DynamicsModel):
             for config_dict in aero_group_list:
                 controlsurface_input_name = config_dict["dataframe_name"]
                 u_vec = self.data_df[controlsurface_input_name].to_numpy()
-                control_surface_model = ControlSurfaceModel(config_dict, self.aerodynamics_dict, u_vec)
+                control_surface_model = ControlSurfaceModel(
+                    config_dict, self.aerodynamics_dict, u_vec)
                 X_controls, coef_dict_controls, col_names_controls = control_surface_model.compute_actuator_moment_matrix(
                     airspeed_mat, aoa_mat)
                 self.data_df[col_names_controls] = X_controls
                 self.coef_dict.update(coef_dict_controls)
 
-        self.y_dict.update({"rot":{"x":"measured_moment_x","y":"measured_moment_y","z":"measured_moment_z"}})
+        self.y_dict.update({"rot": {"x": "measured_moment_x",
+                           "y": "measured_moment_y", "z": "measured_moment_z"}})
