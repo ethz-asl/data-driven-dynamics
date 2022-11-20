@@ -83,18 +83,27 @@ class LinearWingModel():
         # compute dynamic pressure times wing area
         dyn_pressure = 0.5 * self.air_density * self.area * \
             (v_airspeed[0]**2 + v_airspeed[2]**2)
+        cL = 2 * self.mass * (self.gravity * np.cos(flight_path_angle) -
+                              angular_acceleration[2]) / (self.air_density * self.area * (v_airspeed[0]**2 + v_airspeed[2]**2))
         X_wing_aero_frame = np.zeros((3, 6))
 
-        # compute lift force coefficients
+        # features for lift coefficient computation
         X_wing_aero_frame[2, 0] = - dyn_pressure
         X_wing_aero_frame[2, 1] = - dyn_pressure * angle_of_attack
         X_wing_aero_frame[2, 2] = - dyn_pressure * elevator_input
 
+        # TODO: integrate this offset into the y vector of the regression model
         # lift offset is a function of the flight path angle
         X_wing_aero_frame[2, 5] = - self.mass * self.gravity * math.sin(
             flight_path_angle) - self.mass * angular_acceleration[1] * v_airspeed[2]
 
-        # TODO: compute drag force coefficients
+        # features for drag coefficient computation
+        X_wing_aero_frame[0, 3] = - dyn_pressure
+        X_wing_aero_frame[0, 4] = - (1 / (np.pi * np.e)) * dyn_pressure * cL**2
+
+        # TODO: integrate this offset into the y vector of the regression model
+        # drag offset is a function of the flight path angle
+        X_wing_aero_frame[0, 5] = self.mass * self.gravity * math.cos(flight_path_angle) + self.mass * angular_acceleration[1] * v_airspeed[0]
 
         # Transorm from stability axis frame to body FRD frame
         R_aero_to_body = Rotation.from_rotvec(
