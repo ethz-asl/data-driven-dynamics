@@ -122,7 +122,12 @@ class DataHandler(object):
     def check_ulog_for_req_topics(self, ulog):
         for topic_type in self.req_topics_dict.keys():
             try:
-                topic_type_data = ulog.get_dataset(topic_type)
+                topic_dict = self.req_topics_dict[topic_type]
+                if "id" in topic_dict.keys():
+                    id = topic_dict["id"]
+                    topic_type_data = ulog.get_dataset(topic_type, id)
+                else:
+                    topic_type_data = ulog.get_dataset(topic_type)
             except:
                 print("Missing topic type: ", topic_type)
                 exit(1)
