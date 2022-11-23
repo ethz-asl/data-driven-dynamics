@@ -55,7 +55,7 @@ def compute_flight_time(act_df, pwm_threshold=None, control_threshold=None):
 
     if control_threshold is None:
         control_threshold = ACTUATOR_CONTROLS_THRESHOLD
-
+    act_df_crp = act_df[act_df.iloc[:, 2] > pwm_threshold]
     act_df_crp = act_df[act_df.iloc[:, 4] > pwm_threshold]
 
     t_start = act_df_crp.iloc[1, 0]
