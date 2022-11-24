@@ -162,9 +162,7 @@ class DataHandler(object):
             else:
                 curr_df = pandas_from_topic(ulog, [topic_type])
             
-            if topic_type == "actuator_outputs":
-                fts = compute_flight_time(curr_df)
-            elif topic_type == "actuator_controls_0":
+            if topic_type == "vehicle_land_detected":
                 fts = compute_flight_time(curr_df)
             
             curr_df = curr_df[topic_dict["ulog_name"]]

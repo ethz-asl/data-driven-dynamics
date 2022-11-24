@@ -41,22 +41,23 @@ import pandas as pd
 from src.tools.ulog_tools import pandas_from_topic
 from src.tools.quat_utils import slerp
 
-# pre normalization thresholds
-PWM_THRESHOLD = 1000
-ACTUATOR_CONTROLS_THRESHOLD = -0.2
-
 
 def compute_flight_time(act_df, pwm_threshold=None, control_threshold=None):
-    """This function computes the flight time by a simple thresholding of actuator outputs or control values. 
-    This works usually well for logs from the simulator or mission flights. But in some cases the assumption of an actuator output staying higher than the trsehhold for the hole flight might not be valid."""
+    """This function computes the flight time by:
+    Option 1: listen to vehicle_land_detected/landed
+    Option 2: user defined start/end time stamp (micro seconds) 
+    """
 
-    if pwm_threshold is None:
-        pwm_threshold = PWM_THRESHOLD
+    # # Option 1:
+    # print("act_df: ", act_df)
+    # act_df_crp = act_df[act_df.iloc[:, 4] < 1] # take part where landed is 0
+    # print("act_df_crp after selection: ", act_df_crp)
 
-    if control_threshold is None:
-        control_threshold = ACTUATOR_CONTROLS_THRESHOLD
-    act_df_crp = act_df[act_df.iloc[:, 2] > pwm_threshold]
-    act_df_crp = act_df[act_df.iloc[:, 4] > pwm_threshold]
+    # Option 2:
+    # print("act_df: ", act_df)
+    act_df_crp = act_df[act_df.iloc[:, 0] > 405000000]
+    act_df_crp = act_df_crp[act_df_crp.iloc[:, 0] < 430000000]
+    # print("act_df_crp after selection: ", act_df_crp)
 
     t_start = act_df_crp.iloc[1, 0]
     t_end = act_df_crp.iloc[(act_df_crp.shape[0]-1), 0]
