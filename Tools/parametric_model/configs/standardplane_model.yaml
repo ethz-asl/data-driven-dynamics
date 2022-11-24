@@ -17,7 +17,7 @@ model_config:
         - rotor_4:
           description: "puller rotor"
           rotor_type: "RotorModel"
-          dataframe_name: "u4"
+          dataframe_name: "u_motor"
           rotor_axis:
             - 1
             - 0
@@ -32,19 +32,19 @@ model_config:
       wing_:
         - control_surface_0:
           description: "aileron_right"
-          dataframe_name: "u6"
+          dataframe_name: "u_aileron"
 
         - control_surface_1:
           description: "aileron_left"
-          dataframe_name: "u5"
+          dataframe_name: "u_aileron"
 
         - control_surface_2:
           description: "elevator"
-          dataframe_name: "u7"
+          dataframe_name: "u_elevator"
 
         - control_surface_3:
           description: "rudder"
-          dataframe_name: "u2"
+          dataframe_name: "u_rudder"
 
         # - control_surface_4:
         #   description: "flaps"
@@ -110,31 +110,61 @@ dynamics_model_config:
   estimate_angular_acceleration: False
   data:
     required_ulog_topics:
-      actuator_outputs:
+      vehicle_thrust_setpoint:
         ulog_name:
           - "timestamp"
-          - "output[2]" # Rudder
-          # - "output[3]" # Flaps
-          - "output[4]" # motor
-          - "output[5]" # left aileron
-          - "output[6]" # right aileron
-          - "output[7]" # elevator
+          - "xyz[0]" # thrust in x
         dataframe_name:
           - "timestamp"
-          - "u2"
-          # - "u3"
-          - "u4"
-          - "u5"
-          - "u6"
-          - "u7"
+          - "u_motor"
+        actuator_type:
+          - "timestamp"
+          - "motor"
+      vehicle_torque_setpoint:
+        ulog_name:
+          - "timestamp"
+          - "xyz[0]" # torque in x
+          - "xyz[1]" # torque in y
+          - "xyz[2]" # torque in z
+        dataframe_name:
+          - "timestamp"
+          - "u_aileron"
+          - "u_elevator"
+          - "u_rudder"
         actuator_type:
           - "timestamp"
           - "control_surface"
-          # - "control_surface"
-          - "motor"
           - "control_surface"
           - "control_surface"
-          - "control_surface"
+      # actuator_motors:
+      #   ulog_name:
+      #     - "timestamp"
+      #     - "control[0]"
+      #   dataframe_name:
+      #     - "timestamp"
+      #     - "u_motor"
+      #   actuator_type:
+      #     - "timestamp"
+      #     - "motor"
+      # actuator_servos:
+      #   ulog_name:
+      #     - "timestamp"
+      #     - "control[0]"
+      #     - "control[1]"
+      #     - "control[2]"
+      #     - "control[3]"
+      #   dataframe_name:
+      #     - "timestamp"
+      #     - "u_aileron_left"
+      #     - "u_aileron_right"
+      #     - "u_elevator_new"
+      #     - "u_rudder_new"
+      #   actuator_type:
+      #     - "timestamp"
+      #     - "control_surface"
+      #     - "control_surface"
+      #     - "control_surface"
+      #     - "control_surface"
       vehicle_local_position:
         ulog_name:
           - "timestamp"
@@ -182,3 +212,10 @@ dynamics_model_config:
           - "ang_acc_b_x"
           - "ang_acc_b_y"
           - "ang_acc_b_z"
+      vehicle_land_detected:
+        ulog_name:
+          - "timestamp"
+          - "landed"
+        dataframe_name:
+          - "timestamp"
+          - "landed"

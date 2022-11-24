@@ -86,7 +86,7 @@ class DynamicsModel():
 
     def prepare_regression_matrices(self):
         if "V_air_body_x" not in self.data_df:
-            self.normalize_actuators()
+            # self.normalize_actuators()
             self.compute_airspeed_from_groundspeed(["vx", "vy", "vz"])
 
         # Rotor features
