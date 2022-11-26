@@ -81,33 +81,33 @@ def start_model_estimation(config, log_path, data_selection="none", plot=False):
     model.prepare_regression_matrices()
     model.compute_fisher_information()
 
-    # Interactive data selection
-    if data_selection=="interactive":
-        from visual_dataframe_selector.data_selector import select_visual_data
-        visual_dataframe_selector_config_dict = {
-        "x_axis_col": "timestamp",
-        "sub_plt1_data": ["q0", "q1", "q2", "q3"],
-        "sub_plt2_data": ["u0", "u1", "u2", "u3"],
-        "sub_plt3_data": []
-        }
+    # # Interactive data selection
+    # if data_selection=="interactive":
+    #     from visual_dataframe_selector.data_selector import select_visual_data
+    #     visual_dataframe_selector_config_dict = {
+    #     "x_axis_col": "timestamp",
+    #     "sub_plt1_data": ["q0", "q1", "q2", "q3"],
+    #     "sub_plt2_data": ["u0", "u1", "u2", "u3"],
+    #     "sub_plt3_data": []
+    #     }
 
-        if data_handler.estimate_forces == True:
-            visual_dataframe_selector_config_dict["sub_plt3_data"].append("fisher_information_force")
+    #     if data_handler.estimate_forces == True:
+    #         visual_dataframe_selector_config_dict["sub_plt3_data"].append("fisher_information_force")
 
-        if data_handler.estimate_moments == True:
-            visual_dataframe_selector_config_dict["sub_plt3_data"].append("fisher_information_rot")
+    #     if data_handler.estimate_moments == True:
+    #         visual_dataframe_selector_config_dict["sub_plt3_data"].append("fisher_information_rot")
 
-        model.load_dataframes(select_visual_data(model.data_df,visual_dataframe_selector_config_dict))
-    elif data_selection=="auto":     # Automatic data selection (WIP)
-        from active_dataframe_selector.data_selector import ActiveDataSelector
-        # The goal is to identify automatically the most relevant parts of a log.
-        # Currently the draft is designed to choose the most informative 10% of the logs with regards to
-        # force and moment parameters. This threshold is currently not validated at all and the percentage
-        # can vary drastically from log to log. 
-        data_selector = ActiveDataSelector(model.data_df)
-        model.load_dataframes(data_selector.select_dataframes(10))
+    #     model.load_dataframes(select_visual_data(model.data_df,visual_dataframe_selector_config_dict))
+    # elif data_selection=="auto":     # Automatic data selection (WIP)
+    #     from active_dataframe_selector.data_selector import ActiveDataSelector
+    #     # The goal is to identify automatically the most relevant parts of a log.
+    #     # Currently the draft is designed to choose the most informative 10% of the logs with regards to
+    #     # force and moment parameters. This threshold is currently not validated at all and the percentage
+    #     # can vary drastically from log to log. 
+    #     data_selector = ActiveDataSelector(model.data_df)
+    #     model.load_dataframes(data_selector.select_dataframes(10))
 
-    model.estimate_model()
+    model.estimate_model(model.mass)
 
     if plot:
         model.compute_residuals()

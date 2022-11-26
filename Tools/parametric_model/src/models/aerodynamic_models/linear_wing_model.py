@@ -95,8 +95,15 @@ class LinearWingModel():
 
         # TODO: integrate this offset into the y vector of the regression model
         # lift offset is a function of the flight path angle
-        X_wing_aero_frame[2, 5] = - self.mass * self.gravity * math.sin(
+        X_wing_aero_frame[2, 5] = - self.mass * self.gravity * np.sin(
             flight_path_angle) - self.mass * angular_acceleration[1] * v_airspeed[2]
+        print("------------------------------------------------------------------------")
+        print("------------------------------------------------------------------------")
+        print("------------------------------------------------------------------------")
+        print('compensation value inside wing model', X_wing_aero_frame[2, 5])
+        print("------------------------------------------------------------------------")
+        print("------------------------------------------------------------------------")
+        print("------------------------------------------------------------------------")
 
         # Transorm from stability axis frame to body FRD frame
         R_aero_to_body = Rotation.from_rotvec(
