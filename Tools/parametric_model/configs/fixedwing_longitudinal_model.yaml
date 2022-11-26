@@ -127,19 +127,14 @@ dynamics_model_config:
           - "accelerometer_m_s2[0]"
           - "accelerometer_m_s2[1]"
           - "accelerometer_m_s2[2]"
+          - "gyro_rad[0]"
+          - "gyro_rad[1]"
+          - "gyro_rad[2]"
         dataframe_name:
           - "timestamp"
           - "acc_b_x"
           - "acc_b_y"
           - "acc_b_z"
-      vehicle_angular_acceleration:
-        ulog_name:
-          - "timestamp"
-          - "xyz[0]"
-          - "xyz[1]"
-          - "xyz[2]"
-        dataframe_name:
-          - "timestamp"
           - "ang_acc_b_x"
           - "ang_acc_b_y"
           - "ang_acc_b_z"
