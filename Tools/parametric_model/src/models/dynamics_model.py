@@ -115,8 +115,7 @@ class DynamicsModel():
     def prepare_moment_regression_matrices(self):
         raise NotImplementedError()
 
-    def assemble_regression_matrices(self, measurements, mass = 0):
-
+    def assemble_regression_matrices(self, measurements):
         sizes = [len(self.y_dict[i].keys()) for i in measurements]
         y = np.empty(sum(sizes)*self.n_samples)
         i = 0
@@ -127,21 +126,7 @@ class DynamicsModel():
                 i += 1
 
         coef_list = []
-
-        flight_path_angle = - np.arctan2(self.data_df['vz'], self.data_df['vx']).to_numpy()
-
-        print("------------------------------------------------------------------------")
-        print("------------------------------------------------------------------------")
-        print("------------------------------------------------------------------------")
-        print('compensation value for dynamics model', mass * 9.81 * np.sin(flight_path_angle) + mass * self.data_df['ang_acc_b_y'].to_numpy() * self.data_df['acc_b_z'].to_numpy())
-        print(y[2*self.n_samples : 3*self.n_samples])
-        print("------------------------------------------------------------------------")
-        print("------------------------------------------------------------------------")
-        print("------------------------------------------------------------------------")
-
-        y[2*self.n_samples : 3*self.n_samples] += mass * 9.81 * np.sin(flight_path_angle) + mass * self.data_df['ang_acc_b_y'].to_numpy() * self.data_df['acc_b_z'].to_numpy()
-        print(y[2*self.n_samples : 3*self.n_samples])
-
+       
         for i in self.coef_dict.keys():
             for m in measurements:
                 if m in self.coef_dict[i]:
@@ -425,7 +410,7 @@ class DynamicsModel():
         self.optimizer.set_optimal_coefficients(c_opt_list, X, y)
         self.generate_optimization_results()
 
-    def estimate_model(self, mass = 0):
+    def estimate_model(self):
         print("===============================================================================")
         print("                        Preparing Model Features                               ")
         print("===============================================================================")
@@ -435,7 +420,7 @@ class DynamicsModel():
         if self.estimate_moments:
             configuration.append("rot")
         self.X, self.y, self.coef_name_list = self.assemble_regression_matrices(
-            configuration, mass)
+            configuration)
         self.initialize_optimizer()
         self.optimizer.estimate_parameters(self.X, self.y)
         self.generate_optimization_results()
@@ -544,8 +529,7 @@ class DynamicsModel():
                 2*y_moments.shape[0]/3):y_moments.shape[0]]
 
             y_moments_pred = np.zeros(y_moments.shape)
-            y_moments_pred[0::3] = y_pred[y_moments.shape[0]
-                :int(4*y_moments.shape[0]/3)]
+            y_moments_pred[0::3] = y_pred[y_moments.shape[0]                                          :int(4*y_moments.shape[0]/3)]
             y_moments_pred[1::3] = y_pred[int(
                 4*y_moments.shape[0]/3):int(5*y_moments.shape[0]/3)]
             y_moments_pred[2::3] = y_pred[int(5*y_moments.shape[0]/3):]
@@ -614,8 +598,7 @@ class DynamicsModel():
                 2*y_moments.shape[0]/3):y_moments.shape[0]]
 
             y_moments_pred = np.zeros(y_moments.shape)
-            y_moments_pred[0::3] = y_pred[y_moments.shape[0]
-                :int(4*y_moments.shape[0]/3)]
+            y_moments_pred[0::3] = y_pred[y_moments.shape[0]                                          :int(4*y_moments.shape[0]/3)]
             y_moments_pred[1::3] = y_pred[int(
                 4*y_moments.shape[0]/3):int(5*y_moments.shape[0]/3)]
             y_moments_pred[2::3] = y_pred[int(5*y_moments.shape[0]/3):]
