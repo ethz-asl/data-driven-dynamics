@@ -64,12 +64,15 @@ class FixedWingPlaneModel(DynamicsModel):
         accel_mat = self.data_df[[
             "acc_b_x", "acc_b_y", "acc_b_z"]].to_numpy()
         force_mat = accel_mat * self.mass
+        xcorrection_vel_frame = self.mass * self.data_df['ang_vel_y'].to_numpy() * self.data_df['vz'].to_numpy()
+        zcorrection_vel_frame = self.mass * self.data_df['ang_vel_y'].to_numpy() * self.data_df['vx'].to_numpy()
+        angle_of_attack = self.data_df['angle_of_attack'].to_numpy()
+        xcorrection_b_frame = xcorrection_vel_frame * np.cos(angle_of_attack) - zcorrection_vel_frame * np.sin(angle_of_attack)
+        zcorrection_b_frame = xcorrection_vel_frame * np.sin(angle_of_attack) + zcorrection_vel_frame * np.cos(angle_of_attack)
 
-        # TODO: optimize and possibly compute this more efficiently with dataframe operations
-        # TODO: implement rotation to body frame from velocity vector frame
         for i in range(len(force_mat)):
-            force_mat[i][0] -= self.mass * self.data_df['ang_vel_y'].to_numpy()[i] * self.data_df['vz'].to_numpy()[i]
-            force_mat[i][2] += self.mass * self.data_df['ang_vel_y'].to_numpy()[i] * self.data_df['vx'].to_numpy()[i]
+            force_mat[i][0] -= xcorrection_b_frame[i]
+            force_mat[i][2] += zcorrection_b_frame[i]
 
         self.data_df[["measured_steady_force_x", "measured_steady_force_y",
                      "measured_steady_force_z"]] = force_mat
