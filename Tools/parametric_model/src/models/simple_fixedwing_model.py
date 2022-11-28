@@ -64,11 +64,19 @@ class FixedWingPlaneModel(DynamicsModel):
         accel_mat = self.data_df[[
             "acc_b_x", "acc_b_y", "acc_b_z"]].to_numpy()
         force_mat = accel_mat * self.mass
-        xcorrection_vel_frame = self.mass * self.data_df['ang_vel_y'].to_numpy() * self.data_df['vz'].to_numpy()
-        zcorrection_vel_frame = self.mass * self.data_df['ang_vel_y'].to_numpy() * self.data_df['vx'].to_numpy()
+        xcorrection_vel_frame = self.mass * \
+            self.data_df['ang_vel_y'].to_numpy(
+            ) * self.data_df['vz'].to_numpy()
+        zcorrection_vel_frame = self.mass * \
+            self.data_df['ang_vel_y'].to_numpy(
+            ) * self.data_df['vx'].to_numpy()
         angle_of_attack = self.data_df['angle_of_attack'].to_numpy()
-        xcorrection_b_frame = xcorrection_vel_frame * np.cos(angle_of_attack) - zcorrection_vel_frame * np.sin(angle_of_attack)
-        zcorrection_b_frame = xcorrection_vel_frame * np.sin(angle_of_attack) + zcorrection_vel_frame * np.cos(angle_of_attack)
+        xcorrection_b_frame = xcorrection_vel_frame * \
+            np.cos(angle_of_attack) - zcorrection_vel_frame * \
+            np.sin(angle_of_attack)
+        zcorrection_b_frame = xcorrection_vel_frame * \
+            np.sin(angle_of_attack) + zcorrection_vel_frame * \
+            np.cos(angle_of_attack)
 
         for i in range(len(force_mat)):
             force_mat[i][0] -= xcorrection_b_frame[i]

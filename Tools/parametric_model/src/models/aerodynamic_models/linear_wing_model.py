@@ -72,7 +72,8 @@ class LinearWingModel():
         """
 
         # compute dynamic pressure times wing area
-        dyn_pressure = 0.5 * self.air_density * (v_airspeed[0]**2 + v_airspeed[2]**2)
+        dyn_pressure = 0.5 * self.air_density * \
+            (v_airspeed[0]**2 + v_airspeed[2]**2)
         X_wing_aero_frame = np.zeros((3, 5))
 
         # TODO
@@ -84,8 +85,10 @@ class LinearWingModel():
 
         # features for lift coefficient computation
         X_wing_aero_frame[2, 0] = - dyn_pressure * self.ref_area
-        X_wing_aero_frame[2, 1] = - dyn_pressure * self.ref_area * angle_of_attack
-        X_wing_aero_frame[2, 2] = - dyn_pressure * self.ref_area * elevator_input
+        X_wing_aero_frame[2, 1] = - dyn_pressure * \
+            self.ref_area * angle_of_attack
+        X_wing_aero_frame[2, 2] = - dyn_pressure * \
+            self.ref_area * elevator_input
 
         # Transorm from stability axis frame to body FRD frame
         R_aero_to_body = Rotation.from_rotvec(
@@ -94,8 +97,9 @@ class LinearWingModel():
         X_wing_body_frame = X_wing_body_frame.flatten()
         return X_wing_body_frame
 
-    # def compute_wing_moment_features(self, v_airspeed, angle_of_attack, angle_of_sideslip):
-    # TODO: implement
+    def compute_wing_moment_features(self, v_airspeed, angle_of_attack, angle_of_sideslip):
+        # TODO: implement
+        raise NotImplementedError()
 
     def compute_aero_force_features(self, v_airspeed_mat, angle_of_attack_vec, elevator_vec, gamma_vec, ang_vel_mat):
         """
@@ -130,8 +134,8 @@ class LinearWingModel():
                      "c_D_0_x", "c_D_0_y", "c_D_0_z",
                      "inv_ar_x", "inv_ar_y", "inv_ar_z"]
 
-
         return X_aero, coef_dict, col_names
 
-    # def compute_aero_moment_features(self, v_airspeed_mat, angle_of_attack_vec, angle_of_sideslip_vec):
-    # TODO: implement
+    def compute_aero_moment_features(self, v_airspeed_mat, angle_of_attack_vec, angle_of_sideslip_vec):
+        # TODO: implement
+        raise NotImplementedError()
