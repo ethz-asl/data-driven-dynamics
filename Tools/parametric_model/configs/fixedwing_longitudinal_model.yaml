@@ -1,7 +1,7 @@
 # general information
 model_name: "Gazebo Standard Plane"
 model_type: "Standard Plane Longitudinal Model"
-model_class: "FixedWingPlaneModel"
+model_class: "SimpleFixedWingModel"
 
   # all vectors in FRD body frame if not specified otherwise
 model_config:
