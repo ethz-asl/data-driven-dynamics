@@ -78,12 +78,11 @@ class SimpleFixedWingModel(DynamicsModel):
             np.sin(angle_of_attack) + zcorrection_vel_frame * \
             np.cos(angle_of_attack)
 
-        for i in range(len(force_mat)):
-            force_mat[i][0] -= xcorrection_b_frame[i]
-            force_mat[i][2] += zcorrection_b_frame[i]
+        # for i in range(len(force_mat)):
+        #     force_mat[i][0] -= xcorrection_b_frame[i]
+        #     force_mat[i][2] += zcorrection_b_frame[i]
 
-        self.data_df[["measured_steady_force_x", "measured_steady_force_y",
-                     "measured_steady_force_z"]] = force_mat
+        self.data_df[["measured_force_x", "measured_force_y", "measured_force_z"]] = force_mat
 
         # Aerodynamics features
         airspeed_mat = self.data_df[[
@@ -98,8 +97,8 @@ class SimpleFixedWingModel(DynamicsModel):
             airspeed_mat, aoa_mat, elevator_vec, gamma_vec, ang_vel_mat)
         self.data_df[col_names_aero] = X_aero
         self.coef_dict.update(coef_dict_aero)
-        self.y_dict.update({"lin": {"x": "measured_steady_force_x",
-                           "y": "measured_steady_force_y", "z": "measured_steady_force_z"}})
+        self.y_dict.update({"lin": {"x": "measured_force_x",
+                           "y": "measured_force_y", "z": "measured_force_z"}})
 
     def prepare_moment_regression_matrices(self):
         # Angular acceleration
