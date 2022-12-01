@@ -64,24 +64,6 @@ class SimpleFixedWingModel(DynamicsModel):
         accel_mat = self.data_df[[
             "acc_b_x", "acc_b_y", "acc_b_z"]].to_numpy()
         force_mat = accel_mat * self.mass
-        xcorrection_vel_frame = self.mass * \
-            self.data_df['ang_vel_y'].to_numpy(
-            ) * self.data_df['vz'].to_numpy()
-        zcorrection_vel_frame = self.mass * \
-            self.data_df['ang_vel_y'].to_numpy(
-            ) * self.data_df['vx'].to_numpy()
-        angle_of_attack = self.data_df['angle_of_attack'].to_numpy()
-        xcorrection_b_frame = xcorrection_vel_frame * \
-            np.cos(angle_of_attack) - zcorrection_vel_frame * \
-            np.sin(angle_of_attack)
-        zcorrection_b_frame = xcorrection_vel_frame * \
-            np.sin(angle_of_attack) + zcorrection_vel_frame * \
-            np.cos(angle_of_attack)
-
-        # for i in range(len(force_mat)):
-        #     force_mat[i][0] -= xcorrection_b_frame[i]
-        #     force_mat[i][2] += zcorrection_b_frame[i]
-
         self.data_df[["measured_force_x", "measured_force_y", "measured_force_z"]] = force_mat
 
         # Aerodynamics features
@@ -89,12 +71,9 @@ class SimpleFixedWingModel(DynamicsModel):
             "V_air_body_x", "V_air_body_y", "V_air_body_z"]].to_numpy()
         aoa_mat = self.data_df[["angle_of_attack"]].to_numpy()
         elevator_vec = self.data_df["u7"].to_numpy()
-        ang_vel_mat = self.data_df[["ang_vel_x",
-                                    "ang_vel_y", "ang_vel_z"]].to_numpy()
-        gamma_vec = - np.arctan2(self.data_df['vz'], self.data_df['vx'])
-        aero_model = LinearWingModel(self.aerodynamics_dict, self.mass)
+        aero_model = LinearWingModel(self.aerodynamics_dict)
         X_aero, coef_dict_aero, col_names_aero = aero_model.compute_aero_force_features(
-            airspeed_mat, aoa_mat, elevator_vec, gamma_vec, ang_vel_mat)
+            airspeed_mat, aoa_mat, elevator_vec)
         self.data_df[col_names_aero] = X_aero
         self.coef_dict.update(coef_dict_aero)
         self.y_dict.update({"lin": {"x": "measured_force_x",

@@ -73,14 +73,16 @@ class LinearWingModel():
         # compute dynamic pressure times wing area
         dyn_pressure = 0.5 * self.air_density * \
             (v_airspeed[0]**2 + v_airspeed[2]**2)
-        X_wing_aero_frame = np.zeros((3, 5))
+        X_wing_aero_frame = np.zeros((3, 4))
 
         # features for lift coefficient computation
-        X_wing_aero_frame[2, 0] = - dyn_pressure * self.ref_area
-        X_wing_aero_frame[2, 1] = - dyn_pressure * \
+        X_wing_aero_frame[2, 0] = dyn_pressure * self.ref_area
+        X_wing_aero_frame[2, 1] = dyn_pressure * \
             self.ref_area * angle_of_attack
-        X_wing_aero_frame[2, 2] = - dyn_pressure * \
+        X_wing_aero_frame[2, 2] = dyn_pressure * \
             self.ref_area * elevator_input
+        X_wing_aero_frame[0, 3] = - dyn_pressure * \
+            self.ref_area
 
         # Transorm from stability axis frame to body FRD frame
         R_aero_to_body = Rotation.from_rotvec(
@@ -93,7 +95,7 @@ class LinearWingModel():
         # TODO: implement
         raise NotImplementedError()
 
-    def compute_aero_force_features(self, v_airspeed_mat, angle_of_attack_vec, elevator_vec, gamma_vec, ang_vel_mat):
+    def compute_aero_force_features(self, v_airspeed_mat, angle_of_attack_vec, elevator_vec):
         """
         Inputs:
         :param v_airspeed_mat: airspeed in m/s with format numpy array of dimension (n,3) with columns for [v_a_x, v_a_y, v_a_z]
@@ -118,13 +120,11 @@ class LinearWingModel():
             'c_L_alpha': {"lin": {"x": 'c_L_alpha_x', "y": 'c_L_alpha_y', "z": 'c_L_alpha_z'}},
             'c_L_delta': {"lin": {"x": 'c_L_delta_x', "y": 'c_L_delta_y', "z": 'c_L_delta_z'}},
             'c_D_0': {"lin": {"x": 'c_D_0_x', "y": 'c_D_0_y', "z": 'c_D_0_z'}},
-            'inv_ar': {"lin": {"x": 'inv_ar_x', "y": 'inv_ar_y', "z": 'inv_ar_z'}},
         }
         col_names = ["c_L_0_x", "c_L_0_y", "c_L_0_z",
                      "c_L_alpha_x", "c_L_alpha_y", "c_L_alpha_z",
                      "c_L_delta_x", "c_L_delta_y", "c_L_delta_z",
-                     "c_D_0_x", "c_D_0_y", "c_D_0_z",
-                     "inv_ar_x", "inv_ar_y", "inv_ar_z"]
+                     "c_D_0_x", "c_D_0_y", "c_D_0_z"]
 
         return X_aero, coef_dict, col_names
 
