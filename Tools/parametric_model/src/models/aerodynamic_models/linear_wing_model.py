@@ -44,10 +44,9 @@ from progress.bar import Bar
 
 
 class LinearWingModel():
-    def __init__(self, config_dict, mass):
+    def __init__(self, config_dict):
         self.air_density = 1.225
         self.ref_area = config_dict["area"]
-        self.mass = mass
         self.gravity = 9.81
 
     def compute_wing_force_features(self, v_airspeed, angle_of_attack, elevator_input):
@@ -75,13 +74,6 @@ class LinearWingModel():
         dyn_pressure = 0.5 * self.air_density * \
             (v_airspeed[0]**2 + v_airspeed[2]**2)
         X_wing_aero_frame = np.zeros((3, 5))
-
-        # TODO
-        # # features for drag coefficient computation
-        # cL = 2 * self.mass * (self.gravity * np.cos(flight_path_angle) -
-        #                       angular_acceleration[2]) / (self.air_density * self.ref_area * (v_airspeed[0]**2 + v_airspeed[2]**2))
-        # X_wing_aero_frame[0, 3] = - dyn_pressure
-        # X_wing_aero_frame[0, 4] = - (1 / (np.pi * np.e)) * dyn_pressure * cL**2
 
         # features for lift coefficient computation
         X_wing_aero_frame[2, 0] = - dyn_pressure * self.ref_area
