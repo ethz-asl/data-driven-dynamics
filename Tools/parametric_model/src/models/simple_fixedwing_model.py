@@ -60,48 +60,29 @@ class SimpleFixedWingModel(DynamicsModel):
         self.aerodynamics_dict = self.config.model_config["aerodynamics"]
 
     def prepare_force_regression_matrices(self):
-        # Accelerations
         accel_mat = self.data_df[[
             "acc_b_x", "acc_b_y", "acc_b_z"]].to_numpy()
         force_mat = accel_mat * self.mass
-        xcorrection_vel_frame = self.mass * \
-            self.data_df['ang_vel_y'].to_numpy(
-            ) * self.data_df['vz'].to_numpy()
-        zcorrection_vel_frame = self.mass * \
-            self.data_df['ang_vel_y'].to_numpy(
-            ) * self.data_df['vx'].to_numpy()
-        angle_of_attack = self.data_df['angle_of_attack'].to_numpy()
-        xcorrection_b_frame = xcorrection_vel_frame * \
-            np.cos(angle_of_attack) - zcorrection_vel_frame * \
-            np.sin(angle_of_attack)
-        zcorrection_b_frame = xcorrection_vel_frame * \
-            np.sin(angle_of_attack) + zcorrection_vel_frame * \
-            np.cos(angle_of_attack)
-
-        for i in range(len(force_mat)):
-            force_mat[i][0] -= xcorrection_b_frame[i]
-            force_mat[i][2] += zcorrection_b_frame[i]
-
-        self.data_df[["measured_steady_force_x", "measured_steady_force_y",
-                     "measured_steady_force_z"]] = force_mat
+        self.y_forces = (force_mat).flatten()
+        self.data_df[["measured_force_x", "measured_force_y",
+                     "measured_force_z"]] = force_mat
 
         # Aerodynamics features
         airspeed_mat = self.data_df[[
             "V_air_body_x", "V_air_body_y", "V_air_body_z"]].to_numpy()
         aoa_mat = self.data_df[["angle_of_attack"]].to_numpy()
-        elevator_vec = self.data_df["u7"].to_numpy()
-        ang_vel_mat = self.data_df[["ang_vel_x",
-                                    "ang_vel_y", "ang_vel_z"]].to_numpy()
-        gamma_vec = - np.arctan2(self.data_df['vz'], self.data_df['vx'])
+        elevator_inputs = self.data_df["u7"].to_numpy()
+
         aero_model = LinearWingModel(self.aerodynamics_dict, self.mass)
         X_aero, coef_dict_aero, col_names_aero = aero_model.compute_aero_force_features(
-            airspeed_mat, aoa_mat, elevator_vec, gamma_vec, ang_vel_mat)
+            airspeed_mat, aoa_mat, elevator_inputs)
         self.data_df[col_names_aero] = X_aero
         self.coef_dict.update(coef_dict_aero)
-        self.y_dict.update({"lin": {"x": "measured_steady_force_x",
-                           "y": "measured_steady_force_y", "z": "measured_steady_force_z"}})
+        self.y_dict.update({"lin": {"x": "measured_force_x",
+                           "y": "measured_force_y", "z": "measured_force_z"}})
 
     def prepare_moment_regression_matrices(self):
+        # ! OLD CODE FROM STANDARDPLANE MODEL
         # Angular acceleration
         moment_mat = np.matmul(self.data_df[[
             "ang_acc_b_x", "ang_acc_b_y", "ang_acc_b_z"]].to_numpy(), self.moment_of_inertia)

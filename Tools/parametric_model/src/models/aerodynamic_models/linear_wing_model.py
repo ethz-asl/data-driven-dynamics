@@ -46,7 +46,7 @@ from progress.bar import Bar
 class LinearWingModel():
     def __init__(self, config_dict, mass):
         self.air_density = 1.225
-        self.ref_area = config_dict["area"]
+        self.area = config_dict["area"]
         self.mass = mass
         self.gravity = 9.81
 
@@ -60,10 +60,13 @@ class LinearWingModel():
         F_Lift = 0.5 * density * area * V_air_xz^2 * (c_L_0 + c_L_alpha * alpha + c_L_delta_e * delta_e)
 
         Drag force is modeled as a quadratic function of the lift coefficient
-        F_Drag = 0.5 * density * area * V_air_xz^2 * (c_D_0 + 1 / (pi * e * ar) * c_L^2)
+        F_Drag = 0.5 * density * area * V_air_xz^2 * (c_D_0 + c_D_alpha * alpha + c_D_alpha^2 * alpha^2)
+
+        Elevator input is modeled as a linear function of the angle of attack to obtain a trim model
+        delta_e = delta_0 + delta_alpha * alpha
 
         Coefficients for optimization:
-        c_L_0, c_L_alpha, c_L_delta_e, c_D_0, 1/ar
+        c_L_0, c_L_alpha, c_L_delta_e, c_D_0, c_D_alpha, c_D_alpha^2, delta_0, delta_alpha
 
         :param v_airspeed: airspeed in m/s
         :param angle_of_attack: angle of attack in rad
@@ -72,27 +75,25 @@ class LinearWingModel():
         """
 
         # compute dynamic pressure times wing area
-        dyn_pressure = 0.5 * self.air_density * \
+        const = 0.5 * self.air_density * self.area * \
             (v_airspeed[0]**2 + v_airspeed[2]**2)
-        X_wing_aero_frame = np.zeros((3, 5))
+        X_wing_aero_frame = np.zeros((3, 6))
 
-        # TODO
-        # # features for drag coefficient computation
-        # cL = 2 * self.mass * (self.gravity * np.cos(flight_path_angle) -
-        #                       angular_acceleration[2]) / (self.air_density * self.ref_area * (v_airspeed[0]**2 + v_airspeed[2]**2))
-        # X_wing_aero_frame[0, 3] = - dyn_pressure
-        # X_wing_aero_frame[0, 4] = - (1 / (np.pi * np.e)) * dyn_pressure * cL**2
-
-        # features for lift coefficient computation
-        X_wing_aero_frame[2, 0] = - dyn_pressure * self.ref_area
-        X_wing_aero_frame[2, 1] = - dyn_pressure * \
-            self.ref_area * angle_of_attack
-        X_wing_aero_frame[2, 2] = - dyn_pressure * \
-            self.ref_area * elevator_input
+        # Compute Drag force coeffiecients:
+        X_wing_aero_frame[0, 3] = - const
+        X_wing_aero_frame[0, 4] = - const * angle_of_attack
+        X_wing_aero_frame[0, 5] = - const * (angle_of_attack ** 2)
+        # Compute Lift force coefficients:
+        X_wing_aero_frame[2, 0] = - const
+        X_wing_aero_frame[2, 1] = - const * angle_of_attack
+        X_wing_aero_frame[2, 2] = - const * elevator_input
+        # Compute linear trim model (elevator input vs. angle of attack)
+        # X_wing_aero_frame[3, 6] = 1
+        # X_wing_aero_frame[3, 7] = angle_of_attack
 
         # Transorm from stability axis frame to body FRD frame
         R_aero_to_body = Rotation.from_rotvec(
-            [0, angle_of_attack, 0]).as_matrix()
+            [0, -angle_of_attack, 0]).as_matrix()
         X_wing_body_frame = R_aero_to_body @ X_wing_aero_frame
         X_wing_body_frame = X_wing_body_frame.flatten()
         return X_wing_body_frame
@@ -101,7 +102,7 @@ class LinearWingModel():
         # TODO: implement
         raise NotImplementedError()
 
-    def compute_aero_force_features(self, v_airspeed_mat, angle_of_attack_vec, elevator_vec, gamma_vec, ang_vel_mat):
+    def compute_aero_force_features(self, v_airspeed_mat, angle_of_attack_vec, elevator_input_vec):
         """
         Inputs:
         :param v_airspeed_mat: airspeed in m/s with format numpy array of dimension (n,3) with columns for [v_a_x, v_a_y, v_a_z]
@@ -111,28 +112,35 @@ class LinearWingModel():
         :return: regression matrix X for the estimation of x- and z-forces
         """
         X_aero = self.compute_wing_force_features(
-            v_airspeed_mat[0, :], angle_of_attack_vec[0], elevator_vec[0])
+            v_airspeed_mat[0, :], angle_of_attack_vec[0], elevator_input_vec[0])
+        # print('elevator input vector', elevator_input_vec)
         aero_features_bar = Bar(
             'Feature Computation', max=v_airspeed_mat.shape[0])
         for i in range(1, len(angle_of_attack_vec)):
             X_curr = self.compute_wing_force_features(
-                v_airspeed_mat[i, :], angle_of_attack_vec[i], elevator_vec[i])
+                v_airspeed_mat[i, :], angle_of_attack_vec[i], elevator_input_vec[i])
             X_aero = np.vstack((X_aero, X_curr))
             aero_features_bar.next()
         aero_features_bar.finish()
-
         coef_dict = {
-            'c_L_0': {"lin": {"x": 'c_L_0_x', "y": 'c_L_0_y', "z": 'c_L_0_z'}},
-            'c_L_alpha': {"lin": {"x": 'c_L_alpha_x', "y": 'c_L_alpha_y', "z": 'c_L_alpha_z'}},
-            'c_L_delta': {"lin": {"x": 'c_L_delta_x', "y": 'c_L_delta_y', "z": 'c_L_delta_z'}},
-            'c_D_0': {"lin": {"x": 'c_D_0_x', "y": 'c_D_0_y', "z": 'c_D_0_z'}},
-            'inv_ar': {"lin": {"x": 'inv_ar_x', "y": 'inv_ar_y', "z": 'inv_ar_z'}},
+            "cl0": {"lin": {"x": "cl0_x", "y": "cl0_y", "z": "cl0_z"}},
+            "clalpha": {"lin": {"x": "clalpha_x", "y": "clalpha_y", "z": "clalpha_z"}},
+            "cldelta": {"lin": {"x": "cldelta_x", "y": "cldelta_y", "z": "cldelta_z"}},
+            "cd0": {"lin": {"x": "cd0_x", "y": "cd0_y", "z": "cd0_z"}},
+            "cdalpha": {"lin": {"x": "cdalpha_x", "y": "cdalpha_y", "z": "cdalpha_z"}},
+            "cdalphasq": {"lin": {"x": "cdalphasq_x", "y": "cdalphasq_y", "z": "cdalphasq_z"}},
+            # "delta0": {"lin": {"x": "delta0_x", "y": "delta0_y", "z": "delta0_z"}},
+            # "deltaalpha": {"lin": {"x": "deltaalpha_x", "y": "deltaalpha_y", "z": "deltaalpha_z"}},
         }
-        col_names = ["c_L_0_x", "c_L_0_y", "c_L_0_z",
-                     "c_L_alpha_x", "c_L_alpha_y", "c_L_alpha_z",
-                     "c_L_delta_x", "c_L_delta_y", "c_L_delta_z",
-                     "c_D_0_x", "c_D_0_y", "c_D_0_z",
-                     "inv_ar_x", "inv_ar_y", "inv_ar_z"]
+        col_names = ["cl0_x", "cl0_y", "cl0_z",
+                     "clalpha_x", "clalpha_y", "clalpha_z",
+                     "cldelta_x", "cldelta_y", "cldelta_z",
+                     "cd0_x", "cd0_y", "cd0_z",
+                     "cdalpha_x", "cdalpha_y", "cdalpha_z",
+                     "cdalphasq_x", "cdalphasq_y", "cdalphasq_z",
+                     #  "delta0_x", "delta0_y", "delta0_z",
+                     #  "deltaalpha_x", "deltaalpha_y", "deltaalpha_z"
+                     ]
 
         return X_aero, coef_dict, col_names
 
