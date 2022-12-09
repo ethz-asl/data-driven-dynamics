@@ -45,10 +45,10 @@ from .aerodynamic_models import LinearWingModel, ControlSurfaceModel
 
 
 class SimpleFixedWingModel(DynamicsModel):
-    def __init__(self, config_file, model_name="simple_fixedwing_model"):
+    def __init__(self, config_file, normalization=True, model_name="simple_fixedwing_model"):
         self.config = ModelConfig(config_file)
         super(SimpleFixedWingModel, self).__init__(
-            config_dict=self.config.dynamics_model_config)
+            config_dict=self.config.dynamics_model_config, normalization=normalization)
         self.mass = self.config.model_config["mass"]
         self.moment_of_inertia = np.diag([self.config.model_config["moment_of_inertia"]["Ixx"],
                                          self.config.model_config["moment_of_inertia"]["Iyy"], self.config.model_config["moment_of_inertia"]["Izz"]])

@@ -58,8 +58,7 @@ export to a sitl gazebo model by providing a unified interface for all models. "
 
 
 class DynamicsModel():
-    def __init__(self, config_dict):
-
+    def __init__(self, config_dict, normalization = True):
         assert type(
             config_dict) is dict, 'req_topics_dict input must be a dict'
         assert bool(config_dict), 'req_topics_dict can not be empty'
@@ -77,6 +76,7 @@ class DynamicsModel():
 
         self.estimate_forces = config_dict["estimate_forces"]
         self.estimate_moments = config_dict["estimate_moments"]
+        self.apply_normalization = normalization
 
         # used to generate a dict with the resulting coefficients later on.
         self.coef_name_list = []
@@ -86,7 +86,8 @@ class DynamicsModel():
 
     def prepare_regression_matrices(self):
         if "V_air_body_x" not in self.data_df:
-            self.normalize_actuators()
+            if self.apply_normalization:
+                self.normalize_actuators()
             self.compute_airspeed_from_groundspeed(["vx", "vy", "vz"])
 
         # Rotor features
