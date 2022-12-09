@@ -95,7 +95,7 @@ class LinearWingModel():
         R_aero_to_body = Rotation.from_rotvec(
             [0, -angle_of_attack, 0]).as_matrix()
         X_wing_body_frame = R_aero_to_body @ X_wing_aero_frame
-        X_wing_body_frame = X_wing_body_frame.flatten()
+        X_wing_body_frame = X_wing_body_frame.transpose().flatten()
         return X_wing_body_frame
 
     def compute_wing_moment_features(self, v_airspeed, angle_of_attack, angle_of_sideslip):
@@ -129,8 +129,6 @@ class LinearWingModel():
             "cd0": {"lin": {"x": "cd0_x", "y": "cd0_y", "z": "cd0_z"}},
             "cdalpha": {"lin": {"x": "cdalpha_x", "y": "cdalpha_y", "z": "cdalpha_z"}},
             "cdalphasq": {"lin": {"x": "cdalphasq_x", "y": "cdalphasq_y", "z": "cdalphasq_z"}},
-            # "delta0": {"lin": {"x": "delta0_x", "y": "delta0_y", "z": "delta0_z"}},
-            # "deltaalpha": {"lin": {"x": "deltaalpha_x", "y": "deltaalpha_y", "z": "deltaalpha_z"}},
         }
         col_names = ["cl0_x", "cl0_y", "cl0_z",
                      "clalpha_x", "clalpha_y", "clalpha_z",
@@ -138,8 +136,6 @@ class LinearWingModel():
                      "cd0_x", "cd0_y", "cd0_z",
                      "cdalpha_x", "cdalpha_y", "cdalpha_z",
                      "cdalphasq_x", "cdalphasq_y", "cdalphasq_z",
-                     #  "delta0_x", "delta0_y", "delta0_z",
-                     #  "deltaalpha_x", "deltaalpha_y", "deltaalpha_z"
                      ]
 
         return X_aero, coef_dict, col_names

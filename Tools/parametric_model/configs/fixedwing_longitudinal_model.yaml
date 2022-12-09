@@ -10,7 +10,6 @@ model_config:
     Ixx: 25.0
     Iyy: 20.0
     Izz: 20.0
-  power: 0.0015
   actuators:
     rotors:
       # All rotors in the same group will share the coefficients
