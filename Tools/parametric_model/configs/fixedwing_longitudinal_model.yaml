@@ -60,7 +60,7 @@ dynamics_model_config:
   optimizer_config:
     optimizer_class: "LinearRegressor"
   estimate_forces: True
-  estimate_moments: False
+  estimate_moments: True
   resample_freq: 50.0
   estimate_angular_acceleration: False
   data:

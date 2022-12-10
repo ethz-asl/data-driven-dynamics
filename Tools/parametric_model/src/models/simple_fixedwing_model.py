@@ -95,26 +95,31 @@ class SimpleFixedWingModel(DynamicsModel):
             "V_air_body_x", "V_air_body_y", "V_air_body_z"]].to_numpy()
         aoa_mat = self.data_df[["angle_of_attack"]].to_numpy()
         sideslip_mat = self.data_df[["angle_of_sideslip"]].to_numpy()
+        angular_vel_mat = self.data_df[[
+            "ang_vel_x", "ang_vel_y", "ang_vel_z"]].to_numpy()
+        elevator_inputs = self.data_df["u7"].to_numpy()
 
         aero_model = LinearWingModel(self.aerodynamics_dict, self.mass)
         X_aero, coef_dict_aero, col_names_aero = aero_model.compute_aero_moment_features(
-            airspeed_mat, aoa_mat, sideslip_mat)
+            airspeed_mat, aoa_mat, elevator_inputs, angular_vel_mat, sideslip_mat)
+
         self.data_df[col_names_aero] = X_aero
         self.coef_dict.update(coef_dict_aero)
 
-        aero_config_dict = self.aero_config_dict
-        for aero_group in aero_config_dict.keys():
-            aero_group_list = self.aero_config_dict[aero_group]
+        # ! READD THIS IF REQUIRED
+        # aero_config_dict = self.aero_config_dict
+        # for aero_group in aero_config_dict.keys():
+        #     aero_group_list = self.aero_config_dict[aero_group]
 
-            for config_dict in aero_group_list:
-                controlsurface_input_name = config_dict["dataframe_name"]
-                u_vec = self.data_df[controlsurface_input_name].to_numpy()
-                control_surface_model = ControlSurfaceModel(
-                    config_dict, self.aerodynamics_dict, u_vec)
-                X_controls, coef_dict_controls, col_names_controls = control_surface_model.compute_actuator_moment_matrix(
-                    airspeed_mat, aoa_mat)
-                self.data_df[col_names_controls] = X_controls
-                self.coef_dict.update(coef_dict_controls)
+        #     for config_dict in aero_group_list:
+        #         controlsurface_input_name = config_dict["dataframe_name"]
+        #         u_vec = self.data_df[controlsurface_input_name].to_numpy()
+        #         control_surface_model = ControlSurfaceModel(
+        #             config_dict, self.aerodynamics_dict, u_vec)
+        #         X_controls, coef_dict_controls, col_names_controls = control_surface_model.compute_actuator_moment_matrix(
+        #             airspeed_mat, aoa_mat)
+        #         self.data_df[col_names_controls] = X_controls
+        #         self.coef_dict.update(coef_dict_controls)
 
         self.y_dict.update({"rot": {"x": "measured_moment_x",
                            "y": "measured_moment_y", "z": "measured_moment_z"}})
