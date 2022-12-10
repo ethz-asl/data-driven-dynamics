@@ -82,7 +82,6 @@ class SimpleFixedWingModel(DynamicsModel):
                            "y": "measured_force_y", "z": "measured_force_z"}})
 
     def prepare_moment_regression_matrices(self):
-        # ! OLD CODE FROM STANDARDPLANE MODEL
         # Angular acceleration
         moment_mat = np.matmul(self.data_df[[
             "ang_acc_b_x", "ang_acc_b_y", "ang_acc_b_z"]].to_numpy(), self.moment_of_inertia)
