@@ -60,7 +60,8 @@ class LinearWingModel():
         Lift force is modeled as a linear function of the angle of attack and the elevator input (no stall effects)
         F_Lift = 0.5 * density * area * V_air_xz^2 * (c_L_0 + c_L_alpha * alpha + c_L_delta_e * delta_e)
 
-        Drag force is modeled as a quadratic function of the lift coefficient
+        Drag force is modeled as a second order polynomial of the angle of attack
+            (and therefore currently ignores the effect of the elevator input)
         F_Drag = 0.5 * density * area * V_air_xz^2 * (c_D_0 + c_D_alpha * alpha + c_D_alpha^2 * alpha^2)
 
         Elevator input is modeled as a linear function of the angle of attack to obtain a trim model
@@ -97,6 +98,26 @@ class LinearWingModel():
         return X_wing_body_frame
 
     def compute_wing_moment_features(self, v_airspeed, angle_of_attack, elevator_input, angular_velocity, angle_of_sideslip):
+        """
+        Model description:
+
+        Compute pitching moment in stability axis frame.
+
+        Pitching moment is modeled as a linear function of the angle of attack, the elevator input and the angle of sideslip
+        M_Pitch = 0.5 * density * area * V_air_xz^2 * chord * (c_m_0 + c_m_alpha * alpha + c_m_delta_e * delta_e + c_mq * damping_feature)
+
+        Coefficients for optimization:
+        c_m_0, c_m_alpha, c_m_delta_e, c_mq
+
+        :param v_airspeed: airspeed in m/s
+        :param angle_of_attack: angle of attack in rad
+        :param elevator_input: elevator input
+        :param angular_velocity: angular velocity in rad/s
+        :param angle_of_sideslip: angle of sideslip in rad
+
+        :return: regression matrix X for the estimation of pitching moment for a single feature
+        """
+
         vel_xz = np.sqrt(v_airspeed[0]**2 + v_airspeed[2]**2)
         const = 0.5 * self.air_density * self.area * \
             (vel_xz**2) * self.chord
