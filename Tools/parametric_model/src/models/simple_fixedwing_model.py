@@ -73,7 +73,7 @@ class SimpleFixedWingModel(DynamicsModel):
         aoa_mat = self.data_df[["angle_of_attack"]].to_numpy()
         elevator_inputs = self.data_df["u7"].to_numpy()
 
-        aero_model = LinearWingModel(self.aerodynamics_dict, self.mass)
+        aero_model = LinearWingModel(self.aerodynamics_dict)
         X_aero, coef_dict_aero, col_names_aero = aero_model.compute_aero_force_features(
             airspeed_mat, aoa_mat, elevator_inputs)
         self.data_df[col_names_aero] = X_aero
@@ -98,7 +98,7 @@ class SimpleFixedWingModel(DynamicsModel):
             "ang_vel_x", "ang_vel_y", "ang_vel_z"]].to_numpy()
         elevator_inputs = self.data_df["u7"].to_numpy()
 
-        aero_model = LinearWingModel(self.aerodynamics_dict, self.mass)
+        aero_model = LinearWingModel(self.aerodynamics_dict)
         X_aero, coef_dict_aero, col_names_aero = aero_model.compute_aero_moment_features(
             airspeed_mat, aoa_mat, elevator_inputs, angular_vel_mat, sideslip_mat)
 

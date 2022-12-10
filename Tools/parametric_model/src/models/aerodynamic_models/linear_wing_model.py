@@ -44,12 +44,11 @@ from progress.bar import Bar
 
 
 class LinearWingModel():
-    def __init__(self, config_dict, mass):
+    def __init__(self, config_dict):
         self.air_density = 1.225
+        self.gravity = 9.81
         self.area = config_dict["area"]
         self.chord = config_dict["chord"]
-        self.mass = mass
-        self.gravity = 9.81
 
     def compute_wing_force_features(self, v_airspeed, angle_of_attack, elevator_input):
         """
@@ -148,7 +147,6 @@ class LinearWingModel():
         """
         X_aero = self.compute_wing_force_features(
             v_airspeed_mat[0, :], angle_of_attack_vec[0], elevator_input_vec[0])
-        # print('elevator input vector', elevator_input_vec)
         aero_features_bar = Bar(
             'Feature Computation', max=v_airspeed_mat.shape[0])
         for i in range(1, len(angle_of_attack_vec)):
