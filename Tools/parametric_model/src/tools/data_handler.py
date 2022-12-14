@@ -161,11 +161,14 @@ class DataHandler(object):
                 curr_df = pandas_from_topic(ulog, [topic_type], id)
             else:
                 curr_df = pandas_from_topic(ulog, [topic_type])
+
+            if topic_type == "manual_control_setpoint":
+                fts = compute_flight_time(curr_df)
             
-            if topic_type == "actuator_outputs":
-                fts = compute_flight_time(curr_df)
-            elif topic_type == "actuator_controls_0":
-                fts = compute_flight_time(curr_df)
+            # if topic_type == "actuator_outputs":
+            #     fts = compute_flight_time(curr_df)
+            # elif topic_type == "actuator_controls_0":
+            #     fts = compute_flight_time(curr_df)
             
             curr_df = curr_df[topic_dict["ulog_name"]]
             if "dataframe_name" in topic_dict.keys():

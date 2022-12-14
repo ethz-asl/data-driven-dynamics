@@ -66,6 +66,7 @@ dynamics_model_config:
   data:
     required_ulog_topics:
       actuator_outputs:
+        id: 1
         ulog_name:
           - "timestamp"
           - "output[2]" # Rudder
@@ -137,3 +138,10 @@ dynamics_model_config:
           - "ang_acc_b_x"
           - "ang_acc_b_y"
           - "ang_acc_b_z"
+      manual_control_setpoint:
+        ulog_name:
+          - "timestamp"
+          - "aux1"
+        dataframe_name:
+          - "timestamp"
+          - "aux1"

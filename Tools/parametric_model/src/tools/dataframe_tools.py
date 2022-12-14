@@ -47,19 +47,50 @@ ACTUATOR_CONTROLS_THRESHOLD = -0.2
 
 
 def compute_flight_time(act_df, pwm_threshold=None, control_threshold=None):
-    """This function computes the flight time by a simple thresholding of actuator outputs or control values. 
-    This works usually well for logs from the simulator or mission flights. But in some cases the assumption of an actuator output staying higher than the trsehhold for the hole flight might not be valid."""
+    """
+    This function detect the start and end of the flight time of interest by looking at the aux1 switch values
+    ! CAUTION: This function is only valid for the current test setup with the ramp input sequences
+    """
 
-    if pwm_threshold is None:
-        pwm_threshold = PWM_THRESHOLD
+    # find ramp input sequences
+    aux1 = act_df[['timestamp', 'aux1']]
+    aux1 = aux1[aux1['aux1'] > -1.0]
 
-    if control_threshold is None:
-        control_threshold = ACTUATOR_CONTROLS_THRESHOLD
-    act_df_crp = act_df[act_df.iloc[:, 2] > pwm_threshold]
-    act_df_crp = act_df[act_df.iloc[:, 4] > pwm_threshold]
+    # split the dataframe at 0 values to obtain possibly multiple ramp input sequences
+    aux1['group'] = aux1['aux1'].ne(aux1['aux1'].shift()).cumsum()
+    aux1 = aux1.groupby('group')
+    ramp_inputs = []
+    for _, data in aux1:
+        # append data to dfs if the group value modulo 2 is 0
+        if (data['group'].iloc[0] % 2 == 0):
+            ramp_inputs.append(data.drop(columns=['group']))
 
-    t_start = act_df_crp.iloc[1, 0]
-    t_end = act_df_crp.iloc[(act_df_crp.shape[0]-1), 0]
+    first_start = ramp_inputs[0].iloc[0, 0]
+    first_end = ramp_inputs[0].iloc[-1, 0]
+    print('first start', first_start, 'first end', first_end)
+
+    second_start = ramp_inputs[1].iloc[0, 0]
+    second_end = ramp_inputs[1].iloc[-1, 0]
+    print('second start', second_start, 'second end', second_end)
+
+    third_start = ramp_inputs[2].iloc[0, 0]
+    third_end = ramp_inputs[2].iloc[-1, 0]
+    print('third start', third_start, 'third end', third_end)
+
+    t_start = third_start
+    t_end = third_end
+
+    # if pwm_threshold is None:
+    #     pwm_threshold = PWM_THRESHOLD
+
+    # if control_threshold is None:
+    #     control_threshold = ACTUATOR_CONTROLS_THRESHOLD
+    # act_df_crp = act_df[act_df.iloc[:, 2] > pwm_threshold]
+    # act_df_crp = act_df[act_df.iloc[:, 4] > pwm_threshold]
+
+    # t_start = act_df_crp.iloc[1, 0]
+    # t_end = act_df_crp.iloc[(act_df_crp.shape[0]-1), 0]
+
     flight_time = {"t_start": t_start, "t_end": t_end}
     return flight_time
 
