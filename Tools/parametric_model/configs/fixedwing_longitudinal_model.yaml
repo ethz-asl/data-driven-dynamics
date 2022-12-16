@@ -1,7 +1,8 @@
 # general information
 model_name: "Gazebo Standard Plane"
 model_type: "Standard Plane Longitudinal Model"
-model_class: "SimpleFixedWingModel"
+model_class:
+  "SimpleFixedWingModel"
 
   # all vectors in FRD body frame if not specified otherwise
 model_config:
@@ -46,10 +47,6 @@ model_config:
           description: "rudder"
           dataframe_name: "u2"
 
-        # - control_surface_4:
-        #   description: "flaps"
-        #   dataframe_name: "u3"
-
   aerodynamics:
     area: 2.0
     chord: 0.5
@@ -70,7 +67,6 @@ dynamics_model_config:
         ulog_name:
           - "timestamp"
           - "output[2]" # Rudder
-          # - "output[3]" # Flaps
           - "output[4]" # motor
           - "output[5]" # left aileron
           - "output[6]" # right aileron
@@ -78,7 +74,6 @@ dynamics_model_config:
         dataframe_name:
           - "timestamp"
           - "u2"
-          # - "u3"
           - "u4"
           - "u5"
           - "u6"
@@ -86,7 +81,6 @@ dynamics_model_config:
         actuator_type:
           - "timestamp"
           - "control_surface"
-          # - "control_surface"
           - "motor"
           - "control_surface"
           - "control_surface"
@@ -145,3 +139,26 @@ dynamics_model_config:
         dataframe_name:
           - "timestamp"
           - "aux1"
+      vehicle_thrust_setpoint:
+        ulog_name:
+          - "timestamp"
+          - "xyz[0]" # thrust
+        dataframe_name:
+          - "timestamp"
+          - "u4"
+      vehicle_torque_setpoint:
+        ulog_name:
+          - "timestamp"
+          - "xyz[0]"
+          - "xyz[1]"
+          - "xyz[2]"
+        dataframe_name:
+          - "timestamp"
+          - "aileron" # differential input to ailerons
+          - "elevator" # elevator input
+          - "rudder" # rudder input
+        actuator_type:
+          - "timestamp"
+          - "control_surface"
+          - "control_surface"
+          - "control_surface"
