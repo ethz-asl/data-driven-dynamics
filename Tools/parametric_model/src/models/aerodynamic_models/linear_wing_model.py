@@ -87,7 +87,7 @@ class LinearWingModel():
         # Compute Lift force coefficients:
         X_wing_aero_frame[2, 0] = - const
         X_wing_aero_frame[2, 1] = - const * angle_of_attack
-        X_wing_aero_frame[2, 2] = const * elevator_input
+        X_wing_aero_frame[2, 2] = - const * elevator_input
 
         # Transorm from stability axis frame to body FRD frame
         R_aero_to_body = Rotation.from_rotvec(
@@ -126,7 +126,7 @@ class LinearWingModel():
         # Compute Pitching moment coefficients:
         X_wing_aero_frame[1, 0] = const
         X_wing_aero_frame[1, 1] = const * angle_of_attack
-        X_wing_aero_frame[1, 2] = - const * elevator_input
+        X_wing_aero_frame[1, 2] = const * elevator_input
         X_wing_aero_frame[1, 3] = const * \
             (angular_velocity[1] * self.chord) / (2 * vel_xz)
 

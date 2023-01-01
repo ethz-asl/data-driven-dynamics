@@ -51,7 +51,8 @@ class SimpleFixedWingModel(DynamicsModel):
             config_dict=self.config.dynamics_model_config, normalization=normalization)
         self.mass = self.config.model_config["mass"]
         self.moment_of_inertia = np.diag([self.config.model_config["moment_of_inertia"]["Ixx"],
-                                         self.config.model_config["moment_of_inertia"]["Iyy"], self.config.model_config["moment_of_inertia"]["Izz"]])
+                                         self.config.model_config["moment_of_inertia"]["Iyy"],
+                                         self.config.model_config["moment_of_inertia"]["Izz"]])
 
         self.model_name = model_name
 
