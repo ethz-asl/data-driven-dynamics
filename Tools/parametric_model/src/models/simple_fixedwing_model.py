@@ -76,7 +76,7 @@ class SimpleFixedWingModel(DynamicsModel):
 
         aero_model = LinearWingModel(self.aerodynamics_dict)
         X_aero, coef_dict_aero, col_names_aero = aero_model.compute_aero_force_features(
-            airspeed_mat, aoa_mat, elevator_inputs)
+            airspeed_mat, aoa_mat[:, 0], elevator_inputs)
         self.data_df[col_names_aero] = X_aero
         self.coef_dict.update(coef_dict_aero)
         self.y_dict.update({"lin": {"x": "measured_force_x",
@@ -101,7 +101,7 @@ class SimpleFixedWingModel(DynamicsModel):
 
         aero_model = LinearWingModel(self.aerodynamics_dict)
         X_aero, coef_dict_aero, col_names_aero = aero_model.compute_aero_moment_features(
-            airspeed_mat, aoa_mat, elevator_inputs, angular_vel_mat, sideslip_mat)
+            airspeed_mat, aoa_mat[:, 0], elevator_inputs, angular_vel_mat, sideslip_mat)
 
         self.data_df[col_names_aero] = X_aero
         self.coef_dict.update(coef_dict_aero)

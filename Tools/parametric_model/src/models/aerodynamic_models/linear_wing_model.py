@@ -183,7 +183,7 @@ class LinearWingModel():
         X_aero = self.compute_wing_moment_features(
             v_airspeed_mat[0, :], angle_of_attack_vec[0], elevator_input_vec[0], angular_vel_mat[0, :], angle_of_sideslip_vec[0])
         aero_features_bar = Bar(
-            'Feature Computatiuon', max=v_airspeed_mat.shape[0])
+            'Feature Computation', max=v_airspeed_mat.shape[0])
         for i in range(1, len(angle_of_attack_vec)):
             X_curr = self.compute_wing_moment_features(
                 v_airspeed_mat[i, :], angle_of_attack_vec[i], elevator_input_vec[i], angular_vel_mat[i, :], angle_of_sideslip_vec[i])
