@@ -54,10 +54,10 @@ class LinearRotorModel():
         coef_dict = {"ct": {"lin": {"x": "ct_x", "y": "ct_y", "z": "ct_z"}}, }
         col_names = ["ct_x", "ct_y", "ct_z"]
 
-        self.X_forces = np.zeros((self.throttle.shape[0], 3))
-        self.X_forces[:, 0] = self.throttle
+        X_forces = np.zeros((self.throttle.shape[0], 3))
+        X_forces[:, 0] = self.throttle
 
-        return self.X_forces, coef_dict, col_names
+        return X_forces, coef_dict, col_names
 
     def compute_actuator_moment_matrix(self):
         print("Computing moment features for rotor")
@@ -67,7 +67,7 @@ class LinearRotorModel():
         }
         col_names = ["ct_m_x", "ct_m_y", "ct_m_z"]
 
-        self.X_moments = np.zeros((self.throttle.shape[0], 3))
-        self.X_moments[:, 0] = self.throttle
+        X_moments = np.zeros((self.throttle.shape[0], 3))
+        X_moments[:, 0] = self.throttle
 
-        return self.X_moments, coef_dict, col_names
+        return X_moments, coef_dict, col_names
