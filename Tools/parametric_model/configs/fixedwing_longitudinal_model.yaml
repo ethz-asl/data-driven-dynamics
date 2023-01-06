@@ -17,8 +17,8 @@ model_config:
       puller_:
         - rotor_4:
           description: "puller rotor"
-          rotor_type: "RotorModel"
-          dataframe_name: "u4"
+          rotor_type: "LinearRotorModel"
+          dataframe_name: "throttle"
           rotor_axis:
             - 1
             - 0
@@ -142,10 +142,10 @@ dynamics_model_config:
       vehicle_thrust_setpoint:
         ulog_name:
           - "timestamp"
-          - "xyz[0]" # thrust
+          - "xyz[0]"
         dataframe_name:
           - "timestamp"
-          - "u4"
+          - "throttle"
       vehicle_torque_setpoint:
         ulog_name:
           - "timestamp"

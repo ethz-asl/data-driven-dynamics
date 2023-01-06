@@ -41,7 +41,7 @@ from src.tools.quat_utils import quaternion_to_rotation_matrix
 from src.tools.dataframe_tools import resample_dataframe_list
 from src.tools.ulog_tools import load_ulog, pandas_from_topic
 from .model_plots import model_plots, aerodynamics_plots, linear_model_plots
-from .rotor_models import RotorModel, BiDirectionalRotorModel, TiltingRotorModel, ChangingAxisRotorModel
+from .rotor_models import RotorModel, LinearRotorModel, BiDirectionalRotorModel, TiltingRotorModel, ChangingAxisRotorModel
 import matplotlib.pyplot as plt
 from scipy.linalg import block_diag
 import src.optimizers as optimizers
@@ -237,7 +237,7 @@ class DynamicsModel():
 
     def initialize_rotor_model(self, rotor_config_dict, angular_vel_mat=None):
         valid_rotor_types = ["RotorModel", "ChangingAxisRotorModel",
-                             "BiDirectionalRotorModel", "TiltingRotorModel"]
+                             "BiDirectionalRotorModel", "TiltingRotorModel", "LinearRotorModel"]
         rotor_input_name = rotor_config_dict["dataframe_name"]
         u_vec = self.data_df[rotor_input_name].to_numpy()
         if "rotor_type" not in rotor_config_dict.keys():
@@ -251,6 +251,8 @@ class DynamicsModel():
         if rotor_type == "RotorModel":
             rotor = RotorModel(
                 rotor_config_dict, u_vec, self.v_airspeed_mat, angular_vel_mat=angular_vel_mat)
+        elif rotor_type == "LinearRotorModel":
+            rotor = LinearRotorModel(u_vec)
         elif rotor_type == "ChangingAxisRotorModel":
             rotor = ChangingAxisRotorModel(
                 rotor_config_dict, u_vec, self.v_airspeed_mat, angular_vel_mat=angular_vel_mat)
@@ -280,11 +282,16 @@ class DynamicsModel():
             rotor_group_list = rotors_config_dict[rotor_group]
             self.rotor_dict[rotor_group] = {}
             if (self.estimate_forces):
-                X_force_collector = np.zeros(
-                    (self.n_samples, 3*3))
+                # ! issue here
+                if (rotors_config_dict[rotor_group][0]['rotor_type'] == 'LinearRotorModel'):
+                    X_force_collector = np.zeros((self.n_samples, 3))
+                else:
+                    X_force_collector = np.zeros((self.n_samples, 3*3))
             if (self.estimate_moments):
-                X_moment_collector = np.zeros(
-                    (self.n_samples, 3*5))
+                if (rotors_config_dict[rotor_group][0]['rotor_type'] == 'LinearRotorModel'):
+                    X_moment_collector = np.zeros((self.n_samples, 3))
+                else:
+                    X_moment_collector = np.zeros((self.n_samples, 3*5))
             for rotor_config_dict in rotor_group_list:
                 rotor = self.initialize_rotor_model(
                     rotor_config_dict, angular_vel_mat)
@@ -299,7 +306,6 @@ class DynamicsModel():
                             col_names_force[i]
 
                     for key in list(coef_dict_force.keys()):
-
                         coef_dict_force[rotor_group+key] = coef_dict_force.pop(key)
                         for i in ["x","y","z"]:
                             coef_dict_force[rotor_group+key]["lin"][i] = rotor_group + coef_dict_force[rotor_group+key]["lin"][i]
