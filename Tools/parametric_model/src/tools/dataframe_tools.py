@@ -32,7 +32,7 @@
  *
 """
 
-__author__ = "Manuel Yves Galliker"
+__author__ = "Manuel Yves Galliker, Julius Schlapbach"
 __maintainer__ = "Manuel Yves Galliker"
 __license__ = "BSD 3"
 
@@ -40,49 +40,88 @@ import numpy as np
 import pandas as pd
 from src.tools.ulog_tools import pandas_from_topic
 from src.tools.quat_utils import slerp
+from matplotlib import pyplot as plt
+
 
 # pre normalization thresholds
 PWM_THRESHOLD = 1000
 ACTUATOR_CONTROLS_THRESHOLD = -0.2
 
 
-def compute_flight_time(act_df, pwm_threshold=None, control_threshold=None):
+def compute_flight_time(act_df, thrust_df=None, ramps=False, actuators = [], pwm_threshold=None, control_threshold=None):
     """
-    This function detect the start and end of the flight time of interest by looking at the aux1 switch values
-    ! CAUTION: This function is only valid for the current test setup with the ramp input sequences
+    If the ramps parameter is set to true, it will detect the time ranges of the thrust and pitch ramps based on the aux1-value.
+    The corresponding parameter can be set in the config file as use_identification_ramps.
+
+    Alternatively, it should be possible to detect the flight time automatically based on actuator setpoints.
+    Currently, this is solved with a more simpler approach, which just uses the entire log for model identification.
     """
+    print('\nComputing flight time...')
 
-    # ! use entire dataframe (following two lines)
-    # t_start = act_df.iloc[0, 0]
-    # t_end = act_df.iloc[(act_df.shape[0]-1), 0]
+    if not ramps:
+        # TODO: implement a modified approach that uses the setpionts to detect the flight time - currently the entire dataframe is used
+        # old code
+        # if pwm_threshold is None:
+        #     pwm_threshold = PWM_THRESHOLD
 
-    # compute the zero crossings of the aux1 signal
-    zero_crossings = np.where(
-        np.diff(np.sign(act_df['aux1'] + (act_df['aux1'] == 0))))[0]
-    assert len(zero_crossings) % 2 == 0, "Aux1 active ranges are not all closed"
+        # if control_threshold is None:
+        #     control_threshold = ACTUATOR_CONTROLS_THRESHOLD
+        
+        # ! hardcoded columns are the problem as column 4 only contains zero values for the test dataset, which does not work then...
+        # act_df_crp = pd.DataFrame()        
+        # act_df_crp = act_df[act_df.iloc[:, 2] > pwm_threshold]
+        # act_df_crp = act_df_crp[act_df_crp.iloc[:, 4] > pwm_threshold]
 
-    ramp_times = {}
-    num_of_ramps = len(zero_crossings) // 2
-    for i in range(num_of_ramps):
-        ramp_times["ramp{0}_start".format(i+1)] = zero_crossings[2 * i]
-        ramp_times["ramp{0}_end".format(i+1)] = zero_crossings[2 * i + 1]
+        # t_start = act_df_crp.iloc[1, 0]
+        # t_end = act_df_crp.iloc[(act_df_crp.shape[0]-1), 0]
 
-    # choose the ramp of interest
-    t_start = act_df['timestamp'][ramp_times["ramp4_start"]]
-    t_end = act_df['timestamp'][ramp_times["ramp4_end"]]
+        # flight_time = {"t_start": t_start, "t_end": t_end}
 
-    # if pwm_threshold is None:
-    #     pwm_threshold = PWM_THRESHOLD
+        # Alternative option: use the entire log for model identification (might be problematic with ground phases of the log)
+        t_start = act_df.iloc[0, 0]
+        t_end = act_df.iloc[(act_df.shape[0]-1), 0]
+        flight_time = {"t_start": t_start, "t_end": t_end}
 
-    # if control_threshold is None:
-    #     control_threshold = ACTUATOR_CONTROLS_THRESHOLD
-    # act_df_crp = act_df[act_df.iloc[:, 2] > pwm_threshold]
-    # act_df_crp = act_df[act_df.iloc[:, 4] > pwm_threshold]
+    else:
+        # TODO: add the option to only use thrust ramps and/or pitch ramps depending on some config setting (optional setting)
+        flight_time = []
+        zero_crossings = np.where(
+            np.diff(np.sign(act_df['aux1'] + (act_df['aux1'] == 0))))[0]
 
-    # t_start = act_df_crp.iloc[1, 0]
-    # t_end = act_df_crp.iloc[(act_df_crp.shape[0]-1), 0]
+        assert len(zero_crossings ==
+                   0), "No aux1 activations detected as required for the ramp flight mode"
+        assert len(
+            zero_crossings) % 2 == 0, "Aux1 active ranges are not all closed"
 
-    flight_time = {"t_start": t_start, "t_end": t_end}
+        num_of_ramps = len(zero_crossings) // 2
+        print('\nDetected {0} ramp inputs in total'.format(num_of_ramps))
+
+        throttle_list = []
+        num_thrust_ramps = 0
+        num_pitch_ramps = 0
+
+        for i in range(num_of_ramps):
+            new_flight_time = {"t_start": act_df['timestamp'][zero_crossings[2 * i]],
+                               "t_end": act_df['timestamp'][zero_crossings[2 * i + 1]]}
+            flight_time.append(new_flight_time)
+            
+            ramp_throttle = thrust_df[np.logical_and((thrust_df['timestamp'] > new_flight_time['t_start']),
+                                      (thrust_df['timestamp'] < new_flight_time['t_end']))]
+            throttle_list.append(ramp_throttle)
+
+            num_non_zero = ramp_throttle[ramp_throttle['xyz[0]'] > 0.0]['xyz[0]'].shape[0]
+            if num_non_zero > 0:
+                num_thrust_ramps += 1
+            else:
+                num_pitch_ramps += 1
+
+        print('\nProcesed {0} thrust ramps and {1} pitch ramps'.format(
+            num_thrust_ramps, num_pitch_ramps))
+
+    print('Flight time computation completed successfully.')
+
+    
+
     return flight_time
 
 

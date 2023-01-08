@@ -39,6 +39,7 @@ dynamics_model_config:
     optimizer_class: "LinearRegressor"
   estimate_forces: True
   estimate_moments: False
+  use_identification_ramps: False
   resample_freq: 100.0
   data:
     required_ulog_topics: # only used when load_from_csv = False

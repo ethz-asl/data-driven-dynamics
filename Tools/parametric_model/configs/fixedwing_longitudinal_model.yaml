@@ -58,6 +58,7 @@ dynamics_model_config:
     optimizer_class: "LinearRegressor"
   estimate_forces: True
   estimate_moments: True
+  use_identification_ramps: True
   resample_freq: 50.0
   estimate_angular_acceleration: False
   data:
@@ -66,18 +67,18 @@ dynamics_model_config:
         id: 1
         ulog_name:
           - "timestamp"
-          - "output[2]" # Rudder
-          - "output[4]" # motor
-          - "output[5]" # left aileron
-          - "output[6]" # right aileron
-          - "output[7]" # elevator
+          - "output[0]"
+          - "output[1]"
+          - "output[3]"
+          - "output[4]"
+          - "output[6]"
         dataframe_name:
           - "timestamp"
-          - "u2"
+          - "u0"
+          - "u1"
+          - "u3"
           - "u4"
-          - "u5"
           - "u6"
-          - "u7"
         actuator_type:
           - "timestamp"
           - "control_surface"
