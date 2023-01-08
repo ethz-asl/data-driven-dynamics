@@ -164,12 +164,12 @@ class DataHandler(object):
 
             if topic_type == "manual_control_setpoint" and self.config_dict['use_identification_ramps']:
                 thrust_df = pandas_from_topic(ulog, ["vehicle_thrust_setpoint"])
-                fts = compute_flight_time(curr_df, thrust_df, ramps = self.config_dict['use_identification_ramps'])
+                fts = compute_flight_time(curr_df, self.config_dict, thrust_df, ramps = self.config_dict['use_identification_ramps'])
 
             elif topic_type == "actuator_outputs" and not self.config_dict['use_identification_ramps']:
-                fts = compute_flight_time(curr_df)
+                fts = compute_flight_time(curr_df, self.config_dict)
             elif topic_type == "actuator_controls_0" and not self.config_dict['use_identification_ramps']:
-                fts = compute_flight_time(curr_df)
+                fts = compute_flight_time(curr_df, self.config_dict)
             
             curr_df = curr_df[topic_dict["ulog_name"]]
             if "dataframe_name" in topic_dict.keys():

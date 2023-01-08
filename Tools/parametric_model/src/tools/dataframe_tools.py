@@ -48,7 +48,7 @@ PWM_THRESHOLD = 1000
 ACTUATOR_CONTROLS_THRESHOLD = -0.2
 
 
-def compute_flight_time(act_df, thrust_df=None, ramps=False, actuators = [], pwm_threshold=None, control_threshold=None):
+def compute_flight_time(act_df, config_dict, thrust_df=None, ramps=False, actuators=[], pwm_threshold=None, control_threshold=None):
     """
     If the ramps parameter is set to true, it will detect the time ranges of the thrust and pitch ramps based on the aux1-value.
     The corresponding parameter can be set in the config file as use_identification_ramps.
@@ -66,9 +66,9 @@ def compute_flight_time(act_df, thrust_df=None, ramps=False, actuators = [], pwm
 
         # if control_threshold is None:
         #     control_threshold = ACTUATOR_CONTROLS_THRESHOLD
-        
+
         # ! hardcoded columns are the problem as column 4 only contains zero values for the test dataset, which does not work then...
-        # act_df_crp = pd.DataFrame()        
+        # act_df_crp = pd.DataFrame()
         # act_df_crp = act_df[act_df.iloc[:, 2] > pwm_threshold]
         # act_df_crp = act_df_crp[act_df_crp.iloc[:, 4] > pwm_threshold]
 
@@ -83,8 +83,10 @@ def compute_flight_time(act_df, thrust_df=None, ramps=False, actuators = [], pwm
         flight_time = {"t_start": t_start, "t_end": t_end}
 
     else:
-        # TODO: add the option to only use thrust ramps and/or pitch ramps depending on some config setting (optional setting)
         flight_time = []
+        use_thrust_ramps_only = config_dict.get('use_thrust_ramps_only', False)
+        use_pitch_ramps_only = config_dict.get('use_pitch_ramps_only', False)
+
         zero_crossings = np.where(
             np.diff(np.sign(act_df['aux1'] + (act_df['aux1'] == 0))))[0]
 
@@ -103,24 +105,28 @@ def compute_flight_time(act_df, thrust_df=None, ramps=False, actuators = [], pwm
         for i in range(num_of_ramps):
             new_flight_time = {"t_start": act_df['timestamp'][zero_crossings[2 * i]],
                                "t_end": act_df['timestamp'][zero_crossings[2 * i + 1]]}
-            flight_time.append(new_flight_time)
-            
+
             ramp_throttle = thrust_df[np.logical_and((thrust_df['timestamp'] > new_flight_time['t_start']),
                                       (thrust_df['timestamp'] < new_flight_time['t_end']))]
             throttle_list.append(ramp_throttle)
 
-            num_non_zero = ramp_throttle[ramp_throttle['xyz[0]'] > 0.0]['xyz[0]'].shape[0]
+            num_non_zero = ramp_throttle[ramp_throttle['xyz[0]']
+                                         > 0.0]['xyz[0]'].shape[0]
             if num_non_zero > 0:
                 num_thrust_ramps += 1
+                if use_pitch_ramps_only:
+                    continue
             else:
                 num_pitch_ramps += 1
+                if use_thrust_ramps_only:
+                    continue
+
+            flight_time.append(new_flight_time)
 
         print('\nProcesed {0} thrust ramps and {1} pitch ramps'.format(
             num_thrust_ramps, num_pitch_ramps))
 
     print('Flight time computation completed successfully.')
-
-    
 
     return flight_time
 
