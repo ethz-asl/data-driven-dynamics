@@ -53,34 +53,34 @@ def compute_flight_time(act_df, config_dict, thrust_df=None, ramps=False, actuat
     If the ramps parameter is set to true, it will detect the time ranges of the thrust and pitch ramps based on the aux1-value.
     The corresponding parameter can be set in the config file as use_identification_ramps.
 
-    Alternatively, it should be possible to detect the flight time automatically based on actuator setpoints.
+    Alternatively, it should be possible to detect the flight time automatically based on actuator setpoints exactly as before.
     Currently, this is solved with a more simpler approach, which just uses the entire log for model identification.
     """
     print('\nComputing flight time...')
 
     if not ramps:
-        # TODO: implement a modified approach that uses the setpionts to detect the flight time - currently the entire dataframe is used
-        # old code
-        # if pwm_threshold is None:
-        #     pwm_threshold = PWM_THRESHOLD
+        if pwm_threshold is None:
+            pwm_threshold = PWM_THRESHOLD
 
-        # if control_threshold is None:
-        #     control_threshold = ACTUATOR_CONTROLS_THRESHOLD
+        if control_threshold is None:
+            control_threshold = ACTUATOR_CONTROLS_THRESHOLD
 
-        # ! hardcoded columns are the problem as column 4 only contains zero values for the test dataset, which does not work then...
-        # act_df_crp = pd.DataFrame()
-        # act_df_crp = act_df[act_df.iloc[:, 2] > pwm_threshold]
-        # act_df_crp = act_df_crp[act_df_crp.iloc[:, 4] > pwm_threshold]
+        actuator_ulogs = config_dict['data']['required_ulog_topics']['actuator_outputs']['ulog_name']
+        actuator_ulogs = [x for x in actuator_ulogs if x != 'timestamp']
 
-        # t_start = act_df_crp.iloc[1, 0]
-        # t_end = act_df_crp.iloc[(act_df_crp.shape[0]-1), 0]
+        act_df_crp = act_df.copy()
 
-        # flight_time = {"t_start": t_start, "t_end": t_end}
+        for actuator_topic in actuator_ulogs:
+            act_df_crp = act_df_crp[act_df_crp[actuator_topic] > pwm_threshold]
+
+        t_start = act_df_crp.iloc[1, 0]
+        t_end = act_df_crp.iloc[(act_df_crp.shape[0]-1), 0]
+        flight_time = {"t_start": t_start, "t_end": t_end}
 
         # Alternative option: use the entire log for model identification (might be problematic with ground phases of the log)
-        t_start = act_df.iloc[0, 0]
-        t_end = act_df.iloc[(act_df.shape[0]-1), 0]
-        flight_time = {"t_start": t_start, "t_end": t_end}
+        # t_start = act_df.iloc[0, 0]
+        # t_end = act_df.iloc[(act_df.shape[0]-1), 0]
+        # flight_time = {"t_start": t_start, "t_end": t_end}
 
     else:
         flight_time = []
