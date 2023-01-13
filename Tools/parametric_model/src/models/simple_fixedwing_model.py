@@ -99,7 +99,6 @@ class SimpleFixedWingModel(DynamicsModel):
             X_wing_aero_frame[0, 3] = - const[k]
             X_wing_aero_frame[0, 4] = - const[k] * angles_of_attack[k]
             X_wing_aero_frame[0, 5] = - const[k] * (angles_of_attack[k] ** 2)
-            X_wing_aero_frame[0, 6] = throttle[k]
             # Compute Lift force coefficients:
             X_wing_aero_frame[2, 0] = - const[k]
             X_wing_aero_frame[2, 1] = - const[k] * angles_of_attack[k]
@@ -110,6 +109,9 @@ class SimpleFixedWingModel(DynamicsModel):
                 [0, -angles_of_attack[k], 0]).as_matrix()
             X_wing_body_frame = R_aero_to_body @ X_wing_aero_frame
 
+            # add throttle after conversion to body frame (as thrust is assumed to be in x-direction in body frame)
+            X_wing_body_frame[0, 6] = throttle[k]
+
             temp_xyz_b_forces = X_wing_body_frame @ coeff_vec
             xyz_b_forces_predicted[:, k] = temp_xyz_b_forces
 
@@ -117,7 +119,7 @@ class SimpleFixedWingModel(DynamicsModel):
         plt.plot(self.data_df.index, force_mat[:, 2], label='measured')
         plt.plot(self.data_df.index,
                  xyz_b_forces_predicted[2, :], label='identified')
-        plt.xlabel('timestamp')
+        plt.xlabel('index')
         plt.ylabel('body force z-direction')
         plt.legend()
         plt.show()
@@ -126,7 +128,7 @@ class SimpleFixedWingModel(DynamicsModel):
         plt.plot(self.data_df.index, force_mat[:, 0], label='measured')
         plt.plot(self.data_df.index,
                  xyz_b_forces_predicted[0, :], label='identified')
-        plt.xlabel('timestamp')
+        plt.xlabel('index')
         plt.ylabel('body force x-direction')
         plt.legend()
         plt.show()
