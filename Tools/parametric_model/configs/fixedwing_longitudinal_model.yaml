@@ -29,24 +29,6 @@ model_config:
             - 0
             - 0
 
-    control_surfaces:
-      wing_:
-        - control_surface_0:
-          description: "aileron_right"
-          dataframe_name: "u6"
-
-        - control_surface_1:
-          description: "aileron_left"
-          dataframe_name: "u5"
-
-        - control_surface_2:
-          description: "elevator"
-          dataframe_name: "u7"
-
-        - control_surface_3:
-          description: "rudder"
-          dataframe_name: "u2"
-
   aerodynamics:
     area: 2.0
     chord: 0.5

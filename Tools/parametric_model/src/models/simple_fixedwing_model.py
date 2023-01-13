@@ -59,7 +59,6 @@ class SimpleFixedWingModel(DynamicsModel):
         self.model_name = model_name
 
         self.rotor_config_dict = self.config.model_config["actuators"]["rotors"]
-        self.aero_config_dict = self.config.model_config["actuators"]["control_surfaces"]
         self.aerodynamics_dict = self.config.model_config["aerodynamics"]
 
     def prepare_force_regression_matrices(self):
@@ -75,64 +74,6 @@ class SimpleFixedWingModel(DynamicsModel):
             "V_air_body_x", "V_air_body_y", "V_air_body_z"]].to_numpy()
         aoa_mat = self.data_df[["angle_of_attack"]].to_numpy()
         elevator_inputs = self.data_df["elevator"].to_numpy()
-
-        # TODO: move to separate plotting functions
-        self.air_density = 1.225
-        self.gravity = 9.81
-        self.area = self.aerodynamics_dict["area"]
-        self.chord = self.aerodynamics_dict["chord"]
-        const = 0.5 * self.air_density * self.area * \
-            (airspeed_mat[:, 0]**2 + airspeed_mat[:, 2]**2)
-        angles_of_attack = aoa_mat[:, 0]
-        throttle = self.data_df["throttle"].to_numpy()
-
-        # vector with cl0, clalpha, cldelta, cd0, cdalpha, cdalpha_sq, ct
-        coeff_vec = np.array([0.07910843279384513, 0.46956829728313765, 0.1643616706716667,
-                             0.00824602887569668, 0.053894849135539054, 0.20878977185710684, 6.217361790630906])
-
-        xyz_b_forces_predicted = np.zeros((3, self.data_df.shape[0]))
-
-        for k in range(angles_of_attack.shape[0]):
-            X_wing_aero_frame = np.zeros((3, 7))
-
-            # Compute Drag force coeffiecients:
-            X_wing_aero_frame[0, 3] = - const[k]
-            X_wing_aero_frame[0, 4] = - const[k] * angles_of_attack[k]
-            X_wing_aero_frame[0, 5] = - const[k] * (angles_of_attack[k] ** 2)
-            # Compute Lift force coefficients:
-            X_wing_aero_frame[2, 0] = - const[k]
-            X_wing_aero_frame[2, 1] = - const[k] * angles_of_attack[k]
-            X_wing_aero_frame[2, 2] = - const[k] * elevator_inputs[k]
-
-            # Transorm from stability axis frame to body FRD frame
-            R_aero_to_body = Rotation.from_rotvec(
-                [0, -angles_of_attack[k], 0]).as_matrix()
-            X_wing_body_frame = R_aero_to_body @ X_wing_aero_frame
-
-            # add throttle after conversion to body frame (as thrust is assumed to be in x-direction in body frame)
-            X_wing_body_frame[0, 6] = throttle[k]
-
-            temp_xyz_b_forces = X_wing_body_frame @ coeff_vec
-            xyz_b_forces_predicted[:, k] = temp_xyz_b_forces
-
-        plt.figure('forces z-direction (body frame)')
-        plt.plot(self.data_df.index, force_mat[:, 2], label='measured')
-        plt.plot(self.data_df.index,
-                 xyz_b_forces_predicted[2, :], label='identified')
-        plt.xlabel('index')
-        plt.ylabel('body force z-direction')
-        plt.legend()
-        plt.show()
-
-        plt.figure('forces x-direction (body frame)')
-        plt.plot(self.data_df.index, force_mat[:, 0], label='measured')
-        plt.plot(self.data_df.index,
-                 xyz_b_forces_predicted[0, :], label='identified')
-        plt.xlabel('index')
-        plt.ylabel('body force x-direction')
-        plt.legend()
-        plt.show()
-        # TODO: move to separate plotting functions
 
         aero_model = LinearWingModel(self.aerodynamics_dict)
         X_aero, coef_dict_aero, col_names_aero = aero_model.compute_aero_force_features(
@@ -159,83 +100,12 @@ class SimpleFixedWingModel(DynamicsModel):
             "ang_vel_x", "ang_vel_y", "ang_vel_z"]].to_numpy()
         elevator_inputs = self.data_df["elevator"].to_numpy()
 
-        # TODO: move to separate plotting functions
-        angles_of_attack = aoa_mat[:, 0]
-        const = 0.5 * self.air_density * self.area * self.chord * \
-            (airspeed_mat[:, 0]**2 + airspeed_mat[:, 2]**2)
-        vel_xz = np.sqrt(airspeed_mat[:, 0]**2 + airspeed_mat[:, 2]**2)
-        damping_feature = (angular_vel_mat[:, 1] * self.chord) / (2 * vel_xz)
-        throttle = self.data_df["throttle"].to_numpy()
-
-        # moment coefficient vector cm0, cmalpha, cmdelta, cmq, ct_m
-        coeff_vec = np.array(
-            [2.8116070973329044e-06, 4.831412719989825e-06, -4.85650536468357e-05, 0.11364348978315968, 0.0006058053078839883])
-
-        xyz_b_moments_predicted = np.zeros((3, self.data_df.shape[0]))
-
-        for k in range(angles_of_attack.shape[0]):
-            X_wing_aero_frame = np.zeros((3, 5))
-
-            # Compute Pitching moment coefficients:
-            X_wing_aero_frame[1, 0] = const[k]
-            X_wing_aero_frame[1, 1] = const[k] * angles_of_attack[k]
-            X_wing_aero_frame[1, 2] = const[k] * elevator_inputs[k]
-            X_wing_aero_frame[1, 3] = const[k] * damping_feature[k]
-            X_wing_aero_frame[1, 4] = throttle[k]
-
-            R_aero_to_body = Rotation.from_rotvec(
-                [0, - angles_of_attack[k], 0]).as_matrix()
-            X_wing_body_frame = R_aero_to_body @ X_wing_aero_frame
-
-            temp_xyz_b_moments = X_wing_body_frame @ coeff_vec
-            xyz_b_moments_predicted[:, k] = temp_xyz_b_moments
-
-        plt.figure('moment around y-axis (pitch moment)')
-        plt.plot(self.data_df.index, moment_mat[:, 1], label='measured')
-        plt.plot(self.data_df.index,
-                 xyz_b_moments_predicted[1, :], label='identified')
-        plt.xlabel('timestamp')
-        plt.ylabel('angular moment around y-axis')
-        plt.legend()
-        plt.show()
-
-        # df = self.data_df[(self.data_df['timestamp'] >= 709795260) & (
-        #     self.data_df['timestamp'] <= 860763711)]
-        # first = self.data_df.index.get_loc(df.index[0])
-        # last = self.data_df.index.get_loc(df.index[-1])
-        # print(first, last)
-
-        # print('timestamps', self.data_df['timestamp'][first:last], self.data_df['timestamp'][first:last].shape, 'measured moment', moment_mat[first:last, 1], moment_mat[first:last, 1].shape, '\nidentified moment', const[first:last] * (0.0025575334672471826 + 0.021617695732657614 * aoa_mat[first:last, 0] + 0.0018050097273585603 * elevator_inputs[first:last] + 7.747755231160494 * damping_feature[first:last]))
-        # print('angle of attack', aoa_mat[first:last, 0], aoa_mat[first:last, 0].shape, 'elevator inputs', elevator_inputs[first:last], elevator_inputs[first:last].shape, 'damping feature', damping_feature[first:last], damping_feature[first:last].shape, 'const', const[first:last], const[first:last].shape)
-        # print('angular velocity', angular_vel_mat[first:last, 1], angular_vel_mat[first:last, 1].shape, 'velocity in x-z-plane', vel_xz[first:last], vel_xz[first:last].shape)
-        # print('timestamps' , self.data_df['timestamp'], self.data_df['timestamp'].shape, 'measured moment', moment_mat[:, 1], moment_mat[:, 1].shape, '\nidentified moment', const * (0.0025575334672471826 + 0.021617695732657614 * aoa_mat[:, 0] + 0.0018050097273585603 * elevator_inputs + 7.747755231160494 * damping_feature))
-        # print('angle of attack', aoa_mat, aoa_mat.shape, 'elevator inputs', elevator_inputs, elevator_inputs.shape, 'damping feature', damping_feature, damping_feature.shape, 'const', const, const.shape)
-        # print('angular velocity', angular_vel_mat[:, 1], angular_vel_mat[:, 1].shape, 'velocity in x-z-plane', vel_xz, vel_xz.shape)
-
-        # print('timestamp', self.data_df['timestamp'], '\nangle of attacks:', aoa_mat, aoa_mat.shape, '\nelevator inputs:', elevator_inputs, elevator_inputs.shape, '\nconst. values', const, const.shape)
-        # TODO: move to separate plotting functions
-
         aero_model = LinearWingModel(self.aerodynamics_dict)
         X_aero, coef_dict_aero, col_names_aero = aero_model.compute_aero_moment_features(
             airspeed_mat, aoa_mat[:, 0], elevator_inputs, angular_vel_mat, sideslip_mat)
 
         self.data_df[col_names_aero] = X_aero
         self.coef_dict.update(coef_dict_aero)
-
-        # ! READD THIS IF REQUIRED
-        # aero_config_dict = self.aero_config_dict
-        # for aero_group in aero_config_dict.keys():
-        #     aero_group_list = self.aero_config_dict[aero_group]
-
-        #     for config_dict in aero_group_list:
-        #         controlsurface_input_name = config_dict["dataframe_name"]
-        #         u_vec = self.data_df[controlsurface_input_name].to_numpy()
-        #         control_surface_model = ControlSurfaceModel(
-        #             config_dict, self.aerodynamics_dict, u_vec)
-        #         X_controls, coef_dict_controls, col_names_controls = control_surface_model.compute_actuator_moment_matrix(
-        #             airspeed_mat, aoa_mat)
-        #         self.data_df[col_names_controls] = X_controls
-        #         self.coef_dict.update(coef_dict_controls)
 
         self.y_dict.update({"rot": {"x": "measured_moment_x",
                            "y": "measured_moment_y", "z": "measured_moment_z"}})
