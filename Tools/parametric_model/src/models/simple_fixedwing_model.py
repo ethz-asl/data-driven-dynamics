@@ -87,8 +87,8 @@ class SimpleFixedWingModel(DynamicsModel):
         throttle = self.data_df["throttle"].to_numpy()
 
         # vector with cl0, clalpha, cldelta, cd0, cdalpha, cdalpha_sq, ct
-        coeff_vec = np.array([1.0911507971564856, 6.47680410045709, 2.2670575265057487,
-                             0.11373832931995426, 0.7433772294557139, 2.8798589221670072, 85.7567143535296])
+        coeff_vec = np.array([0.07910843279384513, 0.46956829728313765, 0.1643616706716667,
+                             0.00824602887569668, 0.053894849135539054, 0.20878977185710684, 6.217361790630906])
 
         xyz_b_forces_predicted = np.zeros((3, self.data_df.shape[0]))
 
@@ -167,7 +167,7 @@ class SimpleFixedWingModel(DynamicsModel):
 
         # moment coefficient vector cm0, cmalpha, cmdelta, cmq, ct_m
         coeff_vec = np.array(
-            [0.00021965680447913602, 0.0003774541187492259, -0.0037941448161590324, 8.878397639309345, 0.1415432962319521])
+            [2.8116070973329044e-06, 4.831412719989825e-06, -4.85650536468357e-05, 0.11364348978315968, 0.0006058053078839883])
 
         xyz_b_moments_predicted = np.zeros((3, self.data_df.shape[0]))
 
