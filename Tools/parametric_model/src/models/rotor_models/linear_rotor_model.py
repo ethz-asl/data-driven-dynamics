@@ -68,6 +68,6 @@ class LinearRotorModel():
         col_names = ["ct_m_x", "ct_m_y", "ct_m_z"]
 
         X_moments = np.zeros((self.throttle.shape[0], 3))
-        X_moments[:, 0] = self.throttle
+        X_moments[:, 1] = self.throttle
 
         return X_moments, coef_dict, col_names
