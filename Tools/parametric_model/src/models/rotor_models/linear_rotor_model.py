@@ -63,9 +63,9 @@ class LinearRotorModel():
         print("Computing moment features for rotor")
 
         coef_dict = {
-            "ct_m": {"rot": {"x": "ct_m_x", "y": "ct_m_y", "z": "ct_m_z"}},
+            "cm_t": {"rot": {"x": "cm_t_x", "y": "cm_t_y", "z": "cm_t_z"}},
         }
-        col_names = ["ct_m_x", "ct_m_y", "ct_m_z"]
+        col_names = ["cm_t_x", "cm_t_y", "cm_t_z"]
 
         X_moments = np.zeros((self.throttle.shape[0], 3))
         X_moments[:, 1] = self.throttle
