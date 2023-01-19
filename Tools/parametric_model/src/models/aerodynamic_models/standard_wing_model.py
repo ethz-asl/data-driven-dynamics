@@ -113,7 +113,7 @@ class StandardWingModel():
 
         # Transorm from stability axis frame to body FRD frame
         R_aero_to_body = Rotation.from_rotvec(
-            [0, -angle_of_attack, 0]).as_matrix()
+            np.array([0.0, -angle_of_attack, 0.0])).as_matrix()
         X_wing_body_frame = R_aero_to_body @ X_wing_aero_frame
         X_wing_body_frame = X_wing_body_frame.flatten()
         return X_wing_body_frame
@@ -167,7 +167,7 @@ class StandardWingModel():
 
         # Transorm from stability axis frame to body FRD frame
         R_aero_to_body = Rotation.from_rotvec(
-            [0, -angle_of_attack, 0]).as_matrix()
+            np.array([0.0, -angle_of_attack, 0.0])).as_matrix()
         X_wing_body_frame = R_aero_to_body @ X_wing_aero_frame
         X_wing_body_frame = X_wing_body_frame.flatten()
         return X_wing_body_frame
