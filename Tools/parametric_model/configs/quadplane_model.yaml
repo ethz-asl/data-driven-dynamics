@@ -103,7 +103,7 @@ dynamics_model_config:
     optimizer_class: "LinearRegressor"
   estimate_forces: True
   estimate_moments: True
-  use_identification_ramps: False
+  use_sysid_maneuvers: False
   resample_freq: 100.0
   estimate_angular_acceleration: False
   data:

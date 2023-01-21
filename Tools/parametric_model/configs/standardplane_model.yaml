@@ -106,7 +106,7 @@ dynamics_model_config:
       puller_rot_thrust_quad: !!python/tuple [0, 20]
   estimate_forces: True
   estimate_moments: True
-  use_identification_ramps: False
+  use_sysid_maneuvers: False
   resample_freq: 50.0
   estimate_angular_acceleration: False
   data:

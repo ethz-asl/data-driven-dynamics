@@ -51,7 +51,7 @@ ACTUATOR_CONTROLS_THRESHOLD = -0.2
 def compute_flight_time(act_df, config_dict, thrust_df=None, ramps=False, actuators=[], pwm_threshold=None, control_threshold=None):
     """
     If the ramps parameter is set to true, it will detect the time ranges of the thrust and pitch ramps based on the aux1-value.
-    The corresponding parameter can be set in the config file as use_identification_ramps.
+    The corresponding parameter can be set in the config file as use_sysid_maneuvers.
 
     Alternatively, it should be possible to detect the flight time automatically based on actuator setpoints exactly as before.
     Currently, this is solved with a more simpler approach, which just uses the entire log for model identification.
@@ -84,8 +84,8 @@ def compute_flight_time(act_df, config_dict, thrust_df=None, ramps=False, actuat
 
     else:
         flight_time = []
-        use_thrust_ramps_only = config_dict.get('use_thrust_ramps_only', False)
-        use_pitch_ramps_only = config_dict.get('use_pitch_ramps_only', False)
+        use_with_thrust_only = config_dict.get('use_with_thrust_only', False)
+        use_zero_thrust_only = config_dict.get('use_zero_thrust_only', False)
 
         zero_crossings = np.where(
             np.diff(np.sign(act_df['aux1'] + (act_df['aux1'] == 0))))[0]
@@ -114,11 +114,11 @@ def compute_flight_time(act_df, config_dict, thrust_df=None, ramps=False, actuat
                                          > 0.0]['xyz[0]'].shape[0]
             if num_non_zero > 0:
                 num_thrust_ramps += 1
-                if use_pitch_ramps_only:
+                if use_zero_thrust_only:
                     continue
             else:
                 num_pitch_ramps += 1
-                if use_thrust_ramps_only:
+                if use_with_thrust_only:
                     continue
 
             flight_time.append(new_flight_time)
