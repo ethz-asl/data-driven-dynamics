@@ -1,4 +1,3 @@
 from .fuselage_drag_model import FuselageDragModel
-from .standard_wing_model import StandardWingModel
 from .control_surface_model import ControlSurfaceModel
 from .linear_wing_model import LinearWingModel
