@@ -81,7 +81,7 @@ def start_model_estimation(config, log_path, data_selection="none", plot=False, 
     model.prepare_regression_matrices()
     model.compute_fisher_information()
 
-    # # Interactive data selection
+    # Interactive data selection
     if data_selection=="interactive":
         from visual_dataframe_selector.data_selector import select_visual_data
         visual_dataframe_selector_config_dict = {

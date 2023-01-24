@@ -34,7 +34,7 @@
 The model class contains properties shared between all models and shgall simplyfy automated checks and the later
 export to a sitl gazebo model by providing a unified interface for all models. """
 
-__author__ = "Manuel Yves Galliker"
+__author__ = "Manuel Yves Galliker, Julius Schlapbach"
 __maintainer__ = "Manuel Yves Galliker"
 __license__ = "BSD 3"
 

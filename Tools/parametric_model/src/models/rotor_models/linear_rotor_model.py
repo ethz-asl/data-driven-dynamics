@@ -1,7 +1,7 @@
 """
  *
- * Copyright (c) 2021 Manuel Yves Galliker
- *               2021 Autonomous Systems Lab ETH Zurich
+ * Copyright (c) 2023 Julius Schlapbach
+ *               2023 Autonomous Systems Lab ETH Zurich
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
