@@ -21,8 +21,8 @@ model_config:
           dataframe_name: "throttle"
 
   aerodynamics:
-    area: 2.0
-    chord: 0.5
+    area: 11.37
+    chord: 0.19
     stall_angle_deg: 20
     sig_scale_factor: 30
 
