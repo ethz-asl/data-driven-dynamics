@@ -76,3 +76,10 @@ dynamics_model_config:
           - "accelerometer_m_s2[0]"
           - "accelerometer_m_s2[1]"
           - "accelerometer_m_s2[2]"
+      vehicle_land_detected:
+        ulog_name:
+          - "timestamp"
+          - "landed"
+        dataframe_name:
+          - "timestamp"
+          - "landed"

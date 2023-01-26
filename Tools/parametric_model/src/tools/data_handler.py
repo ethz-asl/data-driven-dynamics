@@ -162,14 +162,15 @@ class DataHandler(object):
             else:
                 curr_df = pandas_from_topic(ulog, [topic_type])
 
+            # TODO: check if actuator outputs are even still required, when not used for flight time estimation
+            # otherwise, the following if-elif statement can probably be simplified / omitted and the actuator columns dropped
             if topic_type == "manual_control_setpoint" and self.config_dict['use_sysid_maneuvers']:
                 thrust_df = pandas_from_topic(ulog, ["vehicle_thrust_setpoint"])
                 fts = compute_flight_time(curr_df, self.config_dict, thrust_df, ramps = self.config_dict['use_sysid_maneuvers'])
 
-            elif topic_type == "actuator_outputs" and not self.config_dict['use_sysid_maneuvers']:
-                fts = compute_flight_time(curr_df, self.config_dict)
-            elif topic_type == "actuator_controls_0" and not self.config_dict['use_sysid_maneuvers']:
-                fts = compute_flight_time(curr_df, self.config_dict)
+            elif (topic_type == "actuator_outputs" or topic_type == "actuator_controls_0") and not self.config_dict['use_sysid_maneuvers']:
+                landed_df = pandas_from_topic(ulog, ["vehicle_land_detected"])
+                fts = compute_flight_time(curr_df, self.config_dict, landed_df=landed_df)
             
             curr_df = curr_df[topic_dict["ulog_name"]]
             if "dataframe_name" in topic_dict.keys():

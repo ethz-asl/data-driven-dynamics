@@ -31,7 +31,7 @@ dynamics_model_config:
     optimizer_class: "LinearRegressor"
   estimate_forces: True
   estimate_moments: True
-  use_sysid_maneuvers: True
+  use_sysid_maneuvers: False
   # set at most one of the following parameters to True
   use_with_thrust_only: False
   use_zero_thrust_only: False
@@ -132,3 +132,10 @@ dynamics_model_config:
           - "aileron" # differential input to ailerons
           - "elevator" # elevator input
           - "rudder" # rudder input
+      vehicle_land_detected:
+        ulog_name:
+          - "timestamp"
+          - "landed"
+        dataframe_name:
+          - "timestamp"
+          - "landed"

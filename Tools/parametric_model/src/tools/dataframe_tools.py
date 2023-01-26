@@ -48,39 +48,53 @@ PWM_THRESHOLD = 1000
 ACTUATOR_CONTROLS_THRESHOLD = -0.2
 
 
-def compute_flight_time(act_df, config_dict, thrust_df=None, ramps=False, actuators=[], pwm_threshold=None, control_threshold=None):
+def compute_flight_time(act_df, config_dict, thrust_df=None, landed_df=None, ramps=False):
     """
     If the ramps parameter is set to true, it will detect the time ranges of the thrust and pitch ramps based on the aux1-value.
     The corresponding parameter can be set in the config file as use_sysid_maneuvers.
 
-    Alternatively, it should be possible to detect the flight time automatically based on actuator setpoints exactly as before.
-    Currently, this is solved with a more simpler approach, which just uses the entire log for model identification.
+    Alternatively, the flight time will be determined based on the 'landed' topic of the ulog to only consider actual flight during identification.
     """
     print('\nComputing flight time...')
 
     if not ramps:
-        if pwm_threshold is None:
-            pwm_threshold = PWM_THRESHOLD
+        # the flight time is detected based on the landed state
+        landed_groups = landed_df.groupby(
+            (landed_df['landed'].shift() != landed_df['landed']).cumsum())
+        num_of_groups = landed_groups.ngroups
 
-        if control_threshold is None:
-            control_threshold = ACTUATOR_CONTROLS_THRESHOLD
+        if num_of_groups == 1:
+            if landed_groups.get_group(1)['landed'].iloc[0, 0] == 1:
+                print('No flight detected. Please check the landed state.')
+                return {"t_start": 0, "t_end": 0}
+            else:
+                pass
 
-        actuator_ulogs = config_dict['data']['required_ulog_topics']['actuator_outputs']['ulog_name']
-        actuator_ulogs = [x for x in actuator_ulogs if x != 'timestamp']
+        elif num_of_groups > 3:
+            print('More than one flight detected. Please check the landed state.')
+            return {"t_start": 0, "t_end": 0}
 
-        act_df_crp = act_df.copy()
+        elif num_of_groups == 2:
+            group1 = landed_groups.get_group(1)[['timestamp', 'landed']]
+            group2 = landed_groups.get_group(2)[['timestamp', 'landed']]
 
-        for actuator_topic in actuator_ulogs:
-            act_df_crp = act_df_crp[act_df_crp[actuator_topic] > pwm_threshold]
+            if (group1.iloc[0, 1] == 1):
+                # first on ground, then in flight
+                t_start = group2.iloc[0, 0]
+                t_end = group2.iloc[-1, 0]
+                return {"t_start": t_start, "t_end": t_end}
+            else:
+                # first in flight, then on ground
+                t_start = group1.iloc[0, 0]
+                t_end = group1.iloc[-1, 0]
+                return {"t_start": t_start, "t_end": t_end}
 
-        t_start = act_df_crp.iloc[1, 0]
-        t_end = act_df_crp.iloc[(act_df_crp.shape[0]-1), 0]
-        flight_time = {"t_start": t_start, "t_end": t_end}
+        else:
+            t_start = landed_groups.get_group(1).iloc[-1, 0]
+            t_end = landed_groups.get_group(3).iloc[0, 0]
+            return {"t_start": t_start, "t_end": t_end}
 
-        # Alternative option: use the entire log for model identification (might be problematic with ground phases of the log)
-        # t_start = act_df.iloc[0, 0]
-        # t_end = act_df.iloc[(act_df.shape[0]-1), 0]
-        # flight_time = {"t_start": t_start, "t_end": t_end}
+        return {"t_start": act_df.iloc[0, 0], "t_end": act_df.iloc[-1, 0]}
 
     else:
         flight_time = []
