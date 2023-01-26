@@ -1,16 +1,15 @@
 # general information
 model_name: "Gazebo Standard Plane"
 model_type: "Standard Plane Longitudinal Model"
-model_class:
-  "SimpleFixedWingModel"
+model_class: "SimpleFixedWingModel"
 
-  # all vectors in FRD body frame if not specified otherwise
+# all vectors in FRD body frame if not specified otherwise
 model_config:
-  mass: 1.45
+  mass: 7.0
   moment_of_inertia:
-    Ixx: 0.107
-    Iyy: 0.256
-    Izz: 0.356
+    Ixx: 0.830
+    Iyy: 0.446
+    Izz: 1.270
   actuators:
     rotors:
       # All rotors in the same group will share the coefficients
