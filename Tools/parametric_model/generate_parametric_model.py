@@ -56,7 +56,7 @@ def str2bool(v):
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
 
-def start_model_estimation(config, log_path, data_selection="none", plot=False):
+def start_model_estimation(config, log_path, data_selection="none", plot=False, normalization=True):
     print("Visual Data selection enabled: ", data_selection)
 
     # Flag for enabling automatic data selection.
@@ -71,7 +71,7 @@ def start_model_estimation(config, log_path, data_selection="none", plot=False):
         # This will call the model constructor directly from the model_class
         # in the yaml config (self-describing)
         # i.e if model_name is MultiRotorModel then it will call that __init__()
-        model = getattr(models, model_class)(config)
+        model = getattr(models, model_class)(config, normalization=normalization)
     except AttributeError:
         error_str = "Model '{0}' not found, is it added to models "\
                     "directory and models/__init__.py?".format(model_class)
@@ -127,5 +127,7 @@ if __name__ == "__main__":
                         help='Configuration file path for pipeline configurations')
     parser.add_argument('--plot', metavar='plot', type=str2bool, default='True',
                         help='Show plots after fit.')
+    parser.add_argument('--normalization', metavar='normalization', type=str2bool, default='True', required=False,
+                        help='Determine if the actuator data should be normalized before model estimation (False for simulation data).')
     arg_list = parser.parse_args()
     start_model_estimation(**vars(arg_list))

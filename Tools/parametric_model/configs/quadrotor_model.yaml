@@ -87,6 +87,7 @@ dynamics_model_config:
       vertical_rot_thrust_quad: !!python/tuple [0.0, 50.0]
   estimate_forces: True
   estimate_moments: True
+  use_sysid_maneuvers: False
   resample_freq: 250.0
   estimate_angular_acceleration: True
   data:
@@ -158,3 +159,10 @@ dynamics_model_config:
           - "ang_acc_b_x"
           - "ang_acc_b_y"
           - "ang_acc_b_z"
+      vehicle_land_detected:
+        ulog_name:
+          - "timestamp"
+          - "landed"
+        dataframe_name:
+          - "timestamp"
+          - "landed"

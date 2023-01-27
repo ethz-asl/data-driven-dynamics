@@ -34,7 +34,7 @@
 The model class contains properties shared between all models and shgall simplyfy automated checks and the later
 export to a sitl gazebo model by providing a unified interface for all models. """
 
-__author__ = "Manuel Yves Galliker"
+__author__ = "Manuel Yves Galliker, Julius Schlapbach"
 __maintainer__ = "Manuel Yves Galliker"
 __license__ = "BSD 3"
 
@@ -161,11 +161,16 @@ class DataHandler(object):
                 curr_df = pandas_from_topic(ulog, [topic_type], id)
             else:
                 curr_df = pandas_from_topic(ulog, [topic_type])
-            
-            if topic_type == "actuator_outputs":
-                fts = compute_flight_time(curr_df)
-            elif topic_type == "actuator_controls_0":
-                fts = compute_flight_time(curr_df)
+
+            # TODO: check if actuator outputs are even still required, when not used for flight time estimation
+            # otherwise, the following if-elif statement can probably be simplified / omitted and the actuator columns dropped
+            if topic_type == "manual_control_setpoint" and self.config_dict['use_sysid_maneuvers']:
+                thrust_df = pandas_from_topic(ulog, ["vehicle_thrust_setpoint"])
+                fts = compute_flight_time(curr_df, self.config_dict, thrust_df, ramps = self.config_dict['use_sysid_maneuvers'])
+
+            elif (topic_type == "actuator_outputs" or topic_type == "actuator_controls_0") and not self.config_dict['use_sysid_maneuvers']:
+                landed_df = pandas_from_topic(ulog, ["vehicle_land_detected"])
+                fts = compute_flight_time(curr_df, self.config_dict, landed_df=landed_df)
             
             curr_df = curr_df[topic_dict["ulog_name"]]
             if "dataframe_name" in topic_dict.keys():
@@ -189,13 +194,20 @@ class DataHandler(object):
         topic_type_bar.finish()
 
         # Check if actuator topics are empty
-        if not fts :
+        if not fts:
             print("could not select flight time due to missing actuator topic")
             exit(1)
-        # set start and end time of flight duration
 
-        resampled_df = resample_dataframe_list(
-            df_list, fts, self.resample_freq)
+        if isinstance(fts, list):
+            resampled_df = []
+            for ft in fts:
+                new_resampled_df = resample_dataframe_list(df_list, ft, self.resample_freq)
+                resampled_df.append(new_resampled_df)
+            resampled_df = pd.concat(resampled_df, ignore_index=True)
+        else:
+            resampled_df = resample_dataframe_list(
+                df_list, fts, self.resample_freq)
+
         if (self.estimate_angular_acceleration):
             ang_vel_mat = resampled_df[["ang_vel_x",
                                        "ang_vel_y",  "ang_vel_z"]].to_numpy()
@@ -217,6 +229,7 @@ class DataHandler(object):
             topic_type_bar.next()
             resampled_df[["ang_acc_b_x", "ang_acc_b_y",
                           "ang_acc_b_z"]] = ang_acc_np
+
         return resampled_df.dropna()
 
     def visually_select_data(self, plot_config_dict=None):
