@@ -70,6 +70,10 @@ class ModelConfig():
         self.model_config = config_dict["model_config"]
 
         self.generate_req_topic_list()
+
+        self.extractor_class = config_dict["extractor_class"]
+        self.extractor_config = config_dict["extractor_config"]
+
         print("Initializing of configuration successful. ")
 
         return
@@ -112,7 +116,7 @@ class ModelConfig():
             "required_ulog_topics does not contain a dict of topic types"
         for topic_type in data_dict["required_ulog_topics"]:
             topic_type_dict = data_dict["required_ulog_topics"][topic_type]
-            assert("ulog_name" in topic_type_dict), \
+            assert ("ulog_name" in topic_type_dict), \
                 print(topic_type, " does not contain an entry for ulog_name")
         return
 

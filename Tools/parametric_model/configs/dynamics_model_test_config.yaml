@@ -2,6 +2,9 @@
 model_name: "test_dynamics_model"
 model_type: "test_dynamics_model"
 model_class: "test_dynamics_model"
+extractor_class: "Not implemented"
+
+extractor_config: "Not implemented"
 
 # all vectors in FRD body frame if not specified otherwise
 

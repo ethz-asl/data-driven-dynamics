@@ -1,0 +1,1 @@
+from .fixedwing_extractor_model import FixedWingExtractorModel

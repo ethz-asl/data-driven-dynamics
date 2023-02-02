@@ -3,6 +3,11 @@ model_name: "Gazebo Standard Plane"
 model_type: "Standard Plane Longitudinal Model"
 model_class:
   "SimpleFixedWingModel"
+extractor_class: "FixedWingExtractorModel"
+
+extractor_config:
+  vmin: 8.0
+  vmax: 20.0
 
   # all vectors in FRD body frame if not specified otherwise
 model_config:
@@ -15,7 +20,7 @@ model_config:
     rotors:
       # All rotors in the same group will share the coefficients
       puller_:
-        - rotor_4:
+        - rotor:
           description: "puller rotor"
           rotor_type: "LinearRotorModel"
           dataframe_name: "throttle"

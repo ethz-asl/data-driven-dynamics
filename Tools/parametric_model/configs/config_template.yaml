@@ -2,6 +2,9 @@
 model_name: "template"
 model_type: "template_model"
 model_class: "template"
+extractor_class: "template_extractor"
+
+extractor_config: "extractor_config"
 
 # all vectors in FRD body frame if not specified otherwise
 
