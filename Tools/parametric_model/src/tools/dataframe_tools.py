@@ -33,7 +33,7 @@
 """
 
 __author__ = "Manuel Yves Galliker, Julius Schlapbach"
-__maintainer__ = "Manuel Yves Galliker"
+__maintainer__ = "Manuel Yves Galliker, Julius Schlapbach"
 __license__ = "BSD 3"
 
 import numpy as np
