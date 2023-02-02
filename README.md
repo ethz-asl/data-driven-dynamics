@@ -10,8 +10,7 @@ You can get an overview of the pipeline and its functionalities in the following
 
 [![Watch the video](https://img.youtube.com/vi/kAsfptZU4uk/maxresdefault.jpg)](https://www.youtube.com/watch?v=kAsfptZU4uk)
 
-
-More detailed information can be found in the student paper [Data-Driven Dynamics Modelling Using Flight Logs](https://www.research-collection.ethz.ch/handle/20.500.11850/507495). 
+More detailed information can be found in the student paper [Data-Driven Dynamics Modelling Using Flight Logs](https://www.research-collection.ethz.ch/handle/20.500.11850/507495).
 
 ## Setting up the environment
 
@@ -19,11 +18,12 @@ This plugin depends on [PX4 SITL](https://github.com/PX4/PX4-SITL_gazebo). There
 
 In case you have not cloned the firmware repository
 
-
 ```
 git clone --recursive https://github.com/PX4/PX4-Autopilot.git ~/src/PX4-Autopilot
 ```
+
 For internal use, our internal firmware repository is as the following.
+
 ```
 git clone --recursive https://github.com/ethz-asl/ethzasl_fw_px4.git ~/src/PX4-Autopilot
 ```
@@ -59,8 +59,6 @@ Or install the dependencies including submodule dependencies:
 ```
 install-full-depdencies
 ```
-
-
 
 ## Build
 
@@ -107,6 +105,7 @@ The Log file contains all data needed for the system identification of the speci
 #### Data Selection
 
 The data_selection argument is optional (per default none) and can be used to visually select subportions of the data.
+
 - none(default): Data selection is disabled, and the whole section of the log is used
 - interactive: Data is selected interactively using the [Visual Dataframe Selector](https://github.com/manumerous/visual_dataframe_selector), before running the model estimation. It is also possible to save the selected subportion of data to a csv file in order to use this exact dataset multiple times.
 - auto: Data is selected automatically (Beta)
@@ -123,6 +122,36 @@ As an example to get started you estimate the parameters of a quadrotor model wi
 make estimate-model model=quadrotor_model log=resources/quadrotor_model.ulg
 ```
 
+## Extract PX4 Parameters from Aerodynamic Model (currently only supported for Fixed Wing Vehicles)
+
+In order to extract important longitudinal trimming parameters directly from the identified aerodynamic model, just add the flag --extraction True to the function call. The extracted parameters are then saved in the same folder as the model results. The configuration has to include the extractor model that is to be used (e.g. the FixedWingExtractorModel) and an extractor configuration, containing user-determined minimum and maximum flight speeds (and optionally a cruise flight speed).
+
+In preparation for a potentially more model-based control approach in the PX4-Autopilot, more parameters then currently required as estimated. Currently not supported parameters are marked correspondingly:
+
+| Parameter name                    | Description                                                | Estimated? | Comment                                                                                                                    |
+| --------------------------------- | ---------------------------------------------------------- | ---------- | -------------------------------------------------------------------------------------------------------------------------- |
+| TRIM_PITCH_MAX_RANGE (additional) | Pitch trim at the speed for maximum range                  | Yes        | (no official PX4 parameter)                                                                                                |
+| FW_AIRSPD_MAX_RANGE (additional)  | airspeed for maximum range (no sideslip)                   | Yes        | (no official PX4 parameter)                                                                                                |
+| TRIM_PITCH_MIN_SINK (additional)  | Pitch trim at the speed for minimum sinkrate               | Yes        | (no official PX4 parameter)                                                                                                |
+| FW_AIRSPD_MIN_SINK (additional)   | Airspeed for minimum sinkrate (no sideslip)                | Yes        | (no official PX4 parameter)                                                                                                |
+| FW_DTRIM_P_VMIN                   | Trim differential at Vmin in level flight                  | Yes        | Determined as a function of the user-provided minimum speed. Value is added to TRIM_PITCH to obtain the actual trim value. |
+| FW_DTRIM_P_VMAX                   | Trim differential at Vmax in level flight                  | Yes        | Determined as a function of the user-provided maximum speed. Value is added to TRIM_PITCH to obtain the actual trim value. |
+| FW_PSP_OFF                        | Pitch offset at level flight (at FW_AIRSPD_TRIM)           | Yes        |                                                                                                                            |
+| FW_AIRSPD_MIN                     | Minimum sustainable flight speed                           | No         | The minimum speed is provided as a user input as its experimental identification might be too dangerous                    |
+| FW_THR_VMIN (additional)          | Thrust setting for level flight at FW_AIRSPD_MIN           | Yes        | (no official PX4 parameter)                                                                                                |
+| FW_AIRSPD_MAX                     | Maximum sustainable flight speed                           | No         | The maximum speed is provided as a user input as especially structural limits cannot be identified from flight logs.       |
+| FW_THR_VMAX (additional)          | Thrust setting for level flight at FW_AIRSPD_MAX           | Yes        | (no official PX4 parameter)                                                                                                |
+| FW_AIRSPD_TRIM                    | Cruise airspeed                                            | (No)       | This speed can either be specified by the user through the optional --vcruise argument or is set to the max range speed    |
+| TRIM_PITCH                        | Trim value for straight and level flight at FW_AIRSPD_TRIM | Yes        |                                                                                                                            |
+| FW_THR_TRIM                       | Cruise throttle setting at FW_AIRSPD_TRIM                  | Yes        |                                                                                                                            |
+| FW_THR_MIN                        | Minimum throttle setting                                   | No         | Can probably be fixed to zero (at least for electrically powered drones)                                                   |
+| FW_THR_MAX                        | Maximum throttle setting                                   | No         | Can probably be fixed to one (at least for electrically powered drones)                                                    |
+| FW_T_CLIMB_MAX                    | Maximum climb rate                                         | Yes        |                                                                                                                            |
+| TRIM_PITCH_MAX_CLIMB (additional) | Pitch trim at the speed for maximum climb rate             | Yes        | (no official PX4 parameter)                                                                                                |
+| FW_T_SINK_MAX                     | Maximum sink rate                                          | Yes        | Determined as a function of the user-provided maximum speed.                                                               |
+| TRIM_PITCH_MAX_SINK (additional)  | Pitch trim for max sink rate (at Vmax and zero thrust)     | Yes        | (no official PX4 parameter)                                                                                                |
+| FW_T_SINK_MIN                     | Minimum sink rate                                          | Yes        |                                                                                                                            |
+
 ## Generating a Model Prediction for Given Parameters and Log
 
 It is also possible to test the obtained parameters for a certain model on a different log using:
@@ -130,7 +159,6 @@ It is also possible to test the obtained parameters for a certain model on a dif
 ```
 make predict-model [model=<modeltype>] [config=<config_file_path>] [data_selection=<True/False>] log=<log_file_path> model_results=<model_results_path>
 ```
-
 
 ## Testing the functionality of Parametric model
 
@@ -142,19 +170,21 @@ Currently only the transformation from body to intertial frame and vise versa ar
 
 ## Running the Simulation
 
-To run the simulation, 
+To run the simulation,
 
 ```
 source setup.bash
 Tools/sitl_run.sh -m iris -s iris_aerodynamics
 ```
 
-The custom Gazebo quadrotor model will always read the model parameters from the file `model_results/quadrotor_model.yaml`. You can simply rename your desired model results file to fly your estimated model in Gazebo. 
+The custom Gazebo quadrotor model will always read the model parameters from the file `model_results/quadrotor_model.yaml`. You can simply rename your desired model results file to fly your estimated model in Gazebo.
 
 ## Credits
+
 This project was done in collaboration between the [Autonomous Systems Lab, ETH Zurich](https://asl.ethz.ch/) and [Auterion AG](https://auterion.com/)
 
 To cite this work in a academic context:
+
 ```
 @article{galliker2021data,
   title={Data-Driven Dynamics Modelling Using Flight Logs},
