@@ -38,6 +38,7 @@ __license__ = "BSD 3"
 
 import os
 import src.models as models
+import src.models.extractor_models as extractors
 from src.tools import DataHandler
 import argparse
 import pandas as pd
@@ -56,7 +57,7 @@ def str2bool(v):
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
 
-def start_model_estimation(config, log_path, data_selection="none", plot=False, normalization=True):
+def start_model_estimation(config, log_path, data_selection="none", plot=False, normalization=True, extraction=False):
     print("Visual Data selection enabled: ", data_selection)
 
     # Flag for enabling automatic data selection.
@@ -109,6 +110,21 @@ def start_model_estimation(config, log_path, data_selection="none", plot=False, 
 
     model.estimate_model()
 
+    if extraction:
+        try:
+            coefficient_list = model.get_model_coeffs()
+            extractor = getattr(extractors, data_handler.config.extractor_class)(
+                config = data_handler.config.extractor_config, model_config_file = config,
+                coefficients = coefficient_list)
+        except AttributeError:
+            error_str = "Model '{0}' not found, is it added to models/extractors "\
+                        "directory and models/extractors/__init__.py exists?".format(model_class)
+            raise AttributeError(error_str)
+        
+        extractor.compute_px4_params()
+        px4_params = extractor.get_px4_params()
+        extractor.save_px4_params_to_yaml('model_results/' + data_handler.config.extractor_class + '_px4_params')
+
     if plot:
         model.compute_residuals()
         model.plot_model_predicitons()
@@ -127,6 +143,8 @@ if __name__ == "__main__":
                         help='Configuration file path for pipeline configurations')
     parser.add_argument('--plot', metavar='plot', type=str2bool, default='True',
                         help='Show plots after fit.')
+    parser.add_argument('--extraction', metavar='extraction', type=str2bool, default='False', required=False,
+                        help='Specify if the parameter extraction should be applied as well.')
     parser.add_argument('--normalization', metavar='normalization', type=str2bool, default='True', required=False,
                         help='Determine if the actuator data should be normalized before model estimation (False for simulation data).')
     arg_list = parser.parse_args()

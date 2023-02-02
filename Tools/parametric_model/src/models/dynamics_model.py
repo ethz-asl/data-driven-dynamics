@@ -428,6 +428,18 @@ class DynamicsModel():
 
         return
 
+    def get_model_coeffs(self):
+        metrics_dict = self.optimizer.compute_optimization_metrics()
+        coef_list = self.optimizer.get_optimization_parameters()
+        model_dict = {}
+        assert (len(self.coef_name_list) == len(coef_list)), \
+            ("Length of coefficient list and coefficient name list does not match: Length of coefficient list:",
+             len(coef_list), "length of coefficient name list: ", len(self.coef_name_list))
+        coefficient_list = [float(coef) for coef in coef_list]
+        coef_dict = dict(zip(self.coef_name_list, coefficient_list))
+
+        return coef_dict
+
     def initialize_optimizer(self):
         print("===============================================================================")
         print("                            Initialize Optimizer                               ")
