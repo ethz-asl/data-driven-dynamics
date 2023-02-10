@@ -61,7 +61,7 @@ class PhiAerodynamicsModel():
     def compute_wing_force_features(self, v_airspeed, angle_of_attack):
         X_wing_body_frame = np.zeros((3, 9))
         eta = np.sqrt(v_airspeed[0]**2 + v_airspeed[1]**2 + v_airspeed[2]**2)  # Did not take into account the angular velocity
-        constant = -self.air_density * self.area * eta
+        constant = - 0.5 * self.air_density * self.area * eta
         X_wing_body_frame[0, 0] = constant * v_airspeed[0]
         X_wing_body_frame[0, 1] = constant * v_airspeed[1]
         X_wing_body_frame[0, 2] = constant * v_airspeed[2]
@@ -78,7 +78,7 @@ class PhiAerodynamicsModel():
     def compute_wing_moment_features(self, v_airspeed, angle_of_attack, angle_of_sideslip):
         X_wing_body_frame = np.zeros((3, 9))
         eta = np.sqrt(v_airspeed[0]**2 + v_airspeed[1]**2 + v_airspeed[2]**2)  # TODO Take dynamic pressure
-        constant = -self.air_density * self.area * eta
+        constant = - 0.5 * self.air_density * self.area * eta
         X_wing_body_frame[0, 0] = self.reference_wingspan**2 * constant * v_airspeed[0]
         X_wing_body_frame[0, 1] = self.reference_wingspan**2 * constant * v_airspeed[1]
         X_wing_body_frame[0, 2] = self.reference_wingspan**2 * constant * v_airspeed[2]
