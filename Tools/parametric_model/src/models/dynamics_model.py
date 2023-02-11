@@ -655,7 +655,6 @@ class DynamicsModel():
 
                 fisher_information_f_individual[i,:]= np.diag(fisher_information_matrix_f)
 
-
             self.data_df[["fisher_information_force"]] = fisher_information_f_mat / np.max(fisher_information_f_mat)
             self.data_df[[coef + "_fim" for coef in coef_force]] = fisher_information_f_individual
             try:
