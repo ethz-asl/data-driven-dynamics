@@ -3,13 +3,10 @@ model_name: "Gazebo Standard Plane"
 model_type: "Standard Plane Longitudinal Model"
 model_class: "GlobalSingularityFreeModel"
 
-# extractor_class: "SingularityFreeExtractorModel"
-# extractor_config:
-#   vmin: 8.0
-#   vmax: 20.0
-
-extractor_class: "Not implemented"
-extractor_config: "Not implemented"
+extractor_class: "SingularityFreeExtractorModel"
+extractor_config:
+  vmin: 8.0
+  vmax: 20.0
 
   # all vectors in FRD body frame if not specified otherwise
 model_config:
@@ -38,7 +35,7 @@ dynamics_model_config:
     optimizer_class: "LinearRegressor"
   estimate_forces: True
   estimate_moments: True
-  use_sysid_maneuvers: True
+  use_sysid_maneuvers: False
   # only set at most one of the following parameters to True
   use_with_thrust_only: False
   use_zero_thrust_only: False
