@@ -75,8 +75,8 @@ class PhiAerodynamicsModel():
         X_wing_body_frame = X_wing_body_frame.flatten('F')
         return X_wing_body_frame
 
-    def compute_wing_moment_features(self, v_airspeed, angle_of_attack, angle_of_sideslip):
-        X_wing_body_frame = np.zeros((3, 9))
+    def compute_wing_moment_features(self, v_airspeed, angle_of_attack, angle_of_sideslip, elevator_input):
+        X_wing_body_frame = np.zeros((3, 10))
         eta = np.sqrt(v_airspeed[0]**2 + v_airspeed[1]**2 + v_airspeed[2]**2)  # TODO Take dynamic pressure
         constant = - 0.5 * self.air_density * self.area * eta
         X_wing_body_frame[0, 0] = self.reference_wingspan**2 * constant * v_airspeed[0]
@@ -88,6 +88,7 @@ class PhiAerodynamicsModel():
         X_wing_body_frame[2, 6] = self.reference_wingspan**2 * constant * v_airspeed[0]
         X_wing_body_frame[2, 7] = self.reference_wingspan**2 * constant * v_airspeed[1]
         X_wing_body_frame[2, 8] = self.reference_wingspan**2 * constant * v_airspeed[2]
+        X_wing_body_frame[1, 9] = elevator_input
         X_wing_body_frame = X_wing_body_frame.flatten('F')
         return X_wing_body_frame
 
@@ -131,7 +132,7 @@ class PhiAerodynamicsModel():
                 
         return X_aero, coef_dict, col_names
 
-    def compute_aero_moment_features(self, v_airspeed_mat, angle_of_attack_vec, angle_of_sideslip_vec):
+    def compute_aero_moment_features(self, v_airspeed_mat, angle_of_attack_vec, angle_of_sideslip_vec, elevator_input_vec):
         """
         Inputs:
 
@@ -140,12 +141,12 @@ class PhiAerodynamicsModel():
         """
         print("Starting computation of aero moment features...")
         X_aero = self.compute_wing_moment_features(
-            v_airspeed_mat[0, :], angle_of_attack_vec[0], angle_of_sideslip_vec[0])
+            v_airspeed_mat[0, :], angle_of_attack_vec[0], angle_of_sideslip_vec[0], elevator_input_vec[0])
         aero_features_bar = Bar(
             'Feature Computatiuon', max=v_airspeed_mat.shape[0])
         for i in range(1, len(angle_of_attack_vec)):
             X_curr = self.compute_wing_moment_features(
-                v_airspeed_mat[i, :], angle_of_attack_vec[i], angle_of_sideslip_vec[i])
+                v_airspeed_mat[i, :], angle_of_attack_vec[i], angle_of_sideslip_vec[i], elevator_input_vec[i])
             X_aero = np.vstack((X_aero, X_curr))
             aero_features_bar.next()
         aero_features_bar.finish()
@@ -159,6 +160,7 @@ class PhiAerodynamicsModel():
             "phimv_31": {"rot":{ "x": "phimv_31_x","y": "phimv_31_y","z":"phimv_31_z"}},
             "phimv_32": {"rot":{ "x": "phimv_32_x","y": "phimv_32_y","z":"phimv_32_z"}},
             "phimv_33": {"rot":{ "x": "phimv_33_x","y": "phimv_33_y","z":"phimv_33_z"}},
+            "cmdelta": {"rot":{ "x": "cmdelta_x","y": "cmdelta_y","z":"cmdelta_z"}},
         }
         col_names = ["phimv_11_x", "phimv_11_y", "phimv_11_z", 
                     "phimv_12_x", "phimv_12_y", "phimv_12_z",
@@ -168,5 +170,6 @@ class PhiAerodynamicsModel():
                     "phimv_23_x", "phimv_23_y", "phimv_23_z",
                     "phimv_31_x", "phimv_31_y", "phimv_31_z", 
                     "phimv_32_x", "phimv_32_y", "phimv_32_z",
-                    "phimv_33_x", "phimv_33_y", "phimv_33_z"]
+                    "phimv_33_x", "phimv_33_y", "phimv_33_z",
+                    "cmdelta_x", "cmdelta_y", "cmdelta_z"]
         return X_aero, coef_dict, col_names
