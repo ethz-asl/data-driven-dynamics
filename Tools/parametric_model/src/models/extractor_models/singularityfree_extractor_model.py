@@ -90,14 +90,14 @@ class SingularityFreeExtractorModel():
         """
         return self.px4_params
 
-    def save_px4_params_to_yaml(self, output_file):
+    def save_px4_params_to_yaml(self, output_folder):
         """
         Save the extracted px4 parameters to a yaml file
 
-        :param output_file: path to the output file
+        :param output_folder: path to the output file
         """
         timestr = time.strftime("%Y-%m-%d-%H-%M-%S")
-        file_path = output_file + "_" + timestr + ".yaml"
+        file_path = output_folder + self.model_name + '_px4_params' + "_" + timestr + ".yaml"
 
         with open(file_path, 'w') as outfile:
             yaml.dump(self.px4_params, outfile, default_flow_style=False)
