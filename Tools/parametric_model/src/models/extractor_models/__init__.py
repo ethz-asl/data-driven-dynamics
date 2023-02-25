@@ -1,1 +1,2 @@
 from .fixedwing_extractor_model import FixedWingExtractorModel
+from .singularityfree_extractor_model import SingularityFreeExtractorModel
