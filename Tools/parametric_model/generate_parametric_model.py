@@ -123,7 +123,7 @@ def start_model_estimation(config, log_path, data_selection="none", plot=False, 
         
         extractor.compute_px4_params()
         px4_params = extractor.get_px4_params()
-        extractor.save_px4_params_to_yaml('model_results/' + data_handler.config.extractor_class + '_px4_params')
+        extractor.save_px4_params_to_yaml('model_results/')
 
     if plot:
         model.compute_residuals()

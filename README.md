@@ -124,7 +124,7 @@ make estimate-model model=quadrotor_model log=resources/quadrotor_model.ulg
 
 ## Extract PX4 Parameters from Aerodynamic Model (currently only supported for Fixed Wing Vehicles)
 
-In order to extract important longitudinal trimming parameters directly from the identified aerodynamic model, just add the flag --extraction True to the function call. The extracted parameters are then saved in the same folder as the model results. The configuration has to include the extractor model that is to be used (e.g. the FixedWingExtractorModel) and an extractor configuration, containing user-determined minimum and maximum flight speeds (and optionally a cruise flight speed).
+In order to extract important longitudinal trimming parameters directly from the identified aerodynamic model, just add the flag `--extraction True` to the function call. The extracted parameters are then saved in the same folder as the model results. The configuration has to include the extractor model that is to be used (e.g. the FixedWingExtractorModel) and an extractor configuration, containing user-determined minimum and maximum flight speeds (and optionally a cruise flight speed).
 
 In preparation for a potentially more model-based control approach in the PX4-Autopilot, more parameters then currently required as estimated. Currently not supported parameters are marked correspondingly:
 
