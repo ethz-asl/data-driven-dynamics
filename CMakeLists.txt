@@ -57,7 +57,7 @@ include_directories(
   ${EIGEN3_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIRS}/eigen3	# Workaround for Eigen3
   ${YAML_CPP_INCLUDE_DIR}
-  $ENV{PX4_ROOT}/build/px4_sitl_default/build_gazebo
+  $ENV{PX4_ROOT}/build/px4_sitl_default/build_gazebo-classic
   )
 
 # Build our plugin
@@ -70,11 +70,11 @@ target_link_libraries(data_driven_dynamics_plugin
   ${GAZEBO_LIBRARIES} 
   ${Boost_LIBRARIES}
   ${YAML_CPP_LIBRARIES}
-  $ENV{PX4_ROOT}/build/px4_sitl_default/build_gazebo/libmav_msgs.so
-  $ENV{PX4_ROOT}/build/px4_sitl_default/build_gazebo/libnav_msgs.so
-  $ENV{PX4_ROOT}/build/px4_sitl_default/build_gazebo/libphysics_msgs.so
-  $ENV{PX4_ROOT}/build/px4_sitl_default/build_gazebo/libsensor_msgs.so
-  $ENV{PX4_ROOT}/build/px4_sitl_default/build_gazebo/libstd_msgs.so
+  $ENV{PX4_ROOT}/build/px4_sitl_default/build_gazebo-classic/libmav_msgs.so
+  $ENV{PX4_ROOT}/build/px4_sitl_default/build_gazebo-classic/libnav_msgs.so
+  $ENV{PX4_ROOT}/build/px4_sitl_default/build_gazebo-classic/libphysics_msgs.so
+  $ENV{PX4_ROOT}/build/px4_sitl_default/build_gazebo-classic/libsensor_msgs.so
+  $ENV{PX4_ROOT}/build/px4_sitl_default/build_gazebo-classic/libstd_msgs.so
   )
 
 add_subdirectory(unit_tests)
