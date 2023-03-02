@@ -85,10 +85,13 @@ def start_model_estimation(config, log_path, data_selection="none", plot=False, 
     # Interactive data selection
     if data_selection=="interactive":
         from visual_dataframe_selector.data_selector import select_visual_data
+        # Parse actuator topics, and remove the timestamp from it
+        actuator_topics = data_handler.config_dict["data"]["required_ulog_topics"]["actuator_outputs"]["dataframe_name"]
+        actuator_topics.remove('timestamp')
         visual_dataframe_selector_config_dict = {
         "x_axis_col": "timestamp",
         "sub_plt1_data": ["q0", "q1", "q2", "q3"],
-        "sub_plt2_data": ["u0", "u1", "u2", "u3"],
+        "sub_plt2_data": actuator_topics,
         "sub_plt3_data": []
         }
 
