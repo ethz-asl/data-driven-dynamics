@@ -82,7 +82,7 @@ source setup.bash
 Generate the parametric model using a log file (ulog or csv):
 
 ```
-make estimate-model [model=<modeltype>] [config=<config_file_path>] [data_selection=<none|interwactive|auto>] [plot=<True/False>] log=<log_file_path>
+make estimate-model [model=<modeltype>] [config=<config_file_path>] [data_selection=<none|interactive|auto>] [plot=<True/False>] [log=<log_file_path>]
 ```
 
 ### Pipeline Arguments
@@ -157,7 +157,7 @@ In preparation for a potentially more model-based control approach in the PX4-Au
 It is also possible to test the obtained parameters for a certain model on a different log using:
 
 ```
-make predict-model [model=<modeltype>] [config=<config_file_path>] [data_selection=<True/False>] log=<log_file_path> model_results=<model_results_path>
+make predict-model [model=<modeltype>] [config=<config_file_path>] [data_selection=<none|interactive|auto>] [log=<log_file_path>] [model_results=<model_results_path>]
 ```
 
 ## Testing the functionality of Parametric model
