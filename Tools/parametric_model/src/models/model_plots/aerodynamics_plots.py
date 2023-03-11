@@ -194,34 +194,50 @@ def plot_liftdrag_curve(coef_dict, aerodynamics_dict):
     c_l_vec = np.zeros(aoa_deg.shape[0])
     c_d_vec = np.zeros(aoa_deg.shape[0])
 
-    if "c_l_wing_xz_offset" in coef_dict:
-        cl_0 = coef_dict["c_l_wing_xz_offset"]
-        cl_alpha = coef_dict["c_l_wing_xz_lin"]
-        cl_fp = coef_dict["c_l_wing_xz_fp"]
-        cd_0 = coef_dict["c_d_wing_xz_offset"]
-        cd_alpha = coef_dict["c_d_wing_xz_lin"]
-        cd_alpha2 = coef_dict["c_d_wing_xz_quad"]
-        cd_fp_min = coef_dict["c_d_wing_xz_fp_min"]
-        cd_fp_max = coef_dict["c_d_wing_xz_fp_max"]
+    if "cl0" in coef_dict:
+        cl_0 = coef_dict["cl0"]
+        cl_alpha = coef_dict["clalpha"]
+        cd_0 = coef_dict["cd0"]
+        cd_alpha = coef_dict["cdalpha"]
+        cd_alpha2 = coef_dict["cdalphasq"]
 
         stall_angle = aerodynamics_dict["stall_angle_deg"] * math.pi/180
-        sig_scale_fac = aerodynamics_dict["sig_scale_factor"]
 
         # region interpolation using a symmetric sigmoid function
         # 0 in linear/quadratic region, 1 in post-stall region
         for i in range(aoa_deg.shape[0]):
-            stall_region = cropped_sym_sigmoid(
-                aoa_rad[i], x_offset=stall_angle, scale_fac=sig_scale_fac)
-            # 1 in linear/quadratic region, 0 in post-stall region
-            flow_attached_region = 1 - stall_region
-            c_l_vec[i] = flow_attached_region * \
-                (cl_0 + cl_alpha * aoa_rad[i]) + \
-                stall_region * math.sin(2*aoa_rad[i])*cl_fp
-            c_d_vec[i] = flow_attached_region * \
-                (cd_0 + cd_alpha * aoa_rad[i] +
-                cd_alpha2 * aoa_rad[i] * aoa_rad[i]) + stall_region * \
-                (math.sin(aoa_rad[i])**2 * cd_fp_max +
-                (1-(math.sin(aoa_rad[i]))**2) * cd_fp_min)
+            c_l_vec[i] = (cl_0 + cl_alpha * aoa_rad[i])
+            c_d_vec[i] = cd_0 + cd_alpha * aoa_rad[i] + \
+                cd_alpha2 * aoa_rad[i] * aoa_rad[i]
+
+    elif "phifv_11" in coef_dict:
+        phifv_11 = coef_dict["phifv_11"]
+        phifv_12 = coef_dict["phifv_12"]
+        phifv_13 = coef_dict["phifv_13"]
+        phifv_21 = coef_dict["phifv_21"]
+        phifv_22 = coef_dict["phifv_22"]
+        phifv_23 = coef_dict["phifv_23"]
+        phifv_31 = coef_dict["phifv_31"]
+        phifv_32 = coef_dict["phifv_32"]
+        phifv_33 = coef_dict["phifv_33"]
+
+        phifv = np.zeros((3, 3))
+        phifv[0, 0] = phifv_11
+        phifv[0, 1] = phifv_12
+        phifv[0, 2] = phifv_13
+        phifv[1, 0] = phifv_21
+        phifv[1, 1] = phifv_22
+        phifv[1, 2] = phifv_23
+        phifv[2, 0] = phifv_31
+        phifv[2, 1] = phifv_32
+        phifv[2, 2] = phifv_33
+
+        for i in range(aoa_deg.shape[0]):
+            c_l_vec[i] = 2.0 * phifv[0,2] * np.cos(aoa_rad[i])**2 \
+                + (phifv[2,2] - phifv[0,0]) * np.sin(aoa_rad[i])* np.cos(aoa_rad[i]) - phifv[0,2]
+            c_d_vec[i] = phifv[0, 0] - phifv[2, 2]* np.cos(aoa_rad[i])**2 \
+                + 2.0 * phifv[0,2] * np.sin(aoa_rad[i])* np.cos(aoa_rad[i]) + phifv[2,2]
+        
 
     fig, (ax1, ax2) = plt.subplots(2)
 
@@ -229,11 +245,13 @@ def plot_liftdrag_curve(coef_dict, aerodynamics_dict):
     ax1.set_title("Lift coefficient over angle of attack [deg]")
     ax1.set_xlabel('Angle of Attack [deg]')
     ax1.set_ylabel('Lift Coefficient')
+    ax1.grid(True)
 
     ax2.plot(aoa_deg, c_d_vec, label="prediction")
     ax2.set_title("Lift coefficient over angle of attack [deg]")
     ax2.set_xlabel('Angle of Attack [deg]')
     ax2.set_ylabel('Drag Coefficient')
+    ax2.grid(True)
 
     return
 

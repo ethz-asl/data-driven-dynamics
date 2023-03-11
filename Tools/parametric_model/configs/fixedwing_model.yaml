@@ -1,8 +1,7 @@
 # general information
 model_name: "Gazebo Standard Plane"
 model_type: "Standard Plane Longitudinal Model"
-model_class:
-  "SimpleFixedWingModel"
+model_class: "FixedWingModel"
 extractor_class: "FixedWingExtractorModel"
 
 extractor_config:
@@ -26,6 +25,7 @@ model_config:
           dataframe_name: "throttle"
 
   aerodynamics:
+    type: "LinearWingModel"
     area: 0.41
     chord: 0.19
     stall_angle_deg: 20
