@@ -37,11 +37,6 @@ __maintainer__ = "Manuel Yves Galliker"
 __license__ = "BSD 3"
 
 import numpy as np
-import csv
-import h5py
-import time
-
-from pyulog.core import ULog
 
 DOT_THRESHOLD = 0.9995
 
