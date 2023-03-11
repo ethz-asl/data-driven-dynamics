@@ -31,4 +31,6 @@ jobs:
       - name: Run multirotor_model estimation for system level test using resource csv
         run: make estimate-model model=quadrotor_model log=resources/quadrotor_model.csv plot=False
       - name: Run fixedwing_longitudinalmodel estimation for system level test using resource csv
-        run: make estimate-model model=fixedwing_longitudinal_model log=resources/fixedwing_pitch_ramp.csv plot=False
+        run: make estimate-model model=fixedwing_model log=resources/fixedwing_model.csv plot=False
+      - name: Run fixedwing singularity free model for system level test using resource csv
+        run: make estimate-model model=fixedwing_singularityfree_model log=resources/fixedwing_model.csv plot=False
