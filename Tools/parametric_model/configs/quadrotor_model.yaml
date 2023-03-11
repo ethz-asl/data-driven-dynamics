@@ -74,7 +74,7 @@ model_config:
 
 dynamics_model_config:
   optimizer_config:
-    optimizer_class: "QPOptimizer"
+    optimizer_class: "LinearRegressor"
     optimzation_parameters:
     parameter_bounds:
       c_d_fuselage_x: !!python/tuple [0.0, 2.0]
@@ -96,7 +96,7 @@ dynamics_model_config:
   data:
     required_ulog_topics:
       actuator_outputs:
-        id: 0
+        id: 1
         ulog_name:
           - "timestamp"
           - "output[0]"
@@ -145,7 +145,7 @@ dynamics_model_config:
           - "ang_vel_x"
           - "ang_vel_y"
           - "ang_vel_z"
-      sensor_combined:
+      vehicle_acceleration:
         ulog_name:
           - "timestamp"
           - "accelerometer_m_s2[0]"
