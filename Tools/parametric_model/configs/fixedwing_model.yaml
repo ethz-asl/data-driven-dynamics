@@ -1,8 +1,7 @@
 # general information
 model_name: "Gazebo Standard Plane"
 model_type: "Standard Plane Longitudinal Model"
-model_class:
-  "SimpleFixedWingModel"
+model_class: "FixedWingModel"
 extractor_class: "FixedWingExtractorModel"
 
 extractor_config:
