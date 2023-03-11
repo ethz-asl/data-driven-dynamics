@@ -464,8 +464,8 @@ class DynamicsModel():
         coef_list = self.optimizer.get_optimization_parameters()
         model_dict = {}
         model_dict.update(self.rotor_config_dict)
-        if hasattr(self, 'aero_config_dict'):
-            model_dict.update(self.aero_config_dict)
+        if hasattr(self, 'aerodynamics_dict'):
+            model_dict.update(self.aerodynamics_dict)
         self.generate_model_dict(coef_list, metrics_dict, model_dict)
         print(
             "                           Optimal Coefficients                              ")
@@ -488,8 +488,8 @@ class DynamicsModel():
         model_dict = {}
         if hasattr(self, 'rotor_config_dict'):
             model_dict.update(self.rotor_config_dict)
-        if hasattr(self, 'aero_config_dict'):
-            model_dict.update(self.aero_config_dict)
+        if hasattr(self, 'aerodynamics_dict'):
+            model_dict.update(self.aerodynamics_dict)
         self.generate_model_dict(coef_list, metrics_dict, model_dict)
         print(
             "                           Optimal Coefficients                              ")
@@ -618,7 +618,7 @@ class DynamicsModel():
 
         linear_model_plots.plot_covariance_mat(self.X, self.coef_name_list)
 
-        if hasattr(self, 'aero_config_dict'):
+        if hasattr(self, 'aerodynamics_dict'):
             coef_list = self.optimizer.get_optimization_parameters()
             coef_dict = dict(zip(self.coef_name_list, coef_list))
             aerodynamics_plots.plot_liftdrag_curve(

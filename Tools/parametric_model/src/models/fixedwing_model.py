@@ -39,9 +39,9 @@ __license__ = "BSD 3"
 
 import numpy as np
 
+from . import aerodynamic_models
 from .dynamics_model import DynamicsModel
 from .model_config import ModelConfig
-from .aerodynamic_models import LinearWingModel, ControlSurfaceModel
 from matplotlib import pyplot as plt
 from scipy.spatial.transform import Rotation
 
@@ -61,6 +61,13 @@ class FixedWingModel(DynamicsModel):
         self.rotor_config_dict = self.config.model_config["actuators"]["rotors"]
         self.aerodynamics_dict = self.config.model_config["aerodynamics"]
 
+        try:
+            self.aero_model = getattr(aerodynamic_models, self.aerodynamics_dict["type"])(self.aerodynamics_dict)
+        except AttributeError:
+            error_str = "Aerodynamics Model '{0}' not found, is it added to models "\
+                        "directory and models/__init__.py?".format(self.aerodynamics_dict.type)
+            raise AttributeError(error_str)
+
     def prepare_force_regression_matrices(self):
         accel_mat = self.data_df[[
             "acc_b_x", "acc_b_y", "acc_b_z"]].to_numpy()
@@ -75,8 +82,7 @@ class FixedWingModel(DynamicsModel):
         aoa_mat = self.data_df[["angle_of_attack"]].to_numpy()
         elevator_inputs = self.data_df["elevator"].to_numpy()
 
-        aero_model = LinearWingModel(self.aerodynamics_dict)
-        X_aero, coef_dict_aero, col_names_aero = aero_model.compute_aero_force_features(
+        X_aero, coef_dict_aero, col_names_aero = self.aero_model.compute_aero_force_features(
             airspeed_mat, aoa_mat[:, 0], elevator_inputs)
         self.data_df[col_names_aero] = X_aero
         self.coef_dict.update(coef_dict_aero)
@@ -100,8 +106,7 @@ class FixedWingModel(DynamicsModel):
             "ang_vel_x", "ang_vel_y", "ang_vel_z"]].to_numpy()
         elevator_inputs = self.data_df["elevator"].to_numpy()
 
-        aero_model = LinearWingModel(self.aerodynamics_dict)
-        X_aero, coef_dict_aero, col_names_aero = aero_model.compute_aero_moment_features(
+        X_aero, coef_dict_aero, col_names_aero = self.aero_model.compute_aero_moment_features(
             airspeed_mat, aoa_mat[:, 0], elevator_inputs, angular_vel_mat, sideslip_mat)
 
         self.data_df[col_names_aero] = X_aero
