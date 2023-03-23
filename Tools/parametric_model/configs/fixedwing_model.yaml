@@ -36,10 +36,6 @@ dynamics_model_config:
     optimizer_class: "LinearRegressor"
   estimate_forces: True
   estimate_moments: True
-  use_sysid_maneuvers: False
-  # only set at most one of the following parameters to True
-  use_with_thrust_only: False
-  use_zero_thrust_only: False
   resample_freq: 50.0
   estimate_angular_acceleration: False
   data:
