@@ -103,11 +103,11 @@ def start_model_estimation(config, log_path, data_selection="none", plot=False, 
 
         model.load_dataframes(select_visual_data(model.data_df,visual_dataframe_selector_config_dict))
 
-    # data selection based on a manual_control_setpoint topic
+    # Setpoint based data selection
     elif data_selection=="setpoint":
-        # TODO
+        # TODO - select data based on manual_control_setpoint topic (could be user specified)
         print('Not implemented yet - HERE WILL BE SETPOINT IDENTIFICATION')
-        model.load_dataframes(data_df)
+        print(data_df)
 
     elif data_selection=="auto":     # Automatic data selection (WIP)
         from active_dataframe_selector.data_selector import ActiveDataSelector
