@@ -189,6 +189,23 @@ dynamics_model_config:
           - "ang_acc_b_x"
           - "ang_acc_b_y"
           - "ang_acc_b_z"
+      manual_control_setpoint:
+        ulog_name:
+          - "timestamp"
+          - "aux1"
+          - "aux2"
+          - "aux3"
+          - "aux4"
+          - "aux5"
+          - "aux6"
+        dataframe_name:
+          - "timestamp"
+          - "aux1"
+          - "aux2"
+          - "aux3"
+          - "aux4"
+          - "aux5"
+          - "aux6"
       vehicle_land_detected:
         ulog_name:
           - "timestamp"

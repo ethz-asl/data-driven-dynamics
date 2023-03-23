@@ -118,9 +118,19 @@ dynamics_model_config:
         ulog_name:
           - "timestamp"
           - "aux1"
+          - "aux2"
+          - "aux3"
+          - "aux4"
+          - "aux5"
+          - "aux6"
         dataframe_name:
           - "timestamp"
           - "aux1"
+          - "aux2"
+          - "aux3"
+          - "aux4"
+          - "aux5"
+          - "aux6"
       vehicle_thrust_setpoint:
         ulog_name:
           - "timestamp"

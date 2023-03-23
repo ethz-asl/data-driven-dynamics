@@ -82,7 +82,7 @@ source setup.bash
 Generate the parametric model using a log file (ulog or csv):
 
 ```
-make estimate-model [model=<modeltype>] [config=<config_file_path>] [data_selection=<none|interactive|auto>] [plot=<True/False>] [log=<log_file_path>]
+make estimate-model [model=<modeltype>] [config=<config_file_path>] [data_selection=<none|interactive|setpoint|auto>] [plot=<True/False>] [log=<log_file_path>]
 ```
 
 ### Pipeline Arguments
@@ -108,6 +108,7 @@ The data_selection argument is optional (per default none) and can be used to vi
 
 - none(default): Data selection is disabled, and the whole section of the log is used
 - interactive: Data is selected interactively using the [Visual Dataframe Selector](https://github.com/manumerous/visual_dataframe_selector), before running the model estimation. It is also possible to save the selected subportion of data to a csv file in order to use this exact dataset multiple times.
+- setpoint: Data is selected based on a certain `manual_control_setpoint` of the `ulog` or `csv` file. The parameter can be specified in the configuration file of the model.
 - auto: Data is selected automatically (Beta)
 
 ### Results

@@ -79,6 +79,23 @@ dynamics_model_config:
           - "accelerometer_m_s2[0]"
           - "accelerometer_m_s2[1]"
           - "accelerometer_m_s2[2]"
+      manual_control_setpoint:
+        ulog_name:
+          - "timestamp"
+          - "aux1"
+          - "aux2"
+          - "aux3"
+          - "aux4"
+          - "aux5"
+          - "aux6"
+        dataframe_name:
+          - "timestamp"
+          - "aux1"
+          - "aux2"
+          - "aux3"
+          - "aux4"
+          - "aux5"
+          - "aux6"
       vehicle_land_detected:
         ulog_name:
           - "timestamp"

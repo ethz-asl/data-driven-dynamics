@@ -102,6 +102,13 @@ def start_model_estimation(config, log_path, data_selection="none", plot=False, 
             visual_dataframe_selector_config_dict["sub_plt3_data"].append("fisher_information_rot")
 
         model.load_dataframes(select_visual_data(model.data_df,visual_dataframe_selector_config_dict))
+
+    # data selection based on a manual_control_setpoint topic
+    elif data_selection=="setpoint":
+        # TODO
+        print('Not implemented yet - HERE WILL BE SETPOINT IDENTIFICATION')
+        model.load_dataframes(data_df)
+
     elif data_selection=="auto":     # Automatic data selection (WIP)
         from active_dataframe_selector.data_selector import ActiveDataSelector
         # The goal is to identify automatically the most relevant parts of a log.
@@ -141,7 +148,7 @@ if __name__ == "__main__":
     parser.add_argument('log_path', metavar='log_path', type=str,
                         help='The path of the log to process relative to the project directory.')
     parser.add_argument('--data_selection', metavar='data_selection', type=str, default="none",
-                        help='Data selection scheme none | interactive | auto (Beta)')
+                        help='Data selection scheme none | interactive | setpoint | auto (Beta)')
     parser.add_argument('--config', metavar='config', type=str, default='configs/quadrotor_model.yaml',
                         help='Configuration file path for pipeline configurations')
     parser.add_argument('--plot', metavar='plot', type=str2bool, default='True',
