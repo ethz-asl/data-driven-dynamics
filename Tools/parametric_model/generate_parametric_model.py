@@ -33,7 +33,7 @@
 """
 
 __author__ = "Manuel Yves Galliker, Jaeyoung Lim, Julius Schlapbach"
-__maintainer__ = "Manuel Yves Galliker"
+__maintainer__ = "Manuel Yves Galliker, Julius Schlapbach"
 __license__ = "BSD 3"
 
 import os
@@ -59,16 +59,13 @@ def str2bool(v):
 
 
 def start_model_estimation(config, log_path, data_selection="none", selection_variable="none", plot=False, normalization=True, extraction=False):
-    print("Visual Data selection enabled: ", data_selection)
 
     # Flag for enabling automatic data selection.
-
     data_handler = DataHandler(config)
     data_handler.loadLogs(log_path)
-
     data_df = data_handler.get_dataframes()
-
     model_class = data_handler.config.model_class
+
     try:
         # This will call the model constructor directly from the model_class
         # in the yaml config (self-describing)
@@ -79,10 +76,9 @@ def start_model_estimation(config, log_path, data_selection="none", selection_va
                     "directory and models/__init__.py?".format(model_class)
         raise AttributeError(error_str)
 
-    
-
     # Interactive data selection
     if data_selection=="interactive":
+        print("Interactive data selection enabled...")
         from visual_dataframe_selector.data_selector import select_visual_data
         # Parse actuator topics, and remove the timestamp from it
         actuator_topics = data_handler.config_dict["data"]["required_ulog_topics"]["actuator_outputs"]["dataframe_name"]
@@ -101,9 +97,12 @@ def start_model_estimation(config, log_path, data_selection="none", selection_va
             visual_dataframe_selector_config_dict["sub_plt3_data"].append("fisher_information_rot")
 
         model.load_dataframes(select_visual_data(model.data_df,visual_dataframe_selector_config_dict))
+        print("Interactive data selection completed.")
 
     # Setpoint based data selection
     elif data_selection=="setpoint":
+        print("Setpoint based data selection enabled...")
+
         # if no manual control setpoint is chosen, the selection defaults to aux1
         selector = selection_variable if (selection_variable != 'none') else 'aux1'
 
@@ -121,13 +120,15 @@ def start_model_estimation(config, log_path, data_selection="none", selection_va
         for i in range(0, len(zero_crossings), 2):
             start = zero_crossings[i]
             end = zero_crossings[i+1]
-            acc_df = acc_df.append(data_df.iloc[start:end], ignore_index=True)
+            acc_df = pd.concat([acc_df, data_df.iloc[start:end]], ignore_index=True)
 
         model.load_dataframes(acc_df)
 
         # TODO - use an additional optional list of numbers to specify the activations that should be used
+        print("Setpoint based data selection completed.")
 
     elif data_selection=="auto":     # Automatic data selection (WIP)
+        print("Automatic data selection enabled...")
         from active_dataframe_selector.data_selector import ActiveDataSelector
         # The goal is to identify automatically the most relevant parts of a log.
         # Currently the draft is designed to choose the most informative 10% of the logs with regards to
@@ -135,6 +136,7 @@ def start_model_estimation(config, log_path, data_selection="none", selection_va
         # can vary drastically from log to log. 
         data_selector = ActiveDataSelector(model.data_df)
         model.load_dataframes(data_selector.select_dataframes(10))
+        print("Automatic data selection completed.")
 
     else:
         model.load_dataframes(data_df)
