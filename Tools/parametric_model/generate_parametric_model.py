@@ -113,7 +113,7 @@ def start_model_estimation(config, log_path, data_selection="none", selection_va
 
         zero_crossings = np.where(np.diff(np.sign(data_df[selector] + (data_df[selector] == 0))))[0]
 
-        if (len(zero_crossings) % 2 != 0):
+        if (len(zero_crossings) % 2 != 0 or len(zero_crossings) == 0):
             raise AttributeError("All manual trigger activations have to start and end during the flight phase")
 
         acc_df = pd.DataFrame()
