@@ -6,6 +6,7 @@ model?=quadrotor_model
 log?=${root_dir}/resources/${model}.ulg
 config?=${root_dir}/Tools/parametric_model/configs/${model}.yaml
 data_selection?=none
+selection_variable?=none
 plot?=True
 
 submodulesupdate:
@@ -34,6 +35,7 @@ estimate-model:
 	python3 Tools/parametric_model/generate_parametric_model.py \
 	--config ${config} \
 	--data_selection ${data_selection} \
+	--selection_variable ${selection_variable} \
 	--plot ${plot} \
 	${log}
 
@@ -41,6 +43,7 @@ predict-model:
 	python3 Tools/parametric_model/predict_model.py --config ${config} \
 	--model_results ${model_results} \
 	--data_selection ${data_selection} \
+	--selection_variable ${selection_variable} \
 	${log}
 
 format:

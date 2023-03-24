@@ -42,6 +42,7 @@ import src.models.extractor_models as extractors
 from src.tools import DataHandler
 import argparse
 import pandas as pd
+import numpy as np
 
 
 def str2bool(v):
@@ -57,7 +58,7 @@ def str2bool(v):
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
 
-def start_model_estimation(config, log_path, data_selection="none", plot=False, normalization=True, extraction=False):
+def start_model_estimation(config, log_path, data_selection="none", selection_variable="none", plot=False, normalization=True, extraction=False):
     print("Visual Data selection enabled: ", data_selection)
 
     # Flag for enabling automatic data selection.
@@ -78,9 +79,7 @@ def start_model_estimation(config, log_path, data_selection="none", plot=False, 
                     "directory and models/__init__.py?".format(model_class)
         raise AttributeError(error_str)
 
-    model.load_dataframes(data_df)
-    model.prepare_regression_matrices()
-    model.compute_fisher_information()
+    
 
     # Interactive data selection
     if data_selection=="interactive":
@@ -105,9 +104,28 @@ def start_model_estimation(config, log_path, data_selection="none", plot=False, 
 
     # Setpoint based data selection
     elif data_selection=="setpoint":
-        # TODO - select data based on manual_control_setpoint topic (could be user specified)
-        print('Not implemented yet - HERE WILL BE SETPOINT IDENTIFICATION')
-        print(data_df)
+        # if no manual control setpoint is chosen, the selection defaults to aux1
+        selector = selection_variable if (selection_variable != 'none') else 'aux1'
+
+        if (selector not in ['aux1', 'aux2', 'aux3', 'aux4', 'aux5', 'aux6']):
+            error_str = "Variable '{0}' is not valid for data filtering".format(selector)
+            raise AttributeError(error_str)
+
+        zero_crossings = np.where(np.diff(np.sign(data_df[selector] + (data_df[selector] == 0))))[0]
+
+        if (len(zero_crossings) % 2 != 0):
+            raise AttributeError("All manual trigger activations have to start and end during the flight phase")
+
+        acc_df = pd.DataFrame()
+
+        for i in range(0, len(zero_crossings), 2):
+            start = zero_crossings[i]
+            end = zero_crossings[i+1]
+            acc_df = acc_df.append(data_df.iloc[start:end], ignore_index=True)
+
+        model.load_dataframes(acc_df)
+
+        # TODO - use an additional optional list of numbers to specify the activations that should be used
 
     elif data_selection=="auto":     # Automatic data selection (WIP)
         from active_dataframe_selector.data_selector import ActiveDataSelector
@@ -117,6 +135,12 @@ def start_model_estimation(config, log_path, data_selection="none", plot=False, 
         # can vary drastically from log to log. 
         data_selector = ActiveDataSelector(model.data_df)
         model.load_dataframes(data_selector.select_dataframes(10))
+
+    else:
+        model.load_dataframes(data_df)
+
+    model.prepare_regression_matrices()
+    model.compute_fisher_information()
 
     model.estimate_model()
 
@@ -149,6 +173,8 @@ if __name__ == "__main__":
                         help='The path of the log to process relative to the project directory.')
     parser.add_argument('--data_selection', metavar='data_selection', type=str, default="none",
                         help='Data selection scheme none | interactive | setpoint | auto (Beta)')
+    parser.add_argument('--selection_variable', metavar='selection_variable', type=str, default="none",
+                        help='Variable to use for data selection aux1 | aux2 | aux3 | aux4 | aux5 | aux6')
     parser.add_argument('--config', metavar='config', type=str, default='configs/quadrotor_model.yaml',
                         help='Configuration file path for pipeline configurations')
     parser.add_argument('--plot', metavar='plot', type=str2bool, default='True',
