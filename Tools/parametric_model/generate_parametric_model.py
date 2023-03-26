@@ -80,6 +80,9 @@ def start_model_estimation(config, log_path, data_selection="none", selection_va
     if data_selection=="interactive":
         print("Interactive data selection enabled...")
         from visual_dataframe_selector.data_selector import select_visual_data
+        model.load_dataframes(data_df)
+        model.prepare_regression_matrices()
+        model.compute_fisher_information()
         # Parse actuator topics, and remove the timestamp from it
         actuator_topics = data_handler.config_dict["data"]["required_ulog_topics"]["actuator_outputs"]["dataframe_name"]
         actuator_topics.remove('timestamp')
@@ -123,8 +126,8 @@ def start_model_estimation(config, log_path, data_selection="none", selection_va
             acc_df = pd.concat([acc_df, data_df.iloc[start:end]], ignore_index=True)
 
         model.load_dataframes(acc_df)
-
-        # TODO - use an additional optional list of numbers to specify the activations that should be used
+        model.prepare_regression_matrices()
+        model.compute_fisher_information()
         print("Setpoint based data selection completed.")
 
     elif data_selection=="auto":     # Automatic data selection (WIP)
@@ -136,13 +139,14 @@ def start_model_estimation(config, log_path, data_selection="none", selection_va
         # can vary drastically from log to log. 
         data_selector = ActiveDataSelector(model.data_df)
         model.load_dataframes(data_selector.select_dataframes(10))
+        model.prepare_regression_matrices()
+        model.compute_fisher_information()
         print("Automatic data selection completed.")
 
     else:
         model.load_dataframes(data_df)
-
-    model.prepare_regression_matrices()
-    model.compute_fisher_information()
+        model.prepare_regression_matrices()
+        model.compute_fisher_information()
 
     model.estimate_model()
 
