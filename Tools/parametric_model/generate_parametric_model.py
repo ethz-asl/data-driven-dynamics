@@ -58,7 +58,7 @@ def str2bool(v):
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
 
-def start_model_estimation(config, log_path, data_selection="none", selection_variable="none", plot=False, normalization=True, extraction=False):
+def start_model_estimation(config, log_path, data_selection="none", plot=False, normalization=True, extraction=False):
 
     # Flag for enabling automatic data selection.
     data_handler = DataHandler(config)
@@ -106,8 +106,7 @@ def start_model_estimation(config, log_path, data_selection="none", selection_va
     elif data_selection=="setpoint":
         print("Setpoint based data selection enabled...")
 
-        # if no manual control setpoint is chosen, the selection defaults to aux1
-        selector = selection_variable if (selection_variable != 'none') else 'aux1'
+        selector = data_handler.config.selection_variable
 
         if (selector not in ['aux1', 'aux2', 'aux3', 'aux4', 'aux5', 'aux6']):
             error_str = "Variable '{0}' is not valid for data filtering".format(selector)
@@ -123,7 +122,16 @@ def start_model_estimation(config, log_path, data_selection="none", selection_va
         for i in range(0, len(zero_crossings), 2):
             start = zero_crossings[i]
             end = zero_crossings[i+1]
-            acc_df = pd.concat([acc_df, data_df.iloc[start:end]], ignore_index=True)
+            activations = data_handler.config.activations
+
+            if ((activations is None) or len(activations) == 0):
+                # no activations have been specified by the user and all activations are used
+                acc_df = pd.concat([acc_df, data_df.iloc[start:end]], ignore_index=True)
+            else:
+                # activations have been specified by the user and only the specified activations are used
+                if ((i + 2) / 2) in activations:
+                    acc_df = pd.concat([acc_df, data_df.iloc[start:end]], ignore_index=True)
+                continue
 
         model.load_dataframes(acc_df)
         model.prepare_regression_matrices()
@@ -177,12 +185,10 @@ if __name__ == "__main__":
         description='Estimate dynamics model from flight log.')
     parser.add_argument('log_path', metavar='log_path', type=str,
                         help='The path of the log to process relative to the project directory.')
-    parser.add_argument('--data_selection', metavar='data_selection', type=str, default="none",
-                        help='Data selection scheme none | interactive | setpoint | auto (Beta)')
-    parser.add_argument('--selection_variable', metavar='selection_variable', type=str, default="none",
-                        help='Variable to use for data selection aux1 | aux2 | aux3 | aux4 | aux5 | aux6')
     parser.add_argument('--config', metavar='config', type=str, default='configs/quadrotor_model.yaml',
                         help='Configuration file path for pipeline configurations')
+    parser.add_argument('--data_selection', metavar='data_selection', type=str, default="none",
+                        help='Data selection scheme none | interactive | setpoint | auto (Beta)')
     parser.add_argument('--plot', metavar='plot', type=str2bool, default='True',
                         help='Show plots after fit.')
     parser.add_argument('--extraction', metavar='extraction', type=str2bool, default='False', required=False,

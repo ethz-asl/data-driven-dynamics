@@ -4,6 +4,10 @@ model_type: "template_model"
 model_class: "template"
 extractor_class: "template_extractor"
 
+# data handling with setpoint setting
+selection_variable: "aux1"  # value can be aux1, aux2, aux3, aux4, aux5, aux6
+# activations: [1, 2, 3]    # optional - Caution: indexing starts from 1
+
 extractor_config: "extractor_config"
 
 # all vectors in FRD body frame if not specified otherwise
