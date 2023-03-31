@@ -29,6 +29,7 @@ model_config:
           dataframe_name: "throttle"
 
   aerodynamics:
+    type: "LinearWingModel"
     area: 0.575
     chord: 0.25
     stall_angle_deg: 20
