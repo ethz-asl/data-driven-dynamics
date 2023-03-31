@@ -4,6 +4,10 @@ model_type: "Standard Plane Longitudinal Model"
 model_class: "FixedWingModel"
 extractor_class: "FixedWingExtractorModel"
 
+# data handling with setpoint setting
+selection_variable: "aux1"  # value can be aux1, aux2, aux3, aux4, aux5, aux6
+# activations: [1, 2, 3]    # optional - Caution: indexing starts from 1
+
 extractor_config:
   vmin: 14.0
   vmax: 22.0
@@ -25,6 +29,7 @@ model_config:
           dataframe_name: "throttle"
 
   aerodynamics:
+    type: "LinearWingModel"
     area: 0.575
     chord: 0.25
     stall_angle_deg: 20
@@ -35,10 +40,6 @@ dynamics_model_config:
     optimizer_class: "LinearRegressor"
   estimate_forces: True
   estimate_moments: True
-  use_sysid_maneuvers: False
-  # set at most one of the following parameters to True
-  use_with_thrust_only: False
-  use_zero_thrust_only: False
   resample_freq: 50.0
   estimate_angular_acceleration: False
   data:
@@ -114,9 +115,19 @@ dynamics_model_config:
         ulog_name:
           - "timestamp"
           - "aux1"
+          - "aux2"
+          - "aux3"
+          - "aux4"
+          - "aux5"
+          - "aux6"
         dataframe_name:
           - "timestamp"
           - "aux1"
+          - "aux2"
+          - "aux3"
+          - "aux4"
+          - "aux5"
+          - "aux6"
       vehicle_thrust_setpoint:
         ulog_name:
           - "timestamp"

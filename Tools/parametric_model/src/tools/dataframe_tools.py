@@ -43,106 +43,48 @@ from src.tools.quat_utils import slerp
 from matplotlib import pyplot as plt
 
 
-# pre normalization thresholds
-PWM_THRESHOLD = 1000
-ACTUATOR_CONTROLS_THRESHOLD = -0.2
-
-
-def compute_flight_time(act_df, config_dict, thrust_df=None, landed_df=None, ramps=False):
+def compute_flight_time(data_df):
     """
-    If the ramps parameter is set to true, it will detect the time ranges of the thrust and pitch ramps based on the aux1-value.
-    The corresponding parameter can be set in the config file as use_sysid_maneuvers.
-
-    Alternatively, the flight time will be determined based on the 'landed' topic of the ulog to only consider actual flight during identification.
+    The flight time will be determined based on the 'landed' topic of the ulog to only consider actual flight during identification.
     """
     print('\nComputing flight time...')
+    landed_groups = data_df.groupby(
+        (data_df['landed'].shift() != data_df['landed']).cumsum())
+    num_of_groups = landed_groups.ngroups
 
-    if not ramps:
-        # the flight time is detected based on the landed state
-        landed_groups = landed_df.groupby(
-            (landed_df['landed'].shift() != landed_df['landed']).cumsum())
-        num_of_groups = landed_groups.ngroups
-
-        if num_of_groups == 1:
-            if landed_groups.get_group(1)['landed'].iloc[0, 0] == 1:
-                print('No flight detected. Please check the landed state.')
-                return {"t_start": 0, "t_end": 0}
-            else:
-                pass
-
-        elif num_of_groups > 3:
-            print('More than one flight detected. Please check the landed state.')
+    if num_of_groups == 1:
+        if landed_groups.get_group(1)['landed'].iloc[0, 0] == 1:
+            print('No flight detected. Please check the landed state.')
             return {"t_start": 0, "t_end": 0}
-
-        elif num_of_groups == 2:
-            group1 = landed_groups.get_group(1)[['timestamp', 'landed']]
-            group2 = landed_groups.get_group(2)[['timestamp', 'landed']]
-
-            if (group1.iloc[0, 1] == 1):
-                # first on ground, then in flight
-                t_start = group2.iloc[0, 0]
-                t_end = group2.iloc[-1, 0]
-                return {"t_start": t_start, "t_end": t_end}
-            else:
-                # first in flight, then on ground
-                t_start = group1.iloc[0, 0]
-                t_end = group1.iloc[-1, 0]
-                return {"t_start": t_start, "t_end": t_end}
-
         else:
-            t_start = landed_groups.get_group(1).iloc[-1, 0]
-            t_end = landed_groups.get_group(3).iloc[0, 0]
+            pass
+
+    elif num_of_groups > 3:
+        print('More than one flight detected. Please check the landed state.')
+        return {"t_start": 0, "t_end": 0}
+
+    elif num_of_groups == 2:
+        group1 = landed_groups.get_group(1)[['timestamp', 'landed']]
+        group2 = landed_groups.get_group(2)[['timestamp', 'landed']]
+
+        if (group1.iloc[0, 1] == 1):
+            # first on ground, then in flight
+            t_start = group2.iloc[0, 0]
+            t_end = group2.iloc[-1, 0]
+            return {"t_start": t_start, "t_end": t_end}
+        else:
+            # first in flight, then on ground
+            t_start = group1.iloc[0, 0]
+            t_end = group1.iloc[-1, 0]
             return {"t_start": t_start, "t_end": t_end}
 
-        return {"t_start": act_df.iloc[0, 0], "t_end": act_df.iloc[-1, 0]}
-
     else:
-        flight_time = []
-        use_with_thrust_only = config_dict.get('use_with_thrust_only', False)
-        use_zero_thrust_only = config_dict.get('use_zero_thrust_only', False)
-
-        zero_crossings = np.where(
-            np.diff(np.sign(act_df['aux1'] + (act_df['aux1'] == 0))))[0]
-
-        assert len(zero_crossings ==
-                   0), "No aux1 activations detected as required for the ramp flight mode"
-        assert len(
-            zero_crossings) % 2 == 0, "Aux1 active ranges are not all closed"
-
-        num_of_ramps = len(zero_crossings) // 2
-        print('\nDetected {0} ramp inputs in total'.format(num_of_ramps))
-
-        throttle_list = []
-        num_thrust_ramps = 0
-        num_pitch_ramps = 0
-
-        for i in range(num_of_ramps):
-            new_flight_time = {"t_start": act_df['timestamp'][zero_crossings[2 * i]],
-                               "t_end": act_df['timestamp'][zero_crossings[2 * i + 1]]}
-
-            ramp_throttle = thrust_df[np.logical_and((thrust_df['timestamp'] > new_flight_time['t_start']),
-                                      (thrust_df['timestamp'] < new_flight_time['t_end']))]
-            throttle_list.append(ramp_throttle)
-
-            num_non_zero = ramp_throttle[ramp_throttle['xyz[0]']
-                                         > 0.0]['xyz[0]'].shape[0]
-            if num_non_zero > 0:
-                num_thrust_ramps += 1
-                if use_zero_thrust_only:
-                    continue
-            else:
-                num_pitch_ramps += 1
-                if use_with_thrust_only:
-                    continue
-
-            flight_time.append(new_flight_time)
-
-        print('\nProcesed {0} thrust ramps and {1} pitch ramps'.format(
-            num_thrust_ramps, num_pitch_ramps))
+        t_start = landed_groups.get_group(1).iloc[-1, 0]
+        t_end = landed_groups.get_group(3).iloc[0, 0]
+        return {"t_start": t_start, "t_end": t_end}
 
     print('Flight time computation completed successfully.')
-
-    return flight_time
+    return {"t_start": act_df.iloc[0, 0], "t_end": act_df.iloc[-1, 0]}
 
 
 def moving_average(x, w=7):

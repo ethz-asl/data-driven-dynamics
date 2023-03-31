@@ -33,7 +33,7 @@
 """
 
 __author__ = "Manuel Yves Galliker, Jaeyoung Lim, Julius Schlapbach"
-__maintainer__ = "Manuel Yves Galliker"
+__maintainer__ = "Manuel Yves Galliker, Julius Schlapbach"
 __license__ = "BSD 3"
 
 import os
@@ -42,6 +42,7 @@ import src.models.extractor_models as extractors
 from src.tools import DataHandler
 import argparse
 import pandas as pd
+import numpy as np
 
 
 def str2bool(v):
@@ -58,16 +59,13 @@ def str2bool(v):
 
 
 def start_model_estimation(config, log_path, data_selection="none", plot=False, normalization=True, extraction=False):
-    print("Visual Data selection enabled: ", data_selection)
 
     # Flag for enabling automatic data selection.
-
     data_handler = DataHandler(config)
     data_handler.loadLogs(log_path)
-
     data_df = data_handler.get_dataframes()
-
     model_class = data_handler.config.model_class
+
     try:
         # This will call the model constructor directly from the model_class
         # in the yaml config (self-describing)
@@ -78,13 +76,13 @@ def start_model_estimation(config, log_path, data_selection="none", plot=False, 
                     "directory and models/__init__.py?".format(model_class)
         raise AttributeError(error_str)
 
-    model.load_dataframes(data_df)
-    model.prepare_regression_matrices()
-    model.compute_fisher_information()
-
     # Interactive data selection
     if data_selection=="interactive":
+        print("Interactive data selection enabled...")
         from visual_dataframe_selector.data_selector import select_visual_data
+        model.load_dataframes(data_df)
+        model.prepare_regression_matrices()
+        model.compute_fisher_information()
         # Parse actuator topics, and remove the timestamp from it
         actuator_topics = data_handler.config_dict["data"]["required_ulog_topics"]["actuator_outputs"]["dataframe_name"]
         actuator_topics.remove('timestamp')
@@ -102,7 +100,46 @@ def start_model_estimation(config, log_path, data_selection="none", plot=False, 
             visual_dataframe_selector_config_dict["sub_plt3_data"].append("fisher_information_rot")
 
         model.load_dataframes(select_visual_data(model.data_df,visual_dataframe_selector_config_dict))
+        print("Interactive data selection completed.")
+
+    # Setpoint based data selection
+    elif data_selection=="setpoint":
+        print("Setpoint based data selection enabled...")
+
+        selector = data_handler.config.selection_variable
+
+        if (selector not in ['aux1', 'aux2', 'aux3', 'aux4', 'aux5', 'aux6']):
+            error_str = "Variable '{0}' is not valid for data filtering".format(selector)
+            raise AttributeError(error_str)
+
+        zero_crossings = np.where(np.diff(np.sign(data_df[selector] + (data_df[selector] == 0))))[0]
+
+        if (len(zero_crossings) % 2 != 0 or len(zero_crossings) == 0):
+            raise AttributeError("All manual trigger activations have to start and end during the flight phase")
+
+        acc_df = pd.DataFrame()
+
+        for i in range(0, len(zero_crossings), 2):
+            start = zero_crossings[i]
+            end = zero_crossings[i+1]
+            activations = data_handler.config.activations
+
+            if ((activations is None) or len(activations) == 0):
+                # no activations have been specified by the user and all activations are used
+                acc_df = pd.concat([acc_df, data_df.iloc[start:end]], ignore_index=True)
+            else:
+                # activations have been specified by the user and only the specified activations are used
+                if ((i + 2) / 2) in activations:
+                    acc_df = pd.concat([acc_df, data_df.iloc[start:end]], ignore_index=True)
+                continue
+
+        model.load_dataframes(acc_df)
+        model.prepare_regression_matrices()
+        model.compute_fisher_information()
+        print("Setpoint based data selection completed.")
+
     elif data_selection=="auto":     # Automatic data selection (WIP)
+        print("Automatic data selection enabled...")
         from active_dataframe_selector.data_selector import ActiveDataSelector
         # The goal is to identify automatically the most relevant parts of a log.
         # Currently the draft is designed to choose the most informative 10% of the logs with regards to
@@ -110,6 +147,14 @@ def start_model_estimation(config, log_path, data_selection="none", plot=False, 
         # can vary drastically from log to log. 
         data_selector = ActiveDataSelector(model.data_df)
         model.load_dataframes(data_selector.select_dataframes(10))
+        model.prepare_regression_matrices()
+        model.compute_fisher_information()
+        print("Automatic data selection completed.")
+
+    else:
+        model.load_dataframes(data_df)
+        model.prepare_regression_matrices()
+        model.compute_fisher_information()
 
     model.estimate_model()
 
@@ -140,10 +185,10 @@ if __name__ == "__main__":
         description='Estimate dynamics model from flight log.')
     parser.add_argument('log_path', metavar='log_path', type=str,
                         help='The path of the log to process relative to the project directory.')
-    parser.add_argument('--data_selection', metavar='data_selection', type=str, default="none",
-                        help='Data selection scheme none | interactive | auto (Beta)')
     parser.add_argument('--config', metavar='config', type=str, default='configs/quadrotor_model.yaml',
                         help='Configuration file path for pipeline configurations')
+    parser.add_argument('--data_selection', metavar='data_selection', type=str, default="none",
+                        help='Data selection scheme none | interactive | setpoint | auto (Beta)')
     parser.add_argument('--plot', metavar='plot', type=str2bool, default='True',
                         help='Show plots after fit.')
     parser.add_argument('--extraction', metavar='extraction', type=str2bool, default='False', required=False,

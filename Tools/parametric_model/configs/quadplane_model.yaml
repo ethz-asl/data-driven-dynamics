@@ -4,6 +4,10 @@ model_type: "Standard VTOL"
 model_class: "QuadPlaneModel"
 extractor_class: "Not implemented"
 
+# data handling with setpoint setting
+selection_variable: "aux1"  # value can be aux1, aux2, aux3, aux4, aux5, aux6
+# activations: [1, 2, 3]    # optional - Caution: indexing starts from 1
+
 extractor_config: "Not implemented"
 
   # all vectors in FRD body frame if not specified otherwise
@@ -106,7 +110,6 @@ dynamics_model_config:
     optimizer_class: "LinearRegressor"
   estimate_forces: True
   estimate_moments: True
-  use_sysid_maneuvers: False
   resample_freq: 100.0
   estimate_angular_acceleration: False
   data:
@@ -189,6 +192,23 @@ dynamics_model_config:
           - "ang_acc_b_x"
           - "ang_acc_b_y"
           - "ang_acc_b_z"
+      manual_control_setpoint:
+        ulog_name:
+          - "timestamp"
+          - "aux1"
+          - "aux2"
+          - "aux3"
+          - "aux4"
+          - "aux5"
+          - "aux6"
+        dataframe_name:
+          - "timestamp"
+          - "aux1"
+          - "aux2"
+          - "aux3"
+          - "aux4"
+          - "aux5"
+          - "aux6"
       vehicle_land_detected:
         ulog_name:
           - "timestamp"
