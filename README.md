@@ -42,7 +42,7 @@ source ~/.bashrc
 
 The use the parametric model structure you need to install python 3.8 and the needed python libraries. It is strongly advised to install the pip packages in a [virtual enviroment](https://docs.python.org/3/tutorial/venv.html) setup for this project.
 
-Install the dependencies including submodule dependencies:
+Install the dependencies including submodule dependencies using:
 
 ```
 install-full-depdencies
@@ -81,6 +81,7 @@ The chosen vehicle model class determines what physical effects are modelled and
 Current vehicle model choices are:
 
 - quadrotor_model (default config for quadrotor)
+- fixedwing_model (default config for cruise flight of fixed-wings and VTOLs, documented [here](https://github.com/ethz-asl/data-driven-dynamics/blob/update-documentation/doc/fixed_wing_model.md))
 
 #### Config File
 
