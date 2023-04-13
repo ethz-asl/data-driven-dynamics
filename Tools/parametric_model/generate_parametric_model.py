@@ -127,12 +127,12 @@ def start_model_estimation(config, log_path, data_selection="none", plot=False, 
 
     elif data_selection=="auto":     # Automatic data selection (WIP)
         print("Automatic data selection enabled...")
-        from active_dataframe_selector.data_selector import ActiveDataSelector
+        from active_dataframe_selector.automatic_data_selector import AutomaticDataSelector
         # The goal is to identify automatically the most relevant parts of a log.
         # Currently the draft is designed to choose the most informative 10% of the logs with regards to
         # force and moment parameters. This threshold is currently not validated at all and the percentage
         # can vary drastically from log to log. 
-        data_selector = ActiveDataSelector(model.data_df)
+        data_selector = AutomaticDataSelector(model.data_df)
         model.load_dataframes(data_selector.select_dataframes(10))
         model.prepare_regression_matrices()
         model.compute_fisher_information()
