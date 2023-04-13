@@ -39,23 +39,10 @@ __license__ = "BSD 3"
 import os
 import src.models as models
 import src.models.extractor_models as extractors
-from src.tools import DataHandler
+from src.tools import DataHandler, string_to_bool
 import argparse
 import pandas as pd
 import numpy as np
-
-
-def str2bool(v):
-    if isinstance(v, bool):
-        return v
-    if v.lower() in ('yes', 'true', 't', 'y', '1'):
-        os.environ['data_selection'] = "True"
-        return True
-    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
-        os.environ['data_selection'] = "False"
-        return False
-    else:
-        raise argparse.ArgumentTypeError('Boolean value expected.')
 
 
 def start_model_estimation(config, log_path, data_selection="none", plot=False, normalization=True, extraction=False):
@@ -140,12 +127,12 @@ def start_model_estimation(config, log_path, data_selection="none", plot=False, 
 
     elif data_selection=="auto":     # Automatic data selection (WIP)
         print("Automatic data selection enabled...")
-        from active_dataframe_selector.data_selector import ActiveDataSelector
+        from active_dataframe_selector.automatic_data_selector import AutomaticDataSelector
         # The goal is to identify automatically the most relevant parts of a log.
         # Currently the draft is designed to choose the most informative 10% of the logs with regards to
         # force and moment parameters. This threshold is currently not validated at all and the percentage
         # can vary drastically from log to log. 
-        data_selector = ActiveDataSelector(model.data_df)
+        data_selector = AutomaticDataSelector(model.data_df)
         model.load_dataframes(data_selector.select_dataframes(10))
         model.prepare_regression_matrices()
         model.compute_fisher_information()
@@ -189,11 +176,11 @@ if __name__ == "__main__":
                         help='Configuration file path for pipeline configurations')
     parser.add_argument('--data_selection', metavar='data_selection', type=str, default="none",
                         help='Data selection scheme none | interactive | setpoint | auto (Beta)')
-    parser.add_argument('--plot', metavar='plot', type=str2bool, default='True',
+    parser.add_argument('--plot', metavar='plot', type=string_to_bool, default='True',
                         help='Show plots after fit.')
-    parser.add_argument('--extraction', metavar='extraction', type=str2bool, default='False', required=False,
+    parser.add_argument('--extraction', metavar='extraction', type=string_to_bool, default='False', required=False,
                         help='Specify if the parameter extraction should be applied as well.')
-    parser.add_argument('--normalization', metavar='normalization', type=str2bool, default='True', required=False,
+    parser.add_argument('--normalization', metavar='normalization', type=string_to_bool, default='True', required=False,
                         help='Determine if the actuator data should be normalized before model estimation (False for simulation data).')
     arg_list = parser.parse_args()
     start_model_estimation(**vars(arg_list))
