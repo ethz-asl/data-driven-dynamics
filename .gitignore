@@ -1,7 +1,6 @@
 build/*
 logs*
 .venv/
-.vscode/
 __pycache__/
 model_results/*.yaml
 *.pyc

@@ -44,17 +44,19 @@ import numpy as np
 
 class ParametersNotEstimatedError(Exception):
     def __init__(self):
-        self.message = "Optimization parameters are not yet estimated." + \
-            "Did you call estimate_parameters() method?"
+        self.message = (
+            "Optimization parameters are not yet estimated."
+            + "Did you call estimate_parameters() method?"
+        )
         super().__init__(self.message)
 
 
 class OptimizerBaseTemplate(ABC):
 
-    """ 
-    This is an abstract class that is used as the base 
-    template to all other optimizer classes by overwriting the 
-    abstract methods. 
+    """
+    This is an abstract class that is used as the base
+    template to all other optimizer classes by overwriting the
+    abstract methods.
     """
 
     def __init__(self, optimizer_config, param_name_list):
@@ -62,8 +64,6 @@ class OptimizerBaseTemplate(ABC):
         self.parametersNotEstimatedError = ParametersNotEstimatedError()
         self.config = optimizer_config
         self.param_name_list = param_name_list
-
-
 
     def check_estimation_completed(self):
         if self.estimation_completed:
@@ -73,11 +73,12 @@ class OptimizerBaseTemplate(ABC):
 
     def check_features(self):
         for i in range(self.X.shape[1]):
-            if np.count_nonzero(self.X[:,i]) == 0:
-                warnings.warn("Feature detected that is only zero. " + \
-            "Parameter {} is probably wrong.".format(self.param_name_list[i]),
-            RuntimeWarning
-            )
+            if np.count_nonzero(self.X[:, i]) == 0:
+                warnings.warn(
+                    "Feature detected that is only zero. "
+                    + "Parameter {} is probably wrong.".format(self.param_name_list[i]),
+                    RuntimeWarning,
+                )
         return
 
     @abstractmethod

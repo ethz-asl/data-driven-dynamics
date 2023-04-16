@@ -42,10 +42,8 @@ from src.tools import math_tools
 
 
 class LinearRegressor(OptimizerBaseTemplate):
-
     def __init__(self, optimizer_config, param_name_list):
-        super(LinearRegressor, self).__init__(
-            optimizer_config, param_name_list)
+        super(LinearRegressor, self).__init__(optimizer_config, param_name_list)
         print("Define and solve problem:")
         print("min_c (X * c -y)^T * (X * c -y)")
         self.reg = LinearRegression(fit_intercept=False)
@@ -75,6 +73,8 @@ class LinearRegressor(OptimizerBaseTemplate):
     def compute_optimization_metrics(self):
         self.check_estimation_completed()
         y_pred = self.predict(self.X)
-        metrics_dict = {"R2": float(self.reg.score(self.X, self.y)),
-                        "RMSE": math_tools.rmse_between_numpy_arrays(y_pred, self.y)}
+        metrics_dict = {
+            "R2": float(self.reg.score(self.X, self.y)),
+            "RMSE": math_tools.rmse_between_numpy_arrays(y_pred, self.y),
+        }
         return metrics_dict

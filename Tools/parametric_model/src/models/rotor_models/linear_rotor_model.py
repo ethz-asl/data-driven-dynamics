@@ -39,7 +39,7 @@ __license__ = "BSD 3"
 import numpy as np
 
 
-class LinearRotorModel():
+class LinearRotorModel:
     def __init__(self, actuator_input_vec):
         """
         Inputs:
@@ -51,7 +51,9 @@ class LinearRotorModel():
 
     def compute_actuator_force_matrix(self):
         print("Computing force features for rotor")
-        coef_dict = {"ct": {"lin": {"x": "ct_x", "y": "ct_y", "z": "ct_z"}}, }
+        coef_dict = {
+            "ct": {"lin": {"x": "ct_x", "y": "ct_y", "z": "ct_z"}},
+        }
         col_names = ["ct_x", "ct_y", "ct_z"]
 
         X_forces = np.zeros((self.throttle.shape[0], 3))

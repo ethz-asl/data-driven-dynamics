@@ -48,7 +48,7 @@ The control surface model is conform to PX4's standard plane
  """
 
 
-class ControlSurfaceModel():
+class ControlSurfaceModel:
     def __init__(self, config_dict, aerodynamics_dict, actuator_input_vec):
         self.name = config_dict["description"]
         self.actuator_input_vec = np.array(actuator_input_vec)
@@ -61,17 +61,18 @@ class ControlSurfaceModel():
         Model description:
         """
         actuator_input = self.actuator_input_vec[index]
-        q_xz = 0.5 * self.air_density * \
-            (v_airspeed[0]**2 + v_airspeed[2]**2)  # TODO Take dynamic pressure
+        q_xz = (
+            0.5 * self.air_density * (v_airspeed[0] ** 2 + v_airspeed[2] ** 2)
+        )  # TODO Take dynamic pressure
         # TODO Compute lift axis and drag axis
         lift_axis = np.array([v_airspeed[0], 0.0, v_airspeed[2]])
         lift_axis = (lift_axis / np.linalg.norm(lift_axis)).reshape((3, 1))
-        drag_axis = (-1.0 * v_airspeed /
-                     np.linalg.norm(v_airspeed)).reshape((3, 1))
+        drag_axis = (-1.0 * v_airspeed / np.linalg.norm(v_airspeed)).reshape((3, 1))
         X_lift = lift_axis @ np.array([[actuator_input]]) * q_xz * self.area
         X_drag = drag_axis @ np.array([[actuator_input]]) * q_xz * self.area
         R_aero_to_body = Rotation.from_rotvec(
-            np.array([0.0, -angle_of_attack, 0.0])).as_matrix()
+            np.array([0.0, -angle_of_attack, 0.0])
+        ).as_matrix()
         X_lift_body = R_aero_to_body @ X_lift
         X_drag_body = R_aero_to_body @ X_drag
 
@@ -82,25 +83,27 @@ class ControlSurfaceModel():
         Model description:
         """
         actuator_input = self.actuator_input_vec[index]
-        q_xz = 0.5 * self.air_density * \
-            (v_airspeed[0]**2 + v_airspeed[2]**2)  # TODO Take dynamic pressure
+        q_xz = (
+            0.5 * self.air_density * (v_airspeed[0] ** 2 + v_airspeed[2] ** 2)
+        )  # TODO Take dynamic pressure
         lift_axis = np.array([v_airspeed[0], 0.0, v_airspeed[2]])
         yaw_axis = (lift_axis / np.linalg.norm(lift_axis)).reshape((3, 1))
         roll_axis = (v_airspeed / np.linalg.norm(v_airspeed)).reshape((3, 1))
-        pitch_axis = np.cross(np.transpose(yaw_axis),
-                              np.transpose(roll_axis)).reshape((3, 1))
-        X_roll_moment = roll_axis @ np.array(
-            [[actuator_input]]) * q_xz * self.area
-        X_pitch_moment = pitch_axis @ np.array(
-            [[actuator_input]]) * q_xz * self.area
-        X_yaw_moment = yaw_axis @ np.array([[actuator_input]]
-                                           ) * q_xz * self.area
+        pitch_axis = np.cross(np.transpose(yaw_axis), np.transpose(roll_axis)).reshape(
+            (3, 1)
+        )
+        X_roll_moment = roll_axis @ np.array([[actuator_input]]) * q_xz * self.area
+        X_pitch_moment = pitch_axis @ np.array([[actuator_input]]) * q_xz * self.area
+        X_yaw_moment = yaw_axis @ np.array([[actuator_input]]) * q_xz * self.area
         R_aero_to_body = Rotation.from_rotvec(
-            np.array([0,0 -angle_of_attack, 0.0])).as_matrix()
+            np.array([0, 0 - angle_of_attack, 0.0])
+        ).as_matrix()
         X_roll_moment_body = R_aero_to_body @ X_roll_moment
         X_pitch_moment_body = R_aero_to_body @ X_pitch_moment
         X_yaw_moment_body = R_aero_to_body @ X_yaw_moment
-        X_moments = np.hstack((X_roll_moment_body, X_pitch_moment_body, X_yaw_moment_body))
+        X_moments = np.hstack(
+            (X_roll_moment_body, X_pitch_moment_body, X_yaw_moment_body)
+        )
         X_moments = X_moments.flatten()
         return X_moments
 
@@ -108,12 +111,15 @@ class ControlSurfaceModel():
         print("Computing force features for control surface:", self.name)
 
         X_forces = self.compute_actuator_force_features(
-            0, v_airspeed_mat[0, :], angle_of_attack_vec[0, :])
+            0, v_airspeed_mat[0, :], angle_of_attack_vec[0, :]
+        )
         rotor_features_bar = Bar(
-            'Feature Computatiuon', max=self.actuator_input_vec.shape[0])
+            "Feature Computatiuon", max=self.actuator_input_vec.shape[0]
+        )
         for index in range(1, self.n_timestamps):
             X_force_curr = self.compute_actuator_force_features(
-                index, v_airspeed_mat[index, :], angle_of_attack_vec[index, :])
+                index, v_airspeed_mat[index, :], angle_of_attack_vec[index, :]
+            )
             X_forces = np.vstack((X_forces, X_force_curr))
             rotor_features_bar.next()
         rotor_features_bar.finish()
@@ -126,21 +132,53 @@ class ControlSurfaceModel():
         print("Computing moment features for control surface:", self.name)
 
         X_aero = self.compute_actuator_moment_features(
-            0, v_airspeed_mat[0, :], angle_of_attack_vec[0])
+            0, v_airspeed_mat[0, :], angle_of_attack_vec[0]
+        )
         rotor_features_bar = Bar(
-            'Feature Computatiuon', max=self.actuator_input_vec.shape[0])
+            "Feature Computatiuon", max=self.actuator_input_vec.shape[0]
+        )
         for index in range(1, self.n_timestamps):
             X_moment_curr = self.compute_actuator_moment_features(
-                index, v_airspeed_mat[index, :], angle_of_attack_vec[index])
+                index, v_airspeed_mat[index, :], angle_of_attack_vec[index]
+            )
             X_aero = np.vstack((X_aero, X_moment_curr))
             rotor_features_bar.next()
         rotor_features_bar.finish()
         coef_dict = {
-            self.name + "c_m_x_delta": {"rot":{ "x": self.name+"c_m_x_delta_x","y": self.name+"c_m_x_delta_y","z":self.name+"c_m_x_delta_z"}},
-            self.name + "c_m_y_delta": {"rot":{ "x": self.name+"c_m_y_delta_x","y": self.name+"c_m_y_delta_y","z":self.name+"c_m_y_delta_z"}},
-            self.name + "c_m_z_delta": {"rot":{ "x": self.name+"c_m_z_delta_x","y": self.name+"c_m_z_delta_y","z":self.name+"c_m_z_delta_z"}},
-        }        
-        col_names = [self.name+"c_m_x_delta_x", self.name+"c_m_x_delta_y", self.name+"c_m_x_delta_z",
-                    self.name+"c_m_y_delta_x", self.name+"c_m_y_delta_y", self.name+"c_m_y_delta_z",
-                    self.name+"c_m_z_delta_x", self.name+"c_m_z_delta_y", self.name+"c_m_z_delta_z"]
+            self.name
+            + "c_m_x_delta": {
+                "rot": {
+                    "x": self.name + "c_m_x_delta_x",
+                    "y": self.name + "c_m_x_delta_y",
+                    "z": self.name + "c_m_x_delta_z",
+                }
+            },
+            self.name
+            + "c_m_y_delta": {
+                "rot": {
+                    "x": self.name + "c_m_y_delta_x",
+                    "y": self.name + "c_m_y_delta_y",
+                    "z": self.name + "c_m_y_delta_z",
+                }
+            },
+            self.name
+            + "c_m_z_delta": {
+                "rot": {
+                    "x": self.name + "c_m_z_delta_x",
+                    "y": self.name + "c_m_z_delta_y",
+                    "z": self.name + "c_m_z_delta_z",
+                }
+            },
+        }
+        col_names = [
+            self.name + "c_m_x_delta_x",
+            self.name + "c_m_x_delta_y",
+            self.name + "c_m_x_delta_z",
+            self.name + "c_m_y_delta_x",
+            self.name + "c_m_y_delta_y",
+            self.name + "c_m_y_delta_z",
+            self.name + "c_m_z_delta_x",
+            self.name + "c_m_z_delta_y",
+            self.name + "c_m_z_delta_z",
+        ]
         return X_aero, coef_dict, col_names

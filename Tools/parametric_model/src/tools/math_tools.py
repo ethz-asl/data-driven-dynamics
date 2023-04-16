@@ -53,19 +53,21 @@ def cropped_sym_sigmoid(x, x_offset=0, scale_fac=30):
 def sym_sigmoid(x, x_offset=0, scale_fac=30):
     # computes a logistic sigmoid function which is symmetric
     # around zero and crosses the 0.5 mark at +- x_offset
-    y = 1 - (math.exp(scale_fac*(x+x_offset))) / \
-        ((1+math.exp(scale_fac*(x-x_offset)))*(1+math.exp(scale_fac*(x+x_offset))))
+    y = 1 - (math.exp(scale_fac * (x + x_offset))) / (
+        (1 + math.exp(scale_fac * (x - x_offset)))
+        * (1 + math.exp(scale_fac * (x + x_offset)))
+    )
     return y
 
 
 def plot_sym_sigmoid(scale_fac, x_offset=0.35, x_range=90):
-    N = x_range*2+1
+    N = x_range * 2 + 1
     x = np.linspace(-x_range, x_range, N)
-    x_rad = x*math.pi/180.0
+    x_rad = x * math.pi / 180.0
     y = np.zeros(N)
     for i in range(N):
         y[i] = sym_sigmoid(x_rad[i], x_offset, scale_fac)
-    plt.xlabel('Angle of Attack (deg)')
+    plt.xlabel("Angle of Attack (deg)")
     plt.plot(x, y)
     plt.show()
 

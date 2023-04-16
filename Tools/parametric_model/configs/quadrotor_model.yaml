@@ -5,10 +5,11 @@ model_class: "MultiRotorModel"
 extractor_class: "Not implemented"
 
 # data handling with setpoint setting
-selection_variable: "aux1"  # value can be aux1, aux2, aux3, aux4, aux5, aux6
+selection_variable: "aux1" # value can be aux1, aux2, aux3, aux4, aux5, aux6
 # activations: [1, 2, 3]    # optional - Caution: indexing starts from 1
 
-extractor_config: "Not implemented"
+extractor_config:
+  "Not implemented"
 
   # all vectors in FRD body frame if not specified otherwise
 model_config:

@@ -4,7 +4,7 @@ model_type: "Standard Plane Longitudinal Model"
 model_class: "FixedWingModel"
 
 # data handling with setpoint setting
-selection_variable: "aux1"  # value can be aux1, aux2, aux3, aux4, aux5, aux6
+selection_variable: "aux1" # value can be aux1, aux2, aux3, aux4, aux5, aux6
 # activations: [1, 2, 3]    # optional - Caution: indexing starts from 1
 
 extractor_class: "SingularityFreeExtractorModel"

@@ -47,27 +47,28 @@ def compute_flight_time(data_df):
     """
     The flight time will be determined based on the 'landed' topic of the ulog to only consider actual flight during identification.
     """
-    print('\nComputing flight time...')
+    print("\nComputing flight time...")
     landed_groups = data_df.groupby(
-        (data_df['landed'].shift() != data_df['landed']).cumsum())
+        (data_df["landed"].shift() != data_df["landed"]).cumsum()
+    )
     num_of_groups = landed_groups.ngroups
 
     if num_of_groups == 1:
-        if landed_groups.get_group(1)['landed'].iloc[0, 0] == 1:
-            print('No flight detected. Please check the landed state.')
+        if landed_groups.get_group(1)["landed"].iloc[0, 0] == 1:
+            print("No flight detected. Please check the landed state.")
             return {"t_start": 0, "t_end": 0}
         else:
             pass
 
     elif num_of_groups > 3:
-        print('More than one flight detected. Please check the landed state.')
+        print("More than one flight detected. Please check the landed state.")
         return {"t_start": 0, "t_end": 0}
 
     elif num_of_groups == 2:
-        group1 = landed_groups.get_group(1)[['timestamp', 'landed']]
-        group2 = landed_groups.get_group(2)[['timestamp', 'landed']]
+        group1 = landed_groups.get_group(1)[["timestamp", "landed"]]
+        group2 = landed_groups.get_group(2)[["timestamp", "landed"]]
 
-        if (group1.iloc[0, 1] == 1):
+        if group1.iloc[0, 1] == 1:
             # first on ground, then in flight
             t_start = group2.iloc[0, 0]
             t_end = group2.iloc[-1, 0]
@@ -83,12 +84,12 @@ def compute_flight_time(data_df):
         t_end = landed_groups.get_group(3).iloc[0, 0]
         return {"t_start": t_start, "t_end": t_end}
 
-    print('Flight time computation completed successfully.')
+    print("Flight time computation completed successfully.")
     return {"t_start": act_df.iloc[0, 0], "t_end": act_df.iloc[-1, 0]}
 
 
 def moving_average(x, w=7):
-    return np.convolve(x, np.ones(w), 'valid') / w
+    return np.convolve(x, np.ones(w), "valid") / w
 
 
 def filter_df(data_df, w=11):
@@ -100,13 +101,15 @@ def filter_df(data_df, w=11):
     return new_df
 
 
-def resample_dataframe_list(df_list, time_window=None, f_des=100.0, slerp_enabled=False, filter=True):
+def resample_dataframe_list(
+    df_list, time_window=None, f_des=100.0, slerp_enabled=False, filter=True
+):
     """create a single dataframe by resampling all dataframes to f_des [Hz]
 
     Inputs:     df_list : List of ulog topic dataframes to resample
                 t_start : Start time in us
                 t_end   : End time in us
-                f_des   : Desired frequency of resampled data   
+                f_des   : Desired frequency of resampled data
     """
     if time_window is None:
         # select full ulog time range
@@ -120,10 +123,10 @@ def resample_dataframe_list(df_list, time_window=None, f_des=100.0, slerp_enable
         t_end = time_window["t_end"]
 
     # compute desired Period in us to be persistent with ulog timestamps
-    assert f_des > 0, 'Desired frequency must be greater than 0'
-    T_des = 1000000.0/f_des
+    assert f_des > 0, "Desired frequency must be greater than 0"
+    T_des = 1000000.0 / f_des
 
-    n_samples = int((t_end-t_start)/T_des)
+    n_samples = int((t_end - t_start) / T_des)
     res_df = pd.DataFrame()
     new_t_list = np.arange(t_start, t_end, T_des)
     for df in df_list:
@@ -135,7 +138,7 @@ def resample_dataframe_list(df_list, time_window=None, f_des=100.0, slerp_enable
     for df in df_list:
         # use slerp interpolation for quaternions
         # add a better criteria than the exact naming at a later point.
-        if 'q0' in df and slerp_enabled:
+        if "q0" in df and slerp_enabled:
             q_mat = slerp_interpolate_from_df(df, new_t_list[0])
 
             for i in range(1, len(new_t_list)):
@@ -157,20 +160,22 @@ def resample_dataframe_list(df_list, time_window=None, f_des=100.0, slerp_enable
 
 
 def slerp_interpolate_from_df(df, new_t):
-    df_sort = df.iloc[(df['timestamp']-new_t).abs().argsort()[:2]]
-    df_timestamps = df_sort['timestamp'].values.tolist()
-    t_ratio = (new_t - df_timestamps[0]) / \
-        (df_timestamps[1] - df_timestamps[0])
-    df_sort = df_sort.drop(columns=['timestamp'])
+    df_sort = df.iloc[(df["timestamp"] - new_t).abs().argsort()[:2]]
+    df_timestamps = df_sort["timestamp"].values.tolist()
+    t_ratio = (new_t - df_timestamps[0]) / (df_timestamps[1] - df_timestamps[0])
+    df_sort = df_sort.drop(columns=["timestamp"])
 
-    q_new = slerp(df_sort.iloc[0, :].to_numpy(
-    ), df_sort.iloc[1, :].to_numpy(), np.array([t_ratio]))
+    q_new = slerp(
+        df_sort.iloc[0, :].to_numpy(),
+        df_sort.iloc[1, :].to_numpy(),
+        np.array([t_ratio]),
+    )
     return q_new
 
 
 def crop_df(df, t_start, t_end):
-    """ crop df to contain 1 elemnt before t_start and one after t_end.
-    This way it is easy to interpolate the data between start and end time. """
+    """crop df to contain 1 elemnt before t_start and one after t_end.
+    This way it is easy to interpolate the data between start and end time."""
     df_start = df[df.timestamp <= t_start].iloc[[-1]]
     df_end = df[df.timestamp >= t_end].iloc[[0]]
 
