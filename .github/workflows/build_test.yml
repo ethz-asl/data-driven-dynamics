@@ -6,7 +6,7 @@ on:
       - master
   pull_request:
     branches:
-      - '*'
+      - "*"
 
 jobs:
   build:
@@ -15,40 +15,40 @@ jobs:
       fail-fast: false
       matrix:
         container:
-        - 'px4io/px4-dev-simulation-focal:2021-05-31' # Gazebo 11
-        - 'px4io/px4-dev-simulation-bionic:2021-05-31' # Gazebo 9
+          - "px4io/px4-dev-simulation-focal:2021-05-31" # Gazebo 11
+          - "px4io/px4-dev-simulation-bionic:2021-05-31" # Gazebo 9
     container: ${{ matrix.container }}
     steps:
-    - uses: actions/checkout@v1
-    - name: submodule update
-      run: git submodule update --init --recursive
-    - name: Clone yaml cpp
-      run: git clone https://github.com/jbeder/yaml-cpp.git /yaml-cpp
-    - name: Install yaml-cpp
-      working-directory: /yaml-cpp    
-      run: |
-        mkdir build
-        cd build
-        cmake ..
-        make
-        make install
-    - name: Install latest mavlink
-      run: git clone --depth 1 https://github.com/mavlink/c_library_v2.git /usr/local/include/mavlink/v2.0 && rm -rf /usr/local/include/mavlink/v2.0/.git
-    - name: Clone PX4
-      run: git clone https://github.com/PX4/PX4-Autopilot.git /PX4-Autopilot
-    - name: Build PX4 SITL Gazebo
-      working-directory: /PX4-Autopilot
-      run: |
-        make submodulesupdate
-        DONT_RUN=1 make px4_sitl gazebo-classic_iris
-    - name: Cmake Build
-      env:
-        PX4_ROOT: /PX4-Autopilot
-      run: |
-        mkdir build
-        cd build
-        cmake ..
-        make
+      - uses: actions/checkout@v1
+      - name: submodule update
+        run: git submodule update --init --recursive
+      - name: Clone yaml cpp
+        run: git clone https://github.com/jbeder/yaml-cpp.git /yaml-cpp
+      - name: Install yaml-cpp
+        working-directory: /yaml-cpp
+        run: |
+          mkdir build
+          cd build
+          cmake ..
+          make
+          make install
+      - name: Install latest mavlink
+        run: git clone --depth 1 https://github.com/mavlink/c_library_v2.git /usr/local/include/mavlink/v2.0 && rm -rf /usr/local/include/mavlink/v2.0/.git
+      - name: Clone PX4
+        run: git clone https://github.com/PX4/PX4-Autopilot.git /PX4-Autopilot
+      - name: Build PX4 SITL Gazebo
+        working-directory: /PX4-Autopilot
+        run: |
+          make submodulesupdate
+          DONT_RUN=1 make px4_sitl gazebo-classic_iris
+      - name: Cmake Build
+        env:
+          PX4_ROOT: /PX4-Autopilot
+        run: |
+          mkdir build
+          cd build
+          cmake ..
+          make
     # - name: Unit Tests
     #   working-directory: build
     #   run: |
