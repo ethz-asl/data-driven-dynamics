@@ -69,38 +69,64 @@ class MultiRotorModel(DynamicsModel):
     def __init__(self, config_file, normalization=True, model_name="multirotor_model"):
         self.config = ModelConfig(config_file)
         super(MultiRotorModel, self).__init__(
-            config_dict=self.config.dynamics_model_config, normalization=normalization)
+            config_dict=self.config.dynamics_model_config, normalization=normalization
+        )
         self.mass = self.config.model_config["mass"]
-        self.moment_of_inertia = np.diag([self.config.model_config["moment_of_inertia"]["Ixx"],
-                                         self.config.model_config["moment_of_inertia"]["Iyy"], self.config.model_config["moment_of_inertia"]["Izz"]])
+        self.moment_of_inertia = np.diag(
+            [
+                self.config.model_config["moment_of_inertia"]["Ixx"],
+                self.config.model_config["moment_of_inertia"]["Iyy"],
+                self.config.model_config["moment_of_inertia"]["Izz"],
+            ]
+        )
 
         self.rotor_config_dict = self.config.model_config["actuators"]["rotors"]
 
         self.model_name = model_name
 
     def prepare_force_regression_matrices(self):
-
-        accel_mat = self.data_df[[
-            "acc_b_x", "acc_b_y", "acc_b_z"]].to_numpy()
+        accel_mat = self.data_df[["acc_b_x", "acc_b_y", "acc_b_z"]].to_numpy()
         force_mat = accel_mat * self.mass
-        #self.y_forces = (force_mat).flatten()
-        self.data_df[["measured_force_x", "measured_force_y",
-                     "measured_force_z"]] = force_mat
+        # self.y_forces = (force_mat).flatten()
+        self.data_df[
+            ["measured_force_x", "measured_force_y", "measured_force_z"]
+        ] = force_mat
 
-        airspeed_mat = self.data_df[["V_air_body_x",
-                                     "V_air_body_y", "V_air_body_z"]].to_numpy()
+        airspeed_mat = self.data_df[
+            ["V_air_body_x", "V_air_body_y", "V_air_body_z"]
+        ].to_numpy()
         aero_model = FuselageDragModel()
         X_aero, coef_dict_aero, col_names_aero = aero_model.compute_fuselage_features(
-            airspeed_mat)
+            airspeed_mat
+        )
         self.data_df[col_names_aero] = X_aero
         self.coef_dict.update(coef_dict_aero)
-        self.y_dict.update({"lin":{"x":"measured_force_x","y":"measured_force_y","z":"measured_force_z"}})
+        self.y_dict.update(
+            {
+                "lin": {
+                    "x": "measured_force_x",
+                    "y": "measured_force_y",
+                    "z": "measured_force_z",
+                }
+            }
+        )
 
     def prepare_moment_regression_matrices(self):
-        moment_mat = np.matmul(self.data_df[[
-            "ang_acc_b_x", "ang_acc_b_y", "ang_acc_b_z"]].to_numpy(), self.moment_of_inertia)
-        #self.y_moments = (moment_mat).flatten()
-        self.data_df[["measured_moment_x", "measured_moment_y",
-                     "measured_moment_z"]] = moment_mat
-        
-        self.y_dict.update({"rot":{"x":"measured_moment_x","y":"measured_moment_y","z":"measured_moment_z"}})
+        moment_mat = np.matmul(
+            self.data_df[["ang_acc_b_x", "ang_acc_b_y", "ang_acc_b_z"]].to_numpy(),
+            self.moment_of_inertia,
+        )
+        # self.y_moments = (moment_mat).flatten()
+        self.data_df[
+            ["measured_moment_x", "measured_moment_y", "measured_moment_z"]
+        ] = moment_mat
+
+        self.y_dict.update(
+            {
+                "rot": {
+                    "x": "measured_moment_x",
+                    "y": "measured_moment_y",
+                    "z": "measured_moment_z",
+                }
+            }
+        )

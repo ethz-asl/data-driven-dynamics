@@ -49,4 +49,4 @@ def plot_covariance_mat(X, coef_name_list):
     corrMatrix = df.corr()
     fig, ax = plt.subplots(1)
     ax = sns.heatmap(corrMatrix, annot=False)
-    ax.set_title('Coefficient covariance')
+    ax.set_title("Coefficient covariance")

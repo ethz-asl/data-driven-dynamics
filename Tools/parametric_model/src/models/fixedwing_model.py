@@ -47,14 +47,21 @@ from scipy.spatial.transform import Rotation
 
 
 class FixedWingModel(DynamicsModel):
-    def __init__(self, config_file, normalization=True, model_name="simple_fixedwing_model"):
+    def __init__(
+        self, config_file, normalization=True, model_name="simple_fixedwing_model"
+    ):
         self.config = ModelConfig(config_file)
         super(FixedWingModel, self).__init__(
-            config_dict=self.config.dynamics_model_config, normalization=normalization)
+            config_dict=self.config.dynamics_model_config, normalization=normalization
+        )
         self.mass = self.config.model_config["mass"]
-        self.moment_of_inertia = np.diag([self.config.model_config["moment_of_inertia"]["Ixx"],
-                                         self.config.model_config["moment_of_inertia"]["Iyy"],
-                                         self.config.model_config["moment_of_inertia"]["Izz"]])
+        self.moment_of_inertia = np.diag(
+            [
+                self.config.model_config["moment_of_inertia"]["Ixx"],
+                self.config.model_config["moment_of_inertia"]["Iyy"],
+                self.config.model_config["moment_of_inertia"]["Izz"],
+            ]
+        )
 
         self.model_name = model_name
 
@@ -62,55 +69,89 @@ class FixedWingModel(DynamicsModel):
         self.aerodynamics_dict = self.config.model_config["aerodynamics"]
 
         try:
-            self.aero_model = getattr(aerodynamic_models, self.aerodynamics_dict["type"])(self.aerodynamics_dict)
+            self.aero_model = getattr(
+                aerodynamic_models, self.aerodynamics_dict["type"]
+            )(self.aerodynamics_dict)
         except AttributeError:
-            error_str = "Aerodynamics Model '{0}' not found, is it added to models "\
-                        "directory and models/__init__.py?".format(self.aerodynamics_dict.type)
+            error_str = (
+                "Aerodynamics Model '{0}' not found, is it added to models "
+                "directory and models/__init__.py?".format(self.aerodynamics_dict.type)
+            )
             raise AttributeError(error_str)
 
     def prepare_force_regression_matrices(self):
-        accel_mat = self.data_df[[
-            "acc_b_x", "acc_b_y", "acc_b_z"]].to_numpy()
+        accel_mat = self.data_df[["acc_b_x", "acc_b_y", "acc_b_z"]].to_numpy()
         force_mat = accel_mat * self.mass
         self.y_forces = (force_mat).flatten()
-        self.data_df[["measured_force_x", "measured_force_y",
-                     "measured_force_z"]] = force_mat
+        self.data_df[
+            ["measured_force_x", "measured_force_y", "measured_force_z"]
+        ] = force_mat
 
         # Aerodynamics features
-        airspeed_mat = self.data_df[[
-            "V_air_body_x", "V_air_body_y", "V_air_body_z"]].to_numpy()
+        airspeed_mat = self.data_df[
+            ["V_air_body_x", "V_air_body_y", "V_air_body_z"]
+        ].to_numpy()
         aoa_mat = self.data_df[["angle_of_attack"]].to_numpy()
         elevator_inputs = self.data_df["elevator"].to_numpy()
 
-        X_aero, coef_dict_aero, col_names_aero = self.aero_model.compute_aero_force_features(
-            airspeed_mat, aoa_mat[:, 0], elevator_inputs)
+        (
+            X_aero,
+            coef_dict_aero,
+            col_names_aero,
+        ) = self.aero_model.compute_aero_force_features(
+            airspeed_mat, aoa_mat[:, 0], elevator_inputs
+        )
         self.data_df[col_names_aero] = X_aero
         self.coef_dict.update(coef_dict_aero)
-        self.y_dict.update({"lin": {"x": "measured_force_x",
-                           "y": "measured_force_y", "z": "measured_force_z"}})
+        self.y_dict.update(
+            {
+                "lin": {
+                    "x": "measured_force_x",
+                    "y": "measured_force_y",
+                    "z": "measured_force_z",
+                }
+            }
+        )
 
     def prepare_moment_regression_matrices(self):
         # Angular acceleration
-        moment_mat = np.matmul(self.data_df[[
-            "ang_acc_b_x", "ang_acc_b_y", "ang_acc_b_z"]].to_numpy(), self.moment_of_inertia)
+        moment_mat = np.matmul(
+            self.data_df[["ang_acc_b_x", "ang_acc_b_y", "ang_acc_b_z"]].to_numpy(),
+            self.moment_of_inertia,
+        )
         self.y_moments = moment_mat.flatten()
-        self.data_df[["measured_moment_x", "measured_moment_y",
-                     "measured_moment_z"]] = moment_mat
+        self.data_df[
+            ["measured_moment_x", "measured_moment_y", "measured_moment_z"]
+        ] = moment_mat
 
         # Aerodynamics features
-        airspeed_mat = self.data_df[[
-            "V_air_body_x", "V_air_body_y", "V_air_body_z"]].to_numpy()
+        airspeed_mat = self.data_df[
+            ["V_air_body_x", "V_air_body_y", "V_air_body_z"]
+        ].to_numpy()
         aoa_mat = self.data_df[["angle_of_attack"]].to_numpy()
         sideslip_mat = self.data_df[["angle_of_sideslip"]].to_numpy()
-        angular_vel_mat = self.data_df[[
-            "ang_vel_x", "ang_vel_y", "ang_vel_z"]].to_numpy()
+        angular_vel_mat = self.data_df[
+            ["ang_vel_x", "ang_vel_y", "ang_vel_z"]
+        ].to_numpy()
         elevator_inputs = self.data_df["elevator"].to_numpy()
 
-        X_aero, coef_dict_aero, col_names_aero = self.aero_model.compute_aero_moment_features(
-            airspeed_mat, aoa_mat[:, 0], elevator_inputs, angular_vel_mat, sideslip_mat)
+        (
+            X_aero,
+            coef_dict_aero,
+            col_names_aero,
+        ) = self.aero_model.compute_aero_moment_features(
+            airspeed_mat, aoa_mat[:, 0], elevator_inputs, angular_vel_mat, sideslip_mat
+        )
 
         self.data_df[col_names_aero] = X_aero
         self.coef_dict.update(coef_dict_aero)
 
-        self.y_dict.update({"rot": {"x": "measured_moment_x",
-                           "y": "measured_moment_y", "z": "measured_moment_z"}})
+        self.y_dict.update(
+            {
+                "rot": {
+                    "x": "measured_moment_x",
+                    "y": "measured_moment_y",
+                    "z": "measured_moment_z",
+                }
+            }
+        )

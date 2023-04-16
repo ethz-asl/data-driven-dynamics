@@ -46,7 +46,6 @@ from sklearn.metrics import r2_score
 
 
 class QPOptimizer(OptimizerBaseTemplate):
-
     def __init__(self, optimizer_config, param_name_list, verbose=False):
         super(QPOptimizer, self).__init__(optimizer_config, param_name_list)
         print("Define and solve problem:")
@@ -60,11 +59,12 @@ class QPOptimizer(OptimizerBaseTemplate):
         if "parameter_bounds" in self.config:
             self.__compute_ineq_contraints()
         else:
-            warnings.warn("You have selected the QPOptimizer for linear models with \
+            warnings.warn(
+                "You have selected the QPOptimizer for linear models with \
                           bound constrains but have not specified any bounds. \
-                          Consider switching to LinearRegression for unconstraint parameter estimation.")
-            self.G = np.zeros(
-                (1, len(param_name_list)))
+                          Consider switching to LinearRegression for unconstraint parameter estimation."
+            )
+            self.G = np.zeros((1, len(param_name_list)))
             self.h = np.zeros(1)
 
     def __compute_ineq_contraints(self):
@@ -83,9 +83,12 @@ class QPOptimizer(OptimizerBaseTemplate):
             try:
                 current_bnd_tuple = param_bounds[current_param]
             except IndexError:
-                print("Can not find bounds for parameter " +
-                      current_param + " in config file.")
-            if (current_bnd_tuple[0] == current_bnd_tuple[1]):
+                print(
+                    "Can not find bounds for parameter "
+                    + current_param
+                    + " in config file."
+                )
+            if current_bnd_tuple[0] == current_bnd_tuple[1]:
                 self.fixed_coef_index_list.append(i)
                 self.fixed_coef_value_list.append(current_bnd_tuple[0])
                 self.fixed_coef_list.append(current_param)
@@ -101,23 +104,27 @@ class QPOptimizer(OptimizerBaseTemplate):
         self.n_opt_coef = self.n - self.n_fixed_coef
         for i in range(self.n_fixed_coef):
             reversed_index = self.n_fixed_coef - i - 1
-            self.G = np.delete(
-                self.G, self.fixed_coef_index_list[reversed_index], 1)
+            self.G = np.delete(self.G, self.fixed_coef_index_list[reversed_index], 1)
 
         print("Fixed Coefficients: Value")
         for fixed_coef in self.fixed_coef_list:
             print(fixed_coef + ": ", param_bounds[fixed_coef][0])
-        print("-------------------------------------------------------------------------------")
+        print(
+            "-------------------------------------------------------------------------------"
+        )
         print("Bounded Coefficients: (Min Value, Max Value)")
         for opt_coef in self.optimization_coef_list:
             print(opt_coef + ": ", param_bounds[opt_coef])
         if self.verbose:
             print(
-                "-------------------------------------------------------------------------------")
+                "-------------------------------------------------------------------------------"
+            )
             print(
-                "                           Constraints matrices                                ")
+                "                           Constraints matrices                                "
+            )
             print(
-                "-------------------------------------------------------------------------------")
+                "-------------------------------------------------------------------------------"
+            )
             print(self.G)
             print(self.h)
 
@@ -135,8 +142,12 @@ class QPOptimizer(OptimizerBaseTemplate):
             print(coef_index)
             print(self.n)
             print(X.shape)
-            y = y - (X[:, coef_index] *
-                     self.fixed_coef_value_list[reversed_index]).flatten()
+            y = (
+                y
+                - (
+                    X[:, coef_index] * self.fixed_coef_value_list[reversed_index]
+                ).flatten()
+            )
             X = np.delete(X, coef_index, 1)
         return X, y
 
@@ -144,8 +155,7 @@ class QPOptimizer(OptimizerBaseTemplate):
         print(c_opt)
         c_opt = list(c_opt)
         for i in range(len(self.fixed_coef_index_list)):
-            c_opt.insert(
-                self.fixed_coef_index_list[i], self.fixed_coef_value_list[i])
+            c_opt.insert(self.fixed_coef_index_list[i], self.fixed_coef_value_list[i])
         return c_opt
 
     def estimate_parameters(self, X, y):
@@ -165,8 +175,7 @@ class QPOptimizer(OptimizerBaseTemplate):
         cost = cvxpy.sum_squares(self.X_reduced @ c - self.y_reduced)
         self.prob = cvxpy.Problem(cvxpy.Minimize(cost), [self.G @ c <= self.h])
         self.prob.solve(verbose=self.verbose)
-        self.c_opt = np.array(self.insert_fixed_coefs(
-            c.value)).reshape((self.n, 1))
+        self.c_opt = np.array(self.insert_fixed_coefs(c.value)).reshape((self.n, 1))
         self.estimation_completed = True
 
     def set_optimal_coefficients(self, c_opt, X, y):
@@ -189,10 +198,11 @@ class QPOptimizer(OptimizerBaseTemplate):
         y_pred = self.predict(self.X)
         metrics_dict = {
             "RMSE": math_tools.rmse_between_numpy_arrays(y_pred, self.y),
-            "R2": float(r2_score(self.y, y_pred))
+            "R2": float(r2_score(self.y, y_pred)),
         }
         if self.verbose:
             metrics_dict["Dual Variables"] = (
-                self.prob.constraints[0].dual_value).tolist()
+                self.prob.constraints[0].dual_value
+            ).tolist()
 
         return metrics_dict

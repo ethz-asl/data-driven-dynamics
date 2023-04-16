@@ -61,14 +61,25 @@ The compute_rotor_axis_mat method can be overridden for the desired usecase.
 
 
 class ChangingAxisRotorModel(RotorModel):
-
-    def __init__(self, rotor_config_dict, actuator_input_vec, v_airspeed_mat, air_density=1.225, angular_vel_mat=None):
+    def __init__(
+        self,
+        rotor_config_dict,
+        actuator_input_vec,
+        v_airspeed_mat,
+        air_density=1.225,
+        angular_vel_mat=None,
+    ):
         self.n_timestamps = actuator_input_vec.shape[0]
-        self.rotor_axis = np.array(
-            rotor_config_dict["rotor_axis"]).reshape(3, 1)
+        self.rotor_axis = np.array(rotor_config_dict["rotor_axis"]).reshape(3, 1)
         self.compute_rotor_axis_mat()
         super(ChangingAxisRotorModel, self).__init__(
-            rotor_config_dict, actuator_input_vec, v_airspeed_mat, air_density, angular_vel_mat=angular_vel_mat, rotor_axis_mat=self.rotor_axis_mat)
+            rotor_config_dict,
+            actuator_input_vec,
+            v_airspeed_mat,
+            air_density,
+            angular_vel_mat=angular_vel_mat,
+            rotor_axis_mat=self.rotor_axis_mat,
+        )
 
     def compute_rotor_axis_mat(self):
         self.rotor_axis_mat = np.zeros((self.n_timestamps, 3))
