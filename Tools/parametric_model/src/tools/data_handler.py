@@ -124,7 +124,17 @@ class DataHandler(object):
             # compute flight time based on the landed topic
             landed_df = pandas_from_topic(ulog, ["vehicle_land_detected"])
             fts = compute_flight_time(landed_df)
-            self.data_df = self.compute_resampled_dataframe(ulog, fts)
+
+            if len(fts) == 1:
+                self.data_df = self.compute_resampled_dataframe(ulog, fts[0])
+            else:
+                for ft in fts:
+                    # check if the dataframe already exists and if so, append to it
+                    if getattr(self, "data_df", None) is None:
+                        self.data_df = self.compute_resampled_dataframe(ulog, ft)
+                    else:
+                        self.data_df.append(self.compute_resampled_dataframe(ulog, ft))
+
             return True
 
         else:

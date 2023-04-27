@@ -46,6 +46,12 @@ from matplotlib import pyplot as plt
 def compute_flight_time(data_df):
     """
     The flight time will be determined based on the 'landed' topic of the ulog to only consider actual flight during identification.
+
+    Depending on the number of sections where the landed topic is 1, the following cases are distinguished:
+    - No groups with landed = 1: No flight detected. Start and end time of the flight will be returned as zero
+    - One group with landed = 1: The start and end time of the entire flight log will be returned
+    - Even number of groups with landed = 1: An array with start and end time of each detected flight segment will be returned. If multiple flight segments were detected, a warning is issued.
+    - Odd number of groups with landed = 1: An array with start and end time of each detected flight segment will be returned. If multiple flight segments were detected, a warning is issued.
     """
     print("\nComputing flight time...")
     landed_groups = data_df.groupby(
@@ -53,39 +59,46 @@ def compute_flight_time(data_df):
     )
     num_of_groups = landed_groups.ngroups
 
+    # single group detected - flight either started and ended outside of log of aircraft did not fly at all
     if num_of_groups == 1:
-        if landed_groups.get_group(1)["landed"].iloc[0, 0] == 1:
+        if landed_groups.get_group(1)["landed"].iloc[0] == 1:
             print("No flight detected. Please check the landed state.")
-            return {"t_start": 0, "t_end": 0}
+            return [{"t_start": 0, "t_end": 0}]
         else:
             pass
 
-    elif num_of_groups > 3:
-        print("More than one flight detected. Please check the landed state.")
-        return {"t_start": 0, "t_end": 0}
-
-    elif num_of_groups == 2:
-        group1 = landed_groups.get_group(1)[["timestamp", "landed"]]
-        group2 = landed_groups.get_group(2)[["timestamp", "landed"]]
-
-        if group1.iloc[0, 1] == 1:
-            # first on ground, then in flight
-            t_start = group2.iloc[0, 0]
-            t_end = group2.iloc[-1, 0]
-            return {"t_start": t_start, "t_end": t_end}
-        else:
-            # first in flight, then on ground
-            t_start = group1.iloc[0, 0]
-            t_end = group1.iloc[-1, 0]
-            return {"t_start": t_start, "t_end": t_end}
-
+    # multiple groups detected - flight started and/or ended within the flight log duration
     else:
-        t_start = landed_groups.get_group(1).iloc[-1, 0]
-        t_end = landed_groups.get_group(3).iloc[0, 0]
-        return {"t_start": t_start, "t_end": t_end}
+        if num_of_groups % 2 == 1 and num_of_groups > 3:
+            print(
+                "WARNING: More than one flight detected. The start and end times of the individual segments will be returned."
+            )
+        if num_of_groups % 2 == 0 and num_of_groups > 2:
+            print(
+                "WARNING: More than one flight detected. The start and end times of the individual segments will be returned."
+            )
+
+        # find flight segments with landed topic = 0 and add the corresponding start and end times to the flight_times array
+        flight_times = []
+        start_index = -1
+        if landed_groups.get_group(1)["landed"].iloc[0] == 1:
+            start_index = 2
+        else:
+            start_index = 1
+
+        for i in range(start_index, num_of_groups + 1, 2):
+            flight_segment = landed_groups.get_group(i)[["timestamp", "landed"]]
+            flight_times.append(
+                {
+                    "t_start": flight_segment.iloc[0, 0],
+                    "t_end": flight_segment.iloc[-1, 0],
+                }
+            )
+
+        return flight_times
 
     print("Flight time computation completed successfully.")
-    return {"t_start": act_df.iloc[0, 0], "t_end": act_df.iloc[-1, 0]}
+    return [{"t_start": act_df.iloc[0, 0], "t_end": act_df.iloc[-1, 0]}]
 
 
 def moving_average(x, w=7):
