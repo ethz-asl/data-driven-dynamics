@@ -129,7 +129,11 @@ class DataHandler(object):
                 self.data_df = self.compute_resampled_dataframe(ulog, fts[0])
             else:
                 for ft in fts:
-                    self.data_df.append(self.compute_resampled_dataframe(ulog, ft))
+                    # check if the dataframe already exists and if so, append to it
+                    if getattr(self, "data_df", None) is None:
+                        self.data_df = self.compute_resampled_dataframe(ulog, ft)
+                    else:
+                        self.data_df.append(self.compute_resampled_dataframe(ulog, ft))
 
             return True
 
