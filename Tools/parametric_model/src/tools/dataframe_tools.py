@@ -59,7 +59,7 @@ def compute_flight_time(data_df):
     )
     num_of_groups = landed_groups.ngroups
 
-    # case 1: single group detected - flight either started and ended outside of log of aircraft did not fly at all
+    # single group detected - flight either started and ended outside of log of aircraft did not fly at all
     if num_of_groups == 1:
         if landed_groups.get_group(1)["landed"].iloc[0] == 1:
             print("No flight detected. Please check the landed state.")
@@ -67,49 +67,26 @@ def compute_flight_time(data_df):
         else:
             pass
 
-    # TODO: summarize case 2 and 3 as they have a lot of similar logic
-    # case 2: flight starts and ends within log duration or has a landed phase in between; multiple flights within the logs duration are also possible
-    elif num_of_groups % 2 == 1:
-        flight_times = []
-        if num_of_groups > 3:
+    # multiple groups detected - flight started and/or ended within the flight log duration
+    else:
+        if num_of_groups % 2 == 1 and num_of_groups > 3:
+            print(
+                "WARNING: More than one flight detected. The start and end times of the individual segments will be returned."
+            )
+        if num_of_groups % 2 == 0 and num_of_groups > 2:
             print(
                 "WARNING: More than one flight detected. The start and end times of the individual segments will be returned."
             )
 
-        # check if the initial aircraft state was in flight or landed and start with the corresponding group for flight time extraction
+        # find flight segments with landed topic = 0 and add the corresponding start and end times to the flight_times array
+        flight_times = []
         start_index = -1
         if landed_groups.get_group(1)["landed"].iloc[0] == 1:
             start_index = 2
         else:
             start_index = 1
 
-        for i in range(start_index, num_of_groups, 2):
-            flight_segment = landed_groups.get_group(i)[["timestamp", "landed"]]
-            flight_times.append(
-                {
-                    "t_start": flight_segment.iloc[0, 0],
-                    "t_end": flight_segment.iloc[-1, 0],
-                }
-            )
-
-        return flight_times
-
-    # case 3: flight starts or ends outside of log duration; multiple flights within the logs duration are also possible
-    elif num_of_groups % 2 == 0:
-        flight_times = []
-        if num_of_groups > 2:
-            print(
-                "WARNING: More than one flight detected. The start and end times of the individual segments will be returned."
-            )
-
-        # check if the initial aircraft state was in flight or landed and start with the corresponding group for flight time extraction
-        start_index = -1
-        if landed_groups.get_group(1)["landed"].iloc[0] == 1:
-            start_index = 2
-        else:
-            start_index = 1
-
-        for i in range(start_index, num_of_groups, 2):
+        for i in range(start_index, num_of_groups + 1, 2):
             flight_segment = landed_groups.get_group(i)[["timestamp", "landed"]]
             flight_times.append(
                 {
