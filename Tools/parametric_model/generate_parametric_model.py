@@ -104,6 +104,8 @@ def start_model_estimation(
         model.load_dataframes(
             select_visual_data(model.data_df, visual_dataframe_selector_config_dict)
         )
+        model.prepare_regression_matrices()
+        model.compute_fisher_information()
         print("Interactive data selection completed.")
 
     # Setpoint based data selection
