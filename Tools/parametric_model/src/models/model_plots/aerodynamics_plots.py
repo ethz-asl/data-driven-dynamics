@@ -229,7 +229,7 @@ def plot_example_plate_model(plot_range_deg=[-100, 100]):
     plt.show()
 
 
-def plot_liftdrag_curve(coef_dict, aerodynamics_dict):
+def plot_liftdrag_curve(data_df, coef_dict, aerodynamics_dict):
     plot_range_deg = [-180, 180]
     aoa_deg = np.linspace(
         plot_range_deg[0],
@@ -238,27 +238,54 @@ def plot_liftdrag_curve(coef_dict, aerodynamics_dict):
     )
     aoa_rad = aoa_deg * math.pi / 180
 
+    fig, (ax1, ax2) = plt.subplots(2)
+
     c_l_vec = np.zeros(aoa_deg.shape[0])
     c_d_vec = np.zeros(aoa_deg.shape[0])
 
-    if "cl0" in coef_dict:
+    if aerodynamics_dict["type"] == "LinearWingModel":
         cl_0 = coef_dict["cl0"]
         cl_alpha = coef_dict["clalpha"]
         cd_0 = coef_dict["cd0"]
         cd_alpha = coef_dict["cdalpha"]
         cd_alpha2 = coef_dict["cdalphasq"]
 
-        stall_angle = aerodynamics_dict["stall_angle_deg"] * math.pi / 180
-
-        # region interpolation using a symmetric sigmoid function
-        # 0 in linear/quadratic region, 1 in post-stall region
         for i in range(aoa_deg.shape[0]):
             c_l_vec[i] = cl_0 + cl_alpha * aoa_rad[i]
             c_d_vec[i] = (
                 cd_0 + cd_alpha * aoa_rad[i] + cd_alpha2 * aoa_rad[i] * aoa_rad[i]
             )
 
-    elif "phifv_11" in coef_dict:
+        ax1.plot(aoa_deg, c_l_vec, label="prediction")
+        ax2.plot(aoa_deg, c_d_vec, label="prediction")
+
+        aoa_measured = data_df["angle_of_attack"].to_numpy()
+        c_l_measured = np.zeros(aoa_measured.shape)
+        c_d_measured = np.zeros(aoa_measured.shape)
+
+        for j in range(aoa_measured.shape[0]):
+            c_l_measured[j] = cl_0 + cl_alpha * aoa_measured[j]
+            c_d_measured[j] = (
+                cd_0
+                + cd_alpha * aoa_measured[j]
+                + cd_alpha2 * aoa_measured[j] * aoa_measured[j]
+            )
+        ax1.scatter(
+            aoa_measured * 180.0 / math.pi,
+            c_l_measured,
+            facecolor="red",
+            s=20,
+            alpha=0.1,
+        )
+        ax2.scatter(
+            aoa_measured * 180.0 / math.pi,
+            c_d_measured,
+            facecolor="red",
+            s=20,
+            alpha=0.1,
+        )
+
+    elif aerodynamics_dict["type"] == "PhiAerodynamicsModel":
         phifv_11 = coef_dict["phifv_11"]
         phifv_12 = coef_dict["phifv_12"]
         phifv_13 = coef_dict["phifv_13"]
@@ -292,16 +319,47 @@ def plot_liftdrag_curve(coef_dict, aerodynamics_dict):
                 + 2.0 * phifv[0, 2] * np.sin(aoa_rad[i]) * np.cos(aoa_rad[i])
                 + phifv[2, 2]
             )
+        ax1.plot(aoa_deg, c_l_vec, label="prediction")
+        ax2.plot(aoa_deg, c_d_vec, label="prediction")
 
-    fig, (ax1, ax2) = plt.subplots(2)
+        aoa_measured = data_df["angle_of_attack"].to_numpy()
+        c_l_measured = np.zeros(aoa_measured.shape)
+        c_d_measured = np.zeros(aoa_measured.shape)
 
-    ax1.plot(aoa_deg, c_l_vec, label="prediction")
+        for j in range(aoa_measured.shape[0]):
+            c_l_measured[j] = (
+                2.0 * phifv[0, 2] * np.cos(aoa_measured[j]) ** 2
+                + (phifv[2, 2] - phifv[0, 0])
+                * np.sin(aoa_measured[j])
+                * np.cos(aoa_measured[j])
+                - phifv[0, 2]
+            )
+            c_d_measured[j] = (
+                phifv[0, 0]
+                - phifv[2, 2] * np.cos(aoa_measured[j]) ** 2
+                + 2.0 * phifv[0, 2] * np.sin(aoa_measured[j]) * np.cos(aoa_measured[j])
+                + phifv[2, 2]
+            )
+        ax1.scatter(
+            aoa_measured * 180.0 / math.pi,
+            c_l_measured,
+            facecolor="red",
+            s=20,
+            alpha=0.05,
+        )
+        ax2.scatter(
+            aoa_measured * 180.0 / math.pi,
+            c_d_measured,
+            facecolor="red",
+            s=20,
+            alpha=0.05,
+        )
+
     ax1.set_title("Lift coefficient over angle of attack [deg]")
     ax1.set_xlabel("Angle of Attack [deg]")
     ax1.set_ylabel("Lift Coefficient")
     ax1.grid(True)
 
-    ax2.plot(aoa_deg, c_d_vec, label="prediction")
     ax2.set_title("Lift coefficient over angle of attack [deg]")
     ax2.set_xlabel("Angle of Attack [deg]")
     ax2.set_ylabel("Drag Coefficient")
