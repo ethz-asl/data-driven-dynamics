@@ -229,7 +229,7 @@ def plot_example_plate_model(plot_range_deg=[-100, 100]):
     plt.show()
 
 
-def plot_liftdrag_curve(data_df, coef_dict, aerodynamics_dict):
+def plot_liftdrag_curve(data_df, coef_dict, aerodynamics_dict, metric):
     plot_range_deg = [-180, 180]
     aoa_deg = np.linspace(
         plot_range_deg[0],
@@ -258,6 +258,38 @@ def plot_liftdrag_curve(data_df, coef_dict, aerodynamics_dict):
 
         ax1.plot(aoa_deg, c_l_vec, label="prediction")
         ax2.plot(aoa_deg, c_d_vec, label="prediction")
+
+        # Visualize uncertainty
+        c_l_minimum = np.zeros(aoa_deg.shape[0])
+        c_l_maximum = np.zeros(aoa_deg.shape[0])
+        c_d_minimum = np.zeros(aoa_deg.shape[0])
+        c_d_maximum = np.zeros(aoa_deg.shape[0])
+
+        for i in range(aoa_deg.shape[0]):
+            c_l_minimum[i] = (
+                cl_0
+                - metric["Cramer"]["cl0"]
+                + (cl_alpha - metric["Cramer"]["clalpha"]) * aoa_rad[i]
+            )
+            c_l_maximum[i] = (
+                cl_0
+                + metric["Cramer"]["cl0"]
+                + (cl_alpha + metric["Cramer"]["clalpha"]) * aoa_rad[i]
+            )
+            c_d_minimum[i] = (
+                cd_0
+                - metric["Cramer"]["cd0"]
+                + (cd_alpha - metric["Cramer"]["cdalpha"]) * aoa_rad[i]
+                + (cd_alpha2 - metric["Cramer"]["cdalphasq"]) * aoa_rad[i] * aoa_rad[i]
+            )
+            c_d_maximum[i] = (
+                cd_0
+                + metric["Cramer"]["cd0"]
+                + (cd_alpha + metric["Cramer"]["cdalpha"]) * aoa_rad[i]
+                + (cd_alpha2 + metric["Cramer"]["cdalphasq"]) * aoa_rad[i] * aoa_rad[i]
+            )
+        ax1.fill_between(aoa_deg, c_l_minimum, c_l_maximum, alpha=0.3)
+        ax2.fill_between(aoa_deg, c_d_minimum, c_d_maximum, alpha=0.3)
 
         aoa_measured = data_df["angle_of_attack"].to_numpy()
         c_l_measured = np.zeros(aoa_measured.shape)
@@ -321,6 +353,59 @@ def plot_liftdrag_curve(data_df, coef_dict, aerodynamics_dict):
             )
         ax1.plot(aoa_deg, c_l_vec, label="prediction")
         ax2.plot(aoa_deg, c_d_vec, label="prediction")
+
+        # Visualize uncertainty
+        c_l_minimum = np.zeros(aoa_deg.shape[0])
+        c_l_maximum = np.zeros(aoa_deg.shape[0])
+        c_d_minimum = np.zeros(aoa_deg.shape[0])
+        c_d_maximum = np.zeros(aoa_deg.shape[0])
+
+        for i in range(aoa_deg.shape[0]):
+            c_l_minimum[i] = (
+                2.0
+                * (phifv[0, 2] - metric["Cramer"]["phifv_13"])
+                * np.cos(aoa_rad[i]) ** 2
+                + (
+                    (phifv[2, 2] - metric["Cramer"]["phifv_11"])
+                    - (phifv[0, 0] - metric["Cramer"]["phifv_11"])
+                )
+                * np.sin(aoa_rad[i])
+                * np.cos(aoa_rad[i])
+                - (phifv[0, 2] - metric["Cramer"]["phifv_13"])
+            )
+            c_l_maximum[i] = (
+                2.0
+                * (phifv[0, 2] + metric["Cramer"]["phifv_13"])
+                * np.cos(aoa_rad[i]) ** 2
+                + (
+                    (phifv[2, 2] + metric["Cramer"]["phifv_11"])
+                    - (phifv[0, 0] + metric["Cramer"]["phifv_11"])
+                )
+                * np.sin(aoa_rad[i])
+                * np.cos(aoa_rad[i])
+                - (phifv[0, 2] + metric["Cramer"]["phifv_13"])
+            )
+            c_d_minimum[i] = (
+                (phifv[0, 0] - metric["Cramer"]["phifv_11"])
+                - (phifv[2, 2] - metric["Cramer"]["phifv_33"]) * np.cos(aoa_rad[i]) ** 2
+                + 2.0
+                * (phifv[0, 2] - metric["Cramer"]["phifv_13"])
+                * np.sin(aoa_rad[i])
+                * np.cos(aoa_rad[i])
+                + (phifv[2, 2] - metric["Cramer"]["phifv_33"])
+            )
+            c_d_maximum[i] = (
+                (phifv[0, 0] + metric["Cramer"]["phifv_11"])
+                - (phifv[2, 2] + metric["Cramer"]["phifv_33"]) * np.cos(aoa_rad[i]) ** 2
+                + 2.0
+                * (phifv[0, 2] + metric["Cramer"]["phifv_13"])
+                * np.sin(aoa_rad[i])
+                * np.cos(aoa_rad[i])
+                + (phifv[2, 2] + metric["Cramer"]["phifv_33"])
+            )
+
+        ax1.fill_between(aoa_deg, c_l_minimum, c_l_maximum, alpha=0.3)
+        ax2.fill_between(aoa_deg, c_d_minimum, c_d_maximum, alpha=0.3)
 
         aoa_measured = data_df["angle_of_attack"].to_numpy()
         c_l_measured = np.zeros(aoa_measured.shape)
