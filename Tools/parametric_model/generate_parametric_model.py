@@ -74,7 +74,7 @@ def start_model_estimation(
     # Interactive data selection
     if data_selection == "interactive":
         print("Interactive data selection enabled...")
-        from visual_dataframe_selector.data_selector import select_visual_data
+        import vpselector
 
         model.load_dataframes(data_df)
         model.prepare_regression_matrices()
@@ -102,7 +102,9 @@ def start_model_estimation(
             )
 
         model.load_dataframes(
-            select_visual_data(model.data_df, visual_dataframe_selector_config_dict)
+            vpselector.select_visual_data(
+                model.data_df, visual_dataframe_selector_config_dict
+            )
         )
         model.prepare_regression_matrices()
         model.compute_fisher_information()

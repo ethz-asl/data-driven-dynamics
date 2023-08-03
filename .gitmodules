@@ -1,3 +1,3 @@
-[submodule "Tools/parametric_model/visual_dataframe_selector"]
-	path = Tools/parametric_model/visual_dataframe_selector
-	url = https://github.com/manumerous/visual_dataframe_selector
+[submodule "Tools/parametric_model/libs/vpselector"]
+	path = Tools/parametric_model/libs/vpselector
+	url = https://github.com/manumerous/vpselector.git
