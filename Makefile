@@ -15,7 +15,7 @@ install-dependencies:
 	pip3 install -r Tools/parametric_model/requirements.txt
 
 install-full-depdencies: install-dependencies
-	pip3 install -r Tools/parametric_model/visual_dataframe_selector/requirements.txt
+	pip3 install Tools/parametric_model/libs/vpselector
 
 docker-build:
 	docker build -f docker/Dockerfile --tag ${registry}:${version} .
