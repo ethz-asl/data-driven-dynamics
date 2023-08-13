@@ -74,11 +74,6 @@ class ModelConfig:
         self.extractor_class = config_dict["extractor_class"]
         self.extractor_config = config_dict["extractor_config"]
 
-        self.selection_variable = config_dict["selection_variable"]
-        self.activations = (
-            config_dict["activations"] if "activations" in config_dict else None
-        )
-
         print("Initializing of configuration successful. ")
 
         return

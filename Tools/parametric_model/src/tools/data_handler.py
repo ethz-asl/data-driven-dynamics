@@ -59,7 +59,7 @@ class DataHandler(object):
         "sub_plt2_data": ["u0", "u1", "u2", "u3"],
     }
 
-    def __init__(self, config_file):
+    def __init__(self, config_file, selection_var=""):
         print(
             "==============================================================================="
         )
@@ -81,6 +81,48 @@ class DataHandler(object):
         ]
         print("Resample frequency: ", self.resample_freq, "Hz")
         self.req_topics_dict = config_dict["data"]["required_ulog_topics"]
+
+        if selection_var != "none":
+            split = selection_var.split("/")
+            assert (
+                len(split) == 2
+            ), "Setpoint variable must be of the form: topic_name/variable_name"
+
+            topic_name = split[0]
+            variable_name = split[1]
+
+            if topic_name in self.req_topics_dict.keys():
+                assert (
+                    "ulog_name" in self.req_topics_dict[topic_name].keys()
+                    and "dataframe_name" in self.req_topics_dict[topic_name].keys()
+                ), "Topic already exists but does not have the required keys"
+
+                if variable_name in self.req_topics_dict[topic_name]["ulog_name"]:
+                    raise AttributeError(
+                        "Please only variables for setpoint data selection that are not used in a different context for system identification"
+                    )
+
+                assert (
+                    "timestamp" in self.req_topics_dict[topic_name]["ulog_name"]
+                    and "timestamp"
+                    in self.req_topics_dict[topic_name]["dataframe_name"]
+                ), "Topic already exists but does not have the required timestamp key"
+
+                self.req_topics_dict[topic_name]["ulog_name"].append(variable_name)
+                self.req_topics_dict[topic_name]["dataframe_name"].append(variable_name)
+
+            else:
+                self.req_topics_dict[topic_name] = {
+                    "ulog_name": ["timestamp", variable_name],
+                    "dataframe_name": ["timestamp", variable_name],
+                }
+
+            print(
+                "Augmented required topics list with setpoint variable:",
+                variable_name,
+                "from topic",
+                topic_name,
+            )
 
         self.req_dataframe_topic_list = config_dict["data"]["req_dataframe_topic_list"]
 

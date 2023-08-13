@@ -70,7 +70,7 @@ source setup.bash
 Generate the parametric model using a log file (ulog or csv):
 
 ```
-make estimate-model [model=<modeltype>] [config=<config_file_path>] [data_selection=<none|interactive|setpoint|auto>] [plot=<True/False>] [log=<log_file_path>]
+make estimate-model [model=<modeltype>] [config=<config_file_path>] [data_selection=<none|interactive|setpoint|auto>] [selection_var=topic_name/variable_name] [plot=<True/False>] [log=<log_file_path>]
 ```
 
 ### Pipeline Arguments
@@ -97,7 +97,7 @@ The data_selection argument is optional (per default none) and can be used to vi
 
 - none(default): Data selection is disabled, and the whole section of the log is used
 - interactive: Data is selected interactively using the [Visual Dataframe Selector](https://github.com/manumerous/visual_dataframe_selector), before running the model estimation. It is also possible to save the selected subportion of data to a csv file in order to use this exact dataset multiple times.
-- setpoint: Data is selected based on a certain `manual_control_setpoint` of the `ulog` or `csv` file. The `manual_control_setpoint` topic that should be used for selection, can be specified in the configuration file of the model as `selection_variable` (possible values are `aux1` to `aux6`). Finally, specific `activations` of the `selection_variable` can also be specified as a list in the configuration file (default: all activations will be used).
+- setpoint: Data is selected based on a certain topic value, which has to be specified with the variable `selection_var` through the command line. The variable has to be provided in the format `topic_name/variable_name` to be recognized and loaded correctly. For example, to select data based on the `aux1` value of the `manual_control_setpoint` topic, the variable `manual_control_setpoint/aux1` has to be specified.
 - auto: Data is selected automatically (Beta)
 
 ### Results
@@ -111,7 +111,6 @@ As an example to get started you estimate the parameters of a quadrotor model wi
 ```
 make estimate-model model=quadrotor_model log=resources/quadrotor_model.ulg
 ```
-
 
 ## Generating a Model Prediction for Given Parameters and Log
 
