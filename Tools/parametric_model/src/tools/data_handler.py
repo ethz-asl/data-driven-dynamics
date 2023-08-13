@@ -59,7 +59,7 @@ class DataHandler(object):
         "sub_plt2_data": ["u0", "u1", "u2", "u3"],
     }
 
-    def __init__(self, config_file, selection_var=""):
+    def __init__(self, config_file, selection_var="none"):
         print(
             "==============================================================================="
         )
