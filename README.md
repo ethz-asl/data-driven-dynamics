@@ -6,7 +6,7 @@
 
 A dynamics model is a valuable tool for a variety of applications, including simulations and control. However, traditional methods for obtaining such models for an unmanned aerial vehicle (UAV), such as wind tunnel testing or the installation of additional sensors, can be time-consuming, inaccesible and costly. In this project, we aim to address this challeng through a data-driven dynamics modelling pipeline that uses the PX4 unified flight log (ULog) format. The pipeline can be used for obtaining a dynamics model solely by minimizing the prediciton error of the model with respect to the flight data collected by the by default on the vehicle installed sensors. The modular approach of the pipeline aims to accomodate different model structures, optimizers and various UAV airframes, including multirotors and vertical take-off and landing (VTOL) UAVs. Specifically, for the example of multirotors, the pipeline automates the joint estimation of a parametric model and the quality of the fit and integrates the former into the PX4 Gazebo flight simulator.
 
-You can get further insights into the pipelines functionalities in the following video presentation:
+You can get an overview of the pipelines functionalities on the [project description website](https://galliker.tech/projects/data_driven_dynamics/) or in the following video presentation:
 
 [![Watch the video](https://img.youtube.com/vi/kAsfptZU4uk/maxresdefault.jpg)](https://www.youtube.com/watch?v=kAsfptZU4uk)
 
