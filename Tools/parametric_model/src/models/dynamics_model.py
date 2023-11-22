@@ -443,14 +443,18 @@ class DynamicsModel:
         }
 
     def save_result_dict_to_yaml(
-        self, file_name="model_parameters", result_path="model_results/"
+        self,
+        file_name="model_parameters",
+        result_path="model_results/",
+        results_only=False,
     ):
         timestr = time.strftime("%Y-%m-%d-%H-%M-%S")
         file_path = result_path + file_name + "_" + timestr + ".yaml"
 
         with open(file_path, "w") as outfile:
             yaml.dump(self.result_dict, outfile, default_flow_style=False)
-            yaml.dump(self.fisher_metric, outfile, default_flow_style=False)
+            if not results_only:
+                yaml.dump(self.fisher_metric, outfile, default_flow_style=False)
         print(
             "-------------------------------------------------------------------------------"
         )
@@ -482,15 +486,24 @@ class DynamicsModel:
         print(
             "==============================================================================="
         )
-        X, y = self.prepare_regression_matrices()
+        self.prepare_regression_matrices()
+
+        configuration = []
+        if self.estimate_forces:
+            configuration.append("lin")
+        if self.estimate_moments:
+            configuration.append("rot")
+        self.X, self.y, self.coef_name_list = self.assemble_regression_matrices(
+            configuration
+        )
 
         c_opt_list = []
         for coef in self.coef_name_list:
             c_opt_list.append(opt_coefs_dict[coef])
 
         self.initialize_optimizer()
-        self.optimizer.set_optimal_coefficients(c_opt_list, X, y)
-        self.generate_optimization_results()
+        self.optimizer.set_optimal_coefficients(c_opt_list, self.X, self.y)
+        self.generate_prediction_results()
 
     def estimate_model(self):
         print(
@@ -592,7 +605,7 @@ class DynamicsModel:
             "-------------------------------------------------------------------------------"
         )
         print(yaml.dump(self.result_dict["metrics"], default_flow_style=False))
-        self.save_result_dict_to_yaml(file_name=self.model_name)
+        self.save_result_dict_to_yaml(file_name=self.model_name, results_only=True)
 
     def generate_optimization_results(self):
         print(
