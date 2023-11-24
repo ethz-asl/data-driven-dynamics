@@ -10,13 +10,13 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux]
     timeout-minutes: 45  
     strategy:
       fail-fast: false
       matrix:
         container:
-          - "px4io/px4-dev-simulation-focal:2020-11-18" # Gazebo 11
+          - "px4io/px4-dev-simulation-focal:2021-05-31" # Gazebo 11
     container: ${{ matrix.container }}
     steps:
       - uses: actions/checkout@v1
