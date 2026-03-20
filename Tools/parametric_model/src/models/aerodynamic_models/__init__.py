@@ -2,3 +2,4 @@ from .fuselage_drag_model import FuselageDragModel
 from .phiaerodynamics_model import PhiAerodynamicsModel
 from .control_surface_model import ControlSurfaceModel
 from .linear_wing_model import LinearWingModel
+from .avl_model import AVLModel
