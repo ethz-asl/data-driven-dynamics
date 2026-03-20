@@ -1,4 +1,5 @@
 from . import aerodynamic_models
+from .fixedwing_avl_model import FixedWingAVLModel
 from . import rotor_models
 from . import model_plots
 from . import extractor_models

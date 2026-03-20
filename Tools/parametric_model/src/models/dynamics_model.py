@@ -463,6 +463,13 @@ class DynamicsModel:
         print(
             "-------------------------------------------------------------------------------"
         )
+        
+        # Call sanity check for AVL models
+        if hasattr(self, 'sanity_check_parameters'):
+            try:
+                self.sanity_check_parameters(self.result_dict.get("coefficients", {}))
+            except Exception as e:
+                print(f"Note: Sanity check not available or failed: {e}")
 
     def load_dataframes(self, data_frame):
         self.data_df = data_frame

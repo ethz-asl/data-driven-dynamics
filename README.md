@@ -112,6 +112,11 @@ As an example to get started you estimate the parameters of a quadrotor model wi
 make estimate-model model=quadrotor_model log=resources/quadrotor_model.ulg
 ```
 
+For fixedwing AVL parameters,
+```
+make estimate-model model=fixedwing_avl_model log=resources/orange_plane.ulg
+```
+
 ## Generating a Model Prediction for Given Parameters and Log
 
 It is also possible to test the obtained parameters for a certain model on a different log using:
